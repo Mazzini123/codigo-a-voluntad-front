@@ -26,11 +26,14 @@ La app queda en <http://localhost:5173>. El backend tiene que estar corriendo (p
 
 ## Variables de entorno
 
-| Variable       | Descripción        | Ejemplo                 |
-| -------------- | ------------------ | ----------------------- |
-| `VITE_API_URL` | URL base de la API | `http://localhost:8000` |
+| Variable            | Descripción                             | Ejemplo                 |
+| ------------------- | --------------------------------------- | ----------------------- |
+| `VITE_API_URL`      | Destino del proxy de Vite en desarrollo | `http://localhost:8000` |
+| `VITE_API_BASE_URL` | URL base que usa Axios                  | `/api`                  |
 
-En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante el proxy de Vite.
+En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante el proxy de Vite, eliminando el prefijo `/api`.
+
+En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o servir `/api` mediante un reverse proxy. El servidor del frontend debe resolver las rutas de React Router a `index.html`.
 
 ## Scripts
 
@@ -47,27 +50,21 @@ En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante 
 
 ## Estructura
 
-```
+```text
 src/
-├── infrastructure/          cómo se habla con el back
-│   ├── http/                instancia de axios e interceptores
-│   ├── httpClients/         una función por endpoint, sin lógica
-│   └── repositories/        mapean las respuestas del back a modelos del front
-├── presentation/            lo que se ve
-│   ├── context/             estado global (sesión, notificaciones)
-│   ├── hooks/               estado, carga y errores de cada pantalla (common/ y por entidad)
-│   ├── components/          shared/ y por entidad
-│   ├── pages/               una por pantalla
-│   ├── routes/              rutas públicas y privadas por rol
-│   └── styles/              tema y estilos base
-├── enums/
-└── utils/
-tests/e2e/                   pruebas de punta a punta
+├── Presentation/    Pages, Components, Hooks, Dependencies y Routes
+├── Application/     UseCases y Domain (DTOs, requests y contratos HttpClient)
+├── Infrastructure/  Instancia de Axios e implementaciones HttpClient
+└── Styles/          Estilos globales y archivos de estilos por entidad
 ```
 
-Flujo: `page` → `hook` → `repository` → `httpClient` → `axios`. Cada capa solo conoce a la de abajo; los componentes nunca llaman a la API directamente.
+Flujo: `page/component` → `hook` → `useCase` → `httpClient` → `axios`. Se usan directamente los DTOs y requests del backend. Dependencies compone los clientes y casos de uso.
 
-Se importa desde `src` con el alias `@` (por ejemplo, `@/presentation/hooks/common/useAsync`).
+Components, Requests y UseCases se agrupan por entidad; Entities, HttpClients, Dependencies, Hooks, Pages y Styles contienen archivos sueltos. Los contratos se declaran con interfaces en archivos `.d.ts`; la aplicación sigue en JavaScript/JSX.
+
+Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/useHabilidades.js`).
+
+El [plan de desarrollo de entidades](docs/PLAN-ENTIDADES.md) contiene el detalle de la arquitectura, los endpoints, el ejemplo de Habilidad y los pasos para incorporar cada entidad.
 
 ## Forma de trabajo (Git Flow)
 

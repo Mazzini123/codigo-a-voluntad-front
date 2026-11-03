@@ -1,0 +1,40 @@
+.habilidad-form {
+  margin: 24px 0;
+}
+.habilidad-form fieldset {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.habilidad-form input,
+.habilidad-form textarea {
+  padding: 8px;
+  width: 100%;
+  border: 1px solid #91a79a;
+  border-radius: 4px;
+}
+.habilidad-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.habilidad-form button {
+  justify-self: start;
+}
+.habilidad-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+}
+.habilidad-list h3 {
+  margin-top: 0;
+}
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
