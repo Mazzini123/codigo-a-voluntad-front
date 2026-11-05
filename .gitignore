@@ -25,3 +25,9 @@ dist-ssr
 
 # Variables de entorno
 .env
+
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# Binario de Impeccable (el lanzador lo descarga en el primer uso)
+.claude/skills/impeccable/scripts/bin/

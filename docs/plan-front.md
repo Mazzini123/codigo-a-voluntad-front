@@ -160,10 +160,12 @@ _Pendiente: confirmar con el docente si se aceptan parámetros `:id` o va `?id=`
 - Errores con `role="alert"`; avisos de éxito con `aria-live="polite"`.
 - `eslint-plugin-jsx-a11y` (ya instalado). Opcional: `vitest-axe` para chequear axe-core en los tests de integración (requiere aprobación).
 
-## 6. Identidad de marca (propuesta)
+## 6. Identidad de marca
 
-- **Tipografías:** para los títulos, _Space Grotesk_ o _Bricolage Grotesque_; para el texto, _Inter_ o _Source Sans 3_; opcionalmente una monoespaciada (_JetBrains Mono_) en chips y números.
-- **Paleta:** acento naranja o coral vivo (10 %), verde petróleo oscuro como complementario (30 %) y crema claro de fondo (60 %). El coral vivo sobre crema no llega a 4.5:1 para texto: se usa una variante oscurecida para texto y botones, y el coral vivo solo como decoración.
+La identidad está definida en `DESIGN.md`, con los tokens, los contrastes verificados y los componentes base.
+
+- **Tipografías:** _Bricolage Grotesque_ para los títulos y _Source Sans 3_ para el texto.
+- **Paleta:** acento coral (10 %), verde petróleo oscuro como complementario (30 %) y crema claro de fondo (60 %). El coral vivo sobre crema no llega a 4.5:1 para texto: se usa una variante oscurecida para texto y botones, y el coral vivo solo como decoración.
 
 ## 7. Justificación de los requerimientos no funcionales (guía)
 

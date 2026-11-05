@@ -7,6 +7,7 @@ Cliente pesado en React (Vite) que consume la API JSON del backend (Express + Mo
 - `docs/PLAN-ENTIDADES.md`: capas, contratos y las operaciones disponibles por módulo (los 60 endpoints). Es el contrato con el back: no inventar rutas que no estén ahí ni en el Swagger del back (`/docs`).
 - `docs/plan-front.md`: roles, pantallas, rutas, base transversal (errores, sesión, carga de datos) y marca.
 - `docs/criterios-pantallas-web.md`: criterios de UX, accesibilidad y checklist de cierre.
+- `PRODUCT.md`: usuarios, propósito, voz y principios del producto.
 - `DESIGN.md`: sistema visual del proyecto (colores, tipografías, espaciados, componentes), generado con Impeccable. Toda pantalla nueva lo respeta.
 - `docs/decisiones.md`: decisiones tomadas y por qué.
 - `specs/active/`: la especificación de la pantalla en curso.
