@@ -60,7 +60,7 @@ src/
 
 Flujo: `page/component` → `hook` → `useCase` → `httpClient` → `axios`. Se usan directamente los DTOs y requests del backend. Dependencies compone los clientes y casos de uso.
 
-Components, Requests y UseCases se agrupan por entidad; Entities, HttpClients, Dependencies, Hooks, Pages y Styles contienen archivos sueltos. Los contratos se declaran con interfaces en archivos `.d.ts`; la aplicación sigue en JavaScript/JSX.
+Components, Requests y UseCases se agrupan por entidad; Entities, HttpClients, Dependencies, Hooks, Pages y Styles contienen archivos sueltos. La aplicación usa JavaScript/JSX; los DTOs, requests y contratos se documentan con anotaciones JSDoc en archivos `.js`.
 
 Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/useHabilidades.js`).
 

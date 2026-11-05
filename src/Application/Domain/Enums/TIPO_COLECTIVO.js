@@ -1,0 +1,7 @@
+/** @typedef {"FUNDACION" | "ASOCIACION_BARRIAL" | "ONG" | "ASAMBLEA"} TipoColectivo */
+export const TIPO_COLECTIVO = Object.freeze({
+  FUNDACION: "FUNDACION",
+  ASOCIACION_BARRIAL: "ASOCIACION_BARRIAL",
+  ONG: "ONG",
+  ASAMBLEA: "ASAMBLEA",
+});
