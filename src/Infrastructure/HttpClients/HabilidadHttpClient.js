@@ -1,6 +1,6 @@
 /**
  * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IHabilidadHttpClient').IHabilidadHttpClient}
+ * @returns {import('../../Application/Domain/HttpClients/IHabilidadHttpClient.js').IHabilidadHttpClient}
  */
 export function crearHabilidadHttpClient(http) {
   return {

@@ -3,8 +3,13 @@ import { crearCrearHabilidad } from "../../Application/UseCases/Habilidad/CrearH
 import { crearHabilidadHttpClient } from "../../Infrastructure/HttpClients/HabilidadHttpClient.js";
 import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
 
-const httpClient = crearHabilidadHttpClient(axiosClient);
-export const habilidadDependencies = {
-  listarHabilidades: crearListarHabilidades(httpClient),
-  crearHabilidad: crearCrearHabilidad(httpClient),
-};
+/** @param {import('axios').AxiosInstance} [http] */
+export function crearHabilidadDependencies(http = axiosClient) {
+  const httpClient = crearHabilidadHttpClient(http);
+  return {
+    listarHabilidades: crearListarHabilidades(httpClient),
+    crearHabilidad: crearCrearHabilidad(httpClient),
+  };
+}
+
+export const habilidadDependencies = crearHabilidadDependencies();

@@ -1,0 +1,7 @@
+/** @typedef {"PENDIENTE" | "ACEPTADA" | "RECHAZADA" | "FINALIZADA"} ColaboracionEstado */
+export const COLABORACION_ESTADO = Object.freeze({
+  PENDIENTE: "PENDIENTE",
+  ACEPTADA: "ACEPTADA",
+  RECHAZADA: "RECHAZADA",
+  FINALIZADA: "FINALIZADA",
+});

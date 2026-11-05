@@ -2,16 +2,16 @@
 
 ## Alcance y decisiones
 
-El plan se basa en los routers, controllers, schemas, services y la serialización de las entidades de `packages/backend/src` del [backend](https://github.com/Mazzini123/tp-desarrollo-2c-2026). El backend es la fuente de verdad; su Swagger está en `/docs` y su especificación en `/openapi.json`. Antes de implementar cada módulo, contrastar ambos con el código vigente.
+El plan se basa en los routers, controllers, schemas, services, models y la serialización de las entidades de `packages/backend/src` del [backend](https://github.com/Mazzini123/tp-desarrollo-2c-2026). El backend es la fuente de verdad; su Swagger está en `/docs` y su especificación en `/openapi.json`. Antes de implementar cada módulo, contrastar ambos con el código vigente.
 
-Esta entrega deja la estructura y una entidad funcional: **Habilidad**, con listado paginado y creación. El resto queda planificado; sólo se reservan carpetas por entidad en Components, Requests y UseCases mediante `.gitkeep`.
+Esta entrega completa la capa de acceso a los 58 endpoints actuales del backend, sin agregar pantallas. El ejemplo existente de Habilidad se conserva.
 
 - Arquitectura por capas: Presentation → UseCases → HttpClients → Axios → backend.
 - Sin repositories, commands, adapters ni clases de dominio en frontend.
 - `Application/Domain/Entities` contiene exclusivamente los DTOs JSON de respuesta. Conservamos el nombre Domain solicitado, pero aquí significa contratos de datos, no un modelo de negocio independiente.
 - **Requests en `Application/Domain/Requests`**: forman parte del contrato que usa el caso de uso, aunque su forma la define backend. Ponerlos en Infrastructure obligaría a Application a importar una capa concreta. No necesitamos introducir commands para resolver eso.
 - `Application/Domain/HttpClients` declara contratos `I[Entity]HttpClient`. Infrastructure implementa esos contratos y realiza las llamadas HTTP directamente.
-- Se mantiene JavaScript/JSX para la aplicación. DTOs, requests y contratos se declaran con `export interface` en archivos `.d.ts`. Son declaraciones de tipos para el editor, sin código ejecutable; no validan datos en runtime ni implican chequeo estático obligatorio en el build. Los archivos `.js` los referencian mediante anotaciones JSDoc `import(...)`, sin imports de tipos en runtime.
+- Se mantiene JavaScript/JSX. DTOs, requests y contratos se documentan con `@typedef` y `@property` de JSDoc en archivos `.js`. Las anotaciones ayudan al editor, sin validar datos en runtime ni agregar chequeo estático obligatorio al build. Se referencian con `import(...)` dentro de JSDoc, sin imports de tipos en runtime. Estos archivos incluyen `export {}` para tratarlos como módulos, sin crear clases ni valores de negocio.
 - Un caso de uso es una función creada con un HttpClient inyectado. Puede delegar directamente si no hay más trabajo; no inventar lógica para justificar una capa.
 - Los formularios construyen el request exacto. Las respuestas se usan directamente, sin convertir nombres ni reconstruir clases.
 - La composición de implementaciones y casos de uso vive en `Presentation/Dependencies`. Es el único lugar de Presentation que importa Infrastructure.
@@ -44,12 +44,12 @@ src/
 │   │   └── CrearHabilidad.js
 │   └── Domain/
 │       ├── Entities/
-│       │   ├── PaginaDto.d.ts
-│       │   └── HabilidadDto.d.ts
+│       │   ├── PaginaDto.js
+│       │   └── HabilidadDto.js
 │       ├── Requests/
-│       │   ├── App/PaginacionRequest.d.ts
-│       │   └── Habilidad/CrearHabilidadRequest.d.ts
-│       ├── HttpClients/IHabilidadHttpClient.d.ts
+│       │   ├── App/PaginacionRequest.js
+│       │   └── Habilidad/CrearHabilidadRequest.js
+│       ├── HttpClients/IHabilidadHttpClient.js
 │       └── Enums/                  Reservado para constantes de la API
 ├── Infrastructure/
 │   ├── Http/axiosClient.js
@@ -59,7 +59,7 @@ src/
     └── habilidades.css
 ```
 
-En Components, UseCases y Requests se reservan carpetas para `Colectivo`, `Colaborador`, `Proyecto`, `Perfil`, `Colaboracion`, `Valoracion`, `Reclutamiento`, `Notificacion`, `Logro`, `Avance`, `Estadistica` y `Timeline`. En el resto, agregar los archivos directamente en su carpeta: por ejemplo `Entities/ColectivoDto.d.ts`, `HttpClients/IColectivoHttpClient.d.ts`, `Infrastructure/HttpClients/ColectivoHttpClient.js`, `Dependencies/colectivoDependencies.js`, `Hooks/useColectivos.js`, `Pages/ColectivosPage.jsx` y `Styles/colectivos.css`.
+Components conserva las carpetas reservadas para las futuras pantallas. Requests y UseCases agrupan sus archivos por módulo; DTOs, HttpClients, Dependencies, Hooks, Pages y Styles usan archivos sueltos. Por ejemplo, Entities/ColectivoDto.js, Infrastructure/HttpClients/ColectivoHttpClient.js y Dependencies/colectivoDependencies.js.
 
 Dentro de Components, `App` agrupa lo compartido y cada entidad agrupa sus componentes. Requests y UseCases también agrupan por entidad; en las carpetas planas, el nombre del archivo identifica el módulo. No crear carpetas de contextos o utilidades sin una necesidad concreta. Ubicación, compromiso, red social y medio de contacto son estructuras compartidas/nested de los DTOs y requests, no módulos con CRUD propio. Reclutamiento, estadísticas y timeline son módulos de consultas/acciones, aunque no sean entidades persistidas independientes.
 
@@ -74,22 +74,24 @@ Dentro de Components, `App` agrupa lo compartido y cada entidad agrupa sus compo
 | HttpClient       | URL, verbo, parámetros, body y extracción de `response.data` | Contratos de Application e instancia HTTP   |
 | Axios            | Base URL, timeout y transporte                               | Backend                                     |
 
-Application no importa React, Axios ni Infrastructure. El contrato HTTP puede aceptar `{ signal }` para cancelación sin exponer `AxiosRequestConfig`. Los hooks no arman URLs ni consumen Axios. Las interfaces `.d.ts` no se instancian ni se importan como valores desde JavaScript. Los imports entre declaraciones usan `import type`. Una futura migración del código ejecutable a TypeScript puede reutilizar estas interfaces.
+Application no importa React, Axios ni Infrastructure. El contrato HTTP puede aceptar `{ signal }` para cancelación sin exponer `AxiosRequestConfig`. Los hooks no arman URLs ni consumen Axios. Los DTOs, requests y contratos son anotaciones JSDoc: no se instancian ni se importan como valores. Una futura migración a TypeScript puede convertirlos a interfaces conservando el flujo.
 
-Ejemplo de declaración en `Application/Domain/Entities/HabilidadDto.d.ts`:
+Ejemplo de declaración en `Application/Domain/Entities/HabilidadDto.js`:
 
-```ts
-export interface HabilidadDto {
-  codigo: string;
-  titulo: string;
-  descripcion: string;
-  fechaCreacion: string;
-  usuario: string;
-  activo: boolean;
-}
+```js
+/**
+ * @typedef {Object} HabilidadDto
+ * @property {string} codigo
+ * @property {string} titulo
+ * @property {string} descripcion
+ * @property {string} fechaCreacion
+ * @property {string} usuario
+ * @property {boolean} activo
+ */
+export {};
 ```
 
-En JavaScript se referencia el tipo sólo dentro de JSDoc, por ejemplo `@param {import('../../Domain/Requests/Habilidad/CrearHabilidadRequest').CrearHabilidadRequest} request`. La ruta omite `.d.ts` y se resuelve por el editor; no genera una llamada ni un import en el bundle.
+En JavaScript se referencia el tipo sólo dentro de JSDoc, por ejemplo `@param {import('../../Domain/Requests/Habilidad/CrearHabilidadRequest.js').CrearHabilidadRequest} request`. El editor resuelve la anotación; no genera una llamada ni un import en el bundle.
 
 ```mermaid
 sequenceDiagram
@@ -159,189 +161,254 @@ No se calculan `codigo`, `fechaCreacion` o `activo` en frontend. `usuario` es op
 - Validar lo básico en formularios; las reglas de aceptación, cupos, estados y permisos de acciones las decide backend. Después de una mutación volver a consultar recursos relacionados afectados.
 - No compartir imports directos con el repositorio backend ni copiar sus clases, repositorios o métodos de negocio al frontend.
 
-## Plan por módulo
+## Estado de implementación
 
-Los nombres de casos de uso siguientes son el trabajo previsto. Salvo Habilidad, todo permanece pendiente. Para cada módulo crear DTOs de cada respuesta real (no sólo un DTO universal), requests por operación, contrato, HttpClient, composición, hooks, componentes, páginas/rutas y estilos. Completar el checklist común al final.
+La capa de acceso al backend está completa para los **58 endpoints** definidos en sus routers: DTOs, requests, enums, contratos, HttpClients, casos de uso y composición de dependencias. Todos son archivos JavaScript; los contratos se describen con JSDoc.
 
-### 1. Habilidad — ejemplo entregado
+El flujo listo para usar es `Dependencies → UseCase → HttpClient → Axios → backend`. Las pantallas, componentes, hooks y rutas nuevos quedan pendientes. Se conserva el ejemplo existente de Habilidad.
 
-- [x] `HabilidadDto`, `CrearHabilidadRequest`, contrato `IHabilidadHttpClient`.
-- [x] `ListarHabilidades`: `GET /habilidades` → `PaginaDto<HabilidadDto>`.
-- [x] `CrearHabilidad`: `POST /habilidades` → `HabilidadDto`.
-- [x] Pantalla, formulario, listado, paginación, carga/error y actualización tras el alta.
-- Fuente: `habilidadesRouter.js`, `HabilidadController.js`, `habilidadSchema.js` y `domain/Habilidad.js`.
+## Operaciones disponibles por módulo
 
-### 2. Colectivo
+Los ids van como argumentos posicionales en el orden de la URL. Después van `query` o `request`, si corresponde, y al final `options = {}`, que admite `signal`. Las queries paginadas son opcionales y por defecto se envía `{}` para dejar que backend aplique sus valores por defecto.
 
-- [ ] `ColectivoDto`: id, nombre, descripción, tipo, ubicación, proyectos, redes sociales, etiquetas, contactos, fechas de alta/baja según JSON real. Estructuras nested `UbicacionDto`, `RedSocialDto`, `MedioDeContactoDto`.
-- [ ] `ListarColectivos`: `GET /colectivos` con paginación/etiqueta.
-- [ ] `ObtenerColectivo`: `GET /colectivos/:id`.
-- [ ] `CrearColectivo`: `POST /colectivos`; body obligatorio `nombre`, `descripcion`, `tipoColectivo`; opcionales `ubicacion`, `redesSociales`, `etiquetas`, `mediosDeContacto`.
-- [ ] `ActualizarColectivo`: `PUT /colectivos/:id`; permite nombre, descripción, ubicación, redes, etiquetas y contactos; no cambio de tipo por este endpoint.
-- [ ] `DarDeBajaColectivo`: `POST /colectivos/:id/baja`, sin body; no DELETE. Mantener el historial visible y refrescar contactos/redes.
-- [ ] `ListarProyectosDeColectivo`: `GET /colectivos/:id/proyectos` → array sin paginar. Puede vivir en Proyecto por cohesión con su catálogo.
-- [ ] Listado con filtro, detalle y formulario de alta/edición; acción explícita de baja.
-- Fuentes: `colectivosRouter.js`, `ColectivoController.js`, `colectivoSchema.js`.
+### Habilidad
 
-### 3. Colaborador
+Composición: `Presentation/Dependencies/habilidadDependencies.js`.
 
-- [ ] `ColaboradorDto`: id, identidad/nombre de fantasía, cuenta Git, pronombres, presentación, habilidades, preferencia de mensajería y redes. **Sin medios de contacto**: backend los excluye al serializar.
-- [ ] `ListarColaboradores` (`GET /colaboradores`, paginado), `ObtenerColaborador` (`GET /colaboradores/:id`), `CrearColaborador` (`POST /colaboradores`) y `ActualizarColaborador` (`PUT /colaboradores/:id`).
-- [ ] Alta: `nombreFantasia`, `nombre`, `apellido`, `cuentaGit`, `pronombres`, `presentacion`, `codigosHabilidades`, `recibeMensajeriaInterna`, `mediosDeContacto`, `redesSociales`; verificar las combinaciones de identidad requeridas por el service.
-- [ ] Edición: sólo `pronombres`, `presentacion`, `recibeMensajeriaInterna`, `redesSociales`.
-- [ ] `AgregarPronombre`: `POST /colaboradores/:id/pronombres`, body `{ pronombre }`; `QuitarPronombre`: DELETE de `.../pronombres/:pronombre`.
-- [ ] `AgregarHabilidadAColaborador`: `POST /colaboradores/:id/habilidades`, `{ codigoHabilidad }`; `QuitarHabilidadDeColaborador`: DELETE de `.../habilidades/:codigoHabilidad`.
-- [ ] `AgregarMedioDeContacto`: `POST /colaboradores/:id/medios-de-contacto`, `{ tipo, valor }`; `QuitarMedioDeContacto`: `DELETE /colaboradores/:id/medios-de-contacto/:tipo/:valor` → 204.
-- [ ] No existe un GET de sus contactos privados. La UI permite alta/baja sin fingir que puede recuperar una lista privada.
-- [ ] Pantallas de listado, detalle y edición; selector de habilidades consume Habilidad. Historial y valoraciones se consumen desde sus módulos.
-- Fuentes: `colaboradoresRouter.js`, `ColaboradorController.js`, `colaboradorSchema.js`, `medioDeContactoSchema.js`, `domain/Colaborador.js`.
+| Caso de uso         | Verbo y endpoint    | Request / query             | Respuesta                 |
+| ------------------- | ------------------- | --------------------------- | ------------------------- |
+| `ListarHabilidades` | `GET /habilidades`  | `PaginacionRequest` (query) | `PaginaDto<HabilidadDto>` |
+| `CrearHabilidad`    | `POST /habilidades` | `CrearHabilidadRequest`     | `HabilidadDto`            |
 
-### 4. Proyecto
+Catálogo paginado. Las habilidades embebidas en otros DTOs usan HabilidadResumenDto (codigo y titulo). No existen edición ni baja de habilidades en la API.
 
-- [ ] `ProyectoDto`: id, título, descripción, estado, concreción, perfiles, colaboraciones, logros, avances, etiquetas, modo de aceptación, cupo, URLs, visualizaciones y fechas según respuesta. Las propiedades `undefined` pueden no aparecer en JSON.
-- [ ] `ListarProyectos`: `GET /proyectos`, paginación/etiqueta; `ObtenerProyecto`: `GET /proyectos/:id`.
-- [ ] `CrearProyecto`: **`POST /colectivos/:id/proyectos`**, no `POST /proyectos`. Body: `titulo`, `descripcion`, al menos un `perfil`; opcionales `etiquetas`, `modoAceptacion`, `limiteVacantes`, `fechaCierre`. El campo se llama `perfiles` y es un array de CrearPerfilRequest. El id del colectivo va en la URL.
-- [ ] `ActualizarProyecto`: `PUT /proyectos/:id`; título, descripción, etiquetas, modo de aceptación, cupo y fecha de cierre.
-- [ ] `FinalizarProyecto`: `POST /proyectos/:id/finalizacion`, sin body.
-- [ ] Listado/detalle/alta/edición; alta requiere un colectivo existente y habilidades para configurar perfiles. Respetar conflictos de cupos, modo y estado devueltos por backend.
-- [ ] Refrescar el detalle tras avances, postulaciones o finalización. Consultar el detalle incrementa visualizaciones: evitar recargas innecesarias como mecanismo genérico de polling.
-- Fuentes: `proyectosRouter.js`, `colectivosRouter.js`, `ProyectoController.js`, `proyectoSchema.js`, `ProyectoService.js`.
+### Colectivo
 
-### 5. Perfil y compromiso
+Composición: `Presentation/Dependencies/colectivoDependencies.js`.
 
-- [ ] `PerfilDto`: id, descripción, habilidades requeridas/opcionales (DTOs), compromiso `{ cantidadHoras, periodo }` y modalidad.
-- [ ] `CrearPerfil`, `ListarPerfiles`: POST/GET `/proyectos/:id/perfiles` (lista simple).
-- [ ] `ObtenerPerfil`, `ActualizarPerfil`, `EliminarPerfil`: GET/PUT/DELETE `/proyectos/:id/perfiles/:perfilId`; DELETE → 204.
-- [ ] Alta: descripción, `codigosHabilidadesRequeridas` no vacío, opcionales `codigosHabilidadesOpcionales`, compromiso obligatorio y modalidad opcional.
-- [ ] Edición: descripción, compromiso y modalidad; gestionar habilidades por endpoints separados.
-- [ ] `AgregarHabilidadRequerida` / `AgregarHabilidadOpcional`: POST de `.../habilidades-requeridas` o `.../habilidades-opcionales`, `{ codigoHabilidad }`.
-- [ ] `QuitarHabilidadRequerida` / `QuitarHabilidadOpcional`: DELETE de esos paths con `/:codigoHabilidad`.
-- [ ] Componentes integrados en detalle/edición de Proyecto. No requiere una página independiente si no aporta navegación.
-- Fuentes: `proyectosRouter.js`, `PerfilController.js`, `perfilSchema.js`.
+| Caso de uso           | Verbo y endpoint                     | Request / query                     | Respuesta                 |
+| --------------------- | ------------------------------------ | ----------------------------------- | ------------------------- |
+| `ListarColectivos`    | `GET /colectivos`                    | `ListadoConEtiquetaRequest` (query) | `PaginaDto<ColectivoDto>` |
+| `ObtenerColectivo`    | `GET /colectivos/:colectivoId`       | Sin body                            | `ColectivoDto`            |
+| `CrearColectivo`      | `POST /colectivos`                   | `CrearColectivoRequest`             | `ColectivoDto`            |
+| `ActualizarColectivo` | `PUT /colectivos/:colectivoId`       | `ActualizarColectivoRequest`        | `ColectivoDto`            |
+| `DarDeBajaColectivo`  | `POST /colectivos/:colectivoId/baja` | Sin body                            | `ColectivoDto`            |
 
-### 6. Colaboración / postulación
+La baja es una acción POST que conserva el historial y elimina contactos/redes. No hay DELETE del colectivo. Los listados aceptan etiqueta.
 
-- [ ] `ColaboracionDto` con id, colaborador **nullable**, visibilidad, estado, fechas y ambas valoraciones. Postulación es una colaboración pendiente, no otro CRUD.
-- [ ] `RegistrarColaboracion`: `POST /proyectos/:id/colaboraciones`, `{ colaboradorId, esPublica? }`.
-- [ ] `ListarColaboracionesDeProyecto`: `GET /proyectos/:id/colaboraciones` → array de colaboraciones.
-- [ ] `ListarColaboracionesDeColaborador`: `GET /colaboradores/:id/colaboraciones` → array de `{ proyectoId, colaboracion }`, distinto del anterior.
-- [ ] `AceptarPostulacion`, `RechazarPostulacion`, `FinalizarColaboracion`: POST sin body a `/proyectos/:id/colaboraciones/:colaboracionId/aceptacion`, `/rechazo`, `/finalizacion`.
-- [ ] Mostrar estados devueltos por backend; no asumir que registrar siempre termina en PENDIENTE (depende del modo de aceptación).
-- [ ] Contribuciones anónimas: `colaborador: null`; no intentar reconstruir la identidad. No aparecen en el historial público de la persona.
-- [ ] Acciones en detalle de proyecto y sección de historial del colaborador. Refrescar cupos/estado/lista afectada tras cada acción.
-- Fuentes: `proyectosRouter.js`, `colaboradoresRouter.js`, `PostulacionController.js`, `ColaboracionService.js` y `domain/Colaboracion.js`.
+### Colaborador
 
-### 7. Valoración
+Composición: `Presentation/Dependencies/colaboradorDependencies.js`.
 
-- [ ] `ValoracionDto` y DTOs de resumen/contexto por endpoint.
-- [ ] `ValorarColaboracion`: `POST /proyectos/:id/colaboraciones/:colaboracionId/valoraciones`, `{ autor, puntaje, comentario? }`; autor COLECTIVO/COLABORADOR, puntaje entero de 1 a 5, comentario máximo 280.
-- [ ] `ObtenerValoracionesDeColectivo`: `GET /colectivos/:id/valoraciones`.
-- [ ] `ObtenerValoracionesDeColaborador`: `GET /colaboradores/:id/valoraciones`.
-- [ ] Los dos GET retornan `{ cantidad, promedio, valoraciones }`, no un array directo ni PaginaDto; promedio puede ser null. Los elementos tienen contexto diferente (autor/proyecto/colectivo).
-- [ ] Formulario en colaboración finalizada y resúmenes en detalles de colectivo/colaborador. Respetar anonimato y errores de valoración repetida o estado inválido.
-- Fuentes: `valoracionSchema.js`, `PostulacionController.js`, `ColaboracionService.js`.
+| Caso de uso                    | Verbo y endpoint                                                       | Request / query                | Respuesta                   |
+| ------------------------------ | ---------------------------------------------------------------------- | ------------------------------ | --------------------------- |
+| `ListarColaboradores`          | `GET /colaboradores`                                                   | `PaginacionRequest` (query)    | `PaginaDto<ColaboradorDto>` |
+| `ObtenerColaborador`           | `GET /colaboradores/:colaboradorId`                                    | Sin body                       | `ColaboradorDto`            |
+| `CrearColaborador`             | `POST /colaboradores`                                                  | `CrearColaboradorRequest`      | `ColaboradorDto`            |
+| `ActualizarColaborador`        | `PUT /colaboradores/:colaboradorId`                                    | `ActualizarColaboradorRequest` | `ColaboradorDto`            |
+| `AgregarPronombre`             | `POST /colaboradores/:colaboradorId/pronombres`                        | `AgregarPronombreRequest`      | `ColaboradorDto`            |
+| `QuitarPronombre`              | `DELETE /colaboradores/:colaboradorId/pronombres/:pronombre`           | Sin body                       | `ColaboradorDto`            |
+| `AgregarHabilidadAColaborador` | `POST /colaboradores/:colaboradorId/habilidades`                       | `AgregarHabilidadRequest`      | `ColaboradorDto`            |
+| `QuitarHabilidadDeColaborador` | `DELETE /colaboradores/:colaboradorId/habilidades/:codigoHabilidad`    | Sin body                       | `ColaboradorDto`            |
+| `AgregarMedioDeContacto`       | `POST /colaboradores/:colaboradorId/medios-de-contacto`                | `MedioDeContactoRequest`       | `MedioDeContactoDto`        |
+| `QuitarMedioDeContacto`        | `DELETE /colaboradores/:colaboradorId/medios-de-contacto/:tipo/:valor` | Sin body                       | `void (204)`                |
 
-### 8. Reclutamiento e invitaciones
+El DTO público excluye mediosDeContacto. Agregar un contacto devuelve sólo el medio cargado; quitarlo devuelve 204. Los demás DELETE de habilidades/pronombres devuelven ColaboradorDto. La edición no permite cambiar la identidad.
 
-- [ ] `BuscarColaboradorasPotenciales`: `GET /proyectos/:id/perfiles/:perfilId/colaboradoras-potenciales`, paginado. Cada item es `{ colaborador, habilidadesOpcionalesQueTiene }`, no ColaboradorDto directo.
-- [ ] `BuscarProyectosPotenciales`: `GET /colaboradores/:id/proyectos-potenciales`, paginado de ProyectoDto.
-- [ ] `InvitarColaborador`: `POST /proyectos/:id/perfiles/:perfilId/invitaciones`, `{ colaboradorId, mensaje? }`, mensaje máximo 500. Retorna una notificación, no una colaboración.
-- [ ] Sección de búsqueda por perfil y recomendaciones por colaborador; contemplar que el destinatario no acepte mensajería y los conflictos del estado del proyecto.
-- Fuentes: `ReclutamientoController.js`, `ReclutamientoService.js`, `reclutamientoSchema.js` y routers.
+### Proyecto
 
-### 9. Notificación
+Composición: `Presentation/Dependencies/proyectoDependencies.js`.
 
-- [ ] `NotificacionDto`: id, destinatarioId, tipo, asunto, contenido, referencias, fecha, esLeida, envios.
-- [ ] `ListarNotificaciones`: `GET /colaboradores/:id/notificaciones`, paginado.
-- [ ] `MarcarNotificacionComoLeida`: `POST /colaboradores/:id/notificaciones/:notificacionId/lectura`, sin body.
-- [ ] Bandeja por colaborador, estado leído y enlaces según `referencias` (proyectoId/perfilId/colectivoId). No asumir una sesión global mientras backend no tenga autenticación.
-- [ ] Refrescar la bandeja después de marcar lectura y manejar referencias a recursos que ya no estén disponibles.
-- Fuentes: `NotificacionController.js`, `NotificacionService.js`, `domain/NotificacionInterna.js`, `colaboradoresRouter.js`.
+| Caso de uso                  | Verbo y endpoint                           | Request / query                     | Respuesta                |
+| ---------------------------- | ------------------------------------------ | ----------------------------------- | ------------------------ |
+| `ListarProyectos`            | `GET /proyectos`                           | `ListadoConEtiquetaRequest` (query) | `PaginaDto<ProyectoDto>` |
+| `ObtenerProyecto`            | `GET /proyectos/:proyectoId`               | Sin body                            | `ProyectoDto`            |
+| `CrearProyecto`              | `POST /colectivos/:colectivoId/proyectos`  | `CrearProyectoRequest`              | `ProyectoDto`            |
+| `ListarProyectosDeColectivo` | `GET /colectivos/:colectivoId/proyectos`   | Sin body                            | `ProyectoDto[]`          |
+| `ActualizarProyecto`         | `PUT /proyectos/:proyectoId`               | `ActualizarProyectoRequest`         | `ProyectoDto`            |
+| `FinalizarProyecto`          | `POST /proyectos/:proyectoId/finalizacion` | Sin body                            | `ProyectoDto`            |
 
-### 10. Logro
+Crear y listar por colectivo usa /colectivos/:colectivoId/proyectos. vacantesLibres es un campo calculado por backend. El detalle registra una visualización; las URLs y el progreso se actualizan mediante avances. El listado admite etiqueta.
 
-- [ ] `LogroDto`: id, título, descripción y fecha.
-- [ ] `CrearLogro`, `ListarLogros`: POST/GET `/proyectos/:id/logros`.
-- [ ] `ObtenerLogro`, `ActualizarLogro`, `EliminarLogro`: GET/PUT/DELETE `/proyectos/:id/logros/:logroId`; DELETE → 204.
-- [ ] Alta y edición requieren `{ titulo, descripcion }`. Lista simple sin paginación.
-- [ ] Formulario y listado en detalle de proyecto; refrescar listado y timeline tras mutaciones.
-- Fuentes: `LogroController.js`, `logroSchema.js`, `proyectosRouter.js`.
+### Perfil
 
-### 11. Avance
+Composición: `Presentation/Dependencies/perfilDependencies.js`.
 
-- [ ] `AvanceDto`: id, porcentajeConcrecion, urlSistema, urlRepositorio y fecha.
-- [ ] `RegistrarAvance`, `ListarAvances`: POST/GET `/proyectos/:id/avances`.
-- [ ] `ObtenerAvance`: `GET /proyectos/:id/avances/:avanceId`.
-- [ ] Body obligatorio `{ porcentajeConcrecion, urlSistema, urlRepositorio }`; porcentaje numérico entre 0 y 100, URLs HTTP/HTTPS. Convertir el valor del input a número al construir el request.
-- [ ] Historial simple y formulario en detalle de proyecto. No hay edición/baja de avances. Refrescar progreso/URLs del proyecto y timeline al registrar uno.
-- Fuentes: `AvanceController.js`, `avanceSchema.js`, `proyectosRouter.js`.
+| Caso de uso                 | Verbo y endpoint                                                                           | Request / query           | Respuesta     |
+| --------------------------- | ------------------------------------------------------------------------------------------ | ------------------------- | ------------- |
+| `ListarPerfiles`            | `GET /proyectos/:proyectoId/perfiles`                                                      | Sin body                  | `PerfilDto[]` |
+| `ObtenerPerfil`             | `GET /proyectos/:proyectoId/perfiles/:perfilId`                                            | Sin body                  | `PerfilDto`   |
+| `CrearPerfil`               | `POST /proyectos/:proyectoId/perfiles`                                                     | `CrearPerfilRequest`      | `PerfilDto`   |
+| `ActualizarPerfil`          | `PUT /proyectos/:proyectoId/perfiles/:perfilId`                                            | `ActualizarPerfilRequest` | `PerfilDto`   |
+| `EliminarPerfil`            | `DELETE /proyectos/:proyectoId/perfiles/:perfilId`                                         | Sin body                  | `void (204)`  |
+| `AgregarHabilidadRequerida` | `POST /proyectos/:proyectoId/perfiles/:perfilId/habilidades-requeridas`                    | `AgregarHabilidadRequest` | `PerfilDto`   |
+| `QuitarHabilidadRequerida`  | `DELETE /proyectos/:proyectoId/perfiles/:perfilId/habilidades-requeridas/:codigoHabilidad` | Sin body                  | `PerfilDto`   |
+| `AgregarHabilidadOpcional`  | `POST /proyectos/:proyectoId/perfiles/:perfilId/habilidades-opcionales`                    | `AgregarHabilidadRequest` | `PerfilDto`   |
+| `QuitarHabilidadOpcional`   | `DELETE /proyectos/:proyectoId/perfiles/:perfilId/habilidades-opcionales/:codigoHabilidad` | Sin body                  | `PerfilDto`   |
 
-### 12. Estadística
+El alta requiere al menos una habilidad requerida y compromiso. Editar descripción/compromiso/modalidad no cambia las habilidades: usar sus acciones específicas. Sólo eliminar el perfil devuelve 204.
 
-- [ ] `ObtenerEstadisticasGlobales`: `GET /estadisticas`; DTO con colectivos, proyectos, colaboradores, colaboraciones, habilidades más requeridas/ofrecidas y generadoEn.
-- [ ] `ObtenerEstadisticasDeColectivo`: `GET /colectivos/:id/estadisticas`; DTO propio con colectivo, proyectos, colaboraciones, visualizaciones, avancePromedio, logros, porProyecto y generadoEn.
-- [ ] No usar PaginaDto ni calcular agregados de negocio en componentes. Las globales declaran caché pública de 60 segundos; mostrar la fecha de generación.
-- [ ] Panel general y panel del colectivo; manejar ausencia de datos.
-- Fuentes: `EstadisticaController.js`, `EstadisticaService.js`, `estadisticasRouter.js`, `colectivosRouter.js`.
+### Colaboracion
 
-### 13. Timeline
+Composición: `Presentation/Dependencies/colaboracionDependencies.js`.
 
-- [ ] `ObtenerTimelineDeColectivo`: `GET /colectivos/:id/timeline`.
-- [ ] Definir `EventoTimelineDto` según salida de `ColectivoService.timeline`, incluyendo las variantes de datos según tipo de evento.
-- [ ] Línea temporal pública en el detalle del colectivo. Es una consulta compuesta, sin alta/edición/baja propias.
-- [ ] Refrescar después de logros, avances, cierre de colaboraciones, finalización de proyectos o baja del colectivo; respetar la información pública que entregue backend.
-- Fuentes: `ColectivoController.js`, `ColectivoService.js`, `TIPO_EVENTO_TIMELINE.js`.
+| Caso de uso                         | Verbo y endpoint                                                          | Request / query                | Respuesta                        |
+| ----------------------------------- | ------------------------------------------------------------------------- | ------------------------------ | -------------------------------- |
+| `RegistrarColaboracion`             | `POST /proyectos/:proyectoId/colaboraciones`                              | `RegistrarColaboracionRequest` | `ColaboracionDto`                |
+| `ListarColaboracionesDeProyecto`    | `GET /proyectos/:proyectoId/colaboraciones`                               | Sin body                       | `ColaboracionDto[]`              |
+| `ListarColaboracionesDeColaborador` | `GET /colaboradores/:colaboradorId/colaboraciones`                        | Sin body                       | `ColaboracionDeColaboradorDto[]` |
+| `AceptarPostulacion`                | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/aceptacion`   | Sin body                       | `ColaboracionDto`                |
+| `RechazarPostulacion`               | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/rechazo`      | Sin body                       | `ColaboracionDto`                |
+| `FinalizarColaboracion`             | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/finalizacion` | Sin body                       | `ColaboracionDto`                |
 
-## Contratos compartidos y enums por agregar
+Postulación y colaboración son el mismo recurso con distintos estados. Registrar puede quedar aceptado automáticamente. colaborador es null en contribuciones anónimas; el historial por persona devuelve { proyectoId, colaboracion }[] y no incluye sus contribuciones anónimas.
 
-Crear DTOs/requests compartidos sólo cuando se usen: Ubicación, RedSocial, MedioDeContacto, Compromiso, resumen de valoración y referencias de notificación. Deben representar el JSON, sin métodos.
+### Valoracion
 
-| Enum                  | Valores de backend revisados                                                                                      |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| TipoColectivo         | FUNDACION, ASOCIACION_BARRIAL, ONG, ASAMBLEA                                                                      |
-| TipoUbicacion         | ARGENTINA, PROVINCIA, CABA, LOCALIDAD                                                                             |
-| PeriodoCompromiso     | HS_TOTALES, HS_SEMANALES, HS_MENSUALES                                                                            |
-| ModalidadColaboracion | GRATUITA, OFRECE_INCENTIVO_ECONOMICO, EXISTE_POSIBILIDAD_DE_CONTRATACION                                          |
-| ModoAceptacion        | REVISION_MANUAL, TODO_SUMA, HASTA_LLENAR_VACANTES                                                                 |
-| ProyectoEstado        | ABIERTO, FINALIZADO                                                                                               |
-| ColaboracionEstado    | PENDIENTE, ACEPTADA, RECHAZADA, FINALIZADA                                                                        |
-| AutorValoracion       | COLECTIVO, COLABORADOR                                                                                            |
-| TipoMedioContacto     | SMS, EMAIL, WHATSAPP                                                                                              |
-| TipoNotificacion      | INVITACION, PROYECTOS_COMPATIBLES, POSTULACION_ACEPTADA, POSTULACION_RECHAZADA, COLABORACION_FINALIZADA           |
-| TipoEventoTimeline    | ALTA_DEL_COLECTIVO, PROYECTO_CREADO, LOGRO, AVANCE, COLABORACION_CERRADA, PROYECTO_FINALIZADO, BAJA_DEL_COLECTIVO |
+Composición: `Presentation/Dependencies/valoracionDependencies.js`.
 
-## Orden sugerido de implementación
+| Caso de uso                        | Verbo y endpoint                                                          | Request / query              | Respuesta                                            |
+| ---------------------------------- | ------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------- |
+| `ValorarColaboracion`              | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/valoraciones` | `ValorarColaboracionRequest` | `ValoracionDto`                                      |
+| `ObtenerValoracionesDeColectivo`   | `GET /colectivos/:colectivoId/valoraciones`                               | Sin body                     | `ResumenValoracionesDto<ValoracionDeColectivoDto>`   |
+| `ObtenerValoracionesDeColaborador` | `GET /colaboradores/:colaboradorId/valoraciones`                          | Sin body                     | `ResumenValoracionesDto<ValoracionDeColaboradorDto>` |
 
-1. Habilidad (ejemplo base); contratos/enums compartidos que se necesiten.
-2. Colectivo y Colaborador: listado, detalle, alta y edición, con selector de habilidades.
-3. Proyecto y Perfil: creación bajo colectivo, detalle y configuración de perfiles.
-4. Colaboración/postulación: registro, listado y resolución; luego Valoración.
-5. Reclutamiento e invitaciones y bandeja de Notificación.
-6. Logro y Avance; luego Timeline y Estadística.
+POST devuelve ValoracionDto. Los GET devuelven { cantidad, promedio, valoraciones }; promedio puede ser null. Cada listado tiene DTO propio para el contexto del autor/proyecto/colectivo.
 
-Cada módulo puede entregarse por operación. Por ejemplo, cerrar primero `ListarColectivos` con su pantalla y contrato real antes de abordar todas sus acciones.
+### Reclutamiento
 
-## Checklist para incorporar una operación
+Composición: `Presentation/Dependencies/reclutamientoDependencies.js`.
 
-1. Revisar router, schema, controller y salida del service/toJSON del backend; registrar verbo/path, params/query/body, respuesta, código de éxito y errores.
-2. Documentar el DTO/request en Application sin renombrar campos. Distinguir id, codigo, nullable, arrays y objetos paginados.
-3. Agregar la firma al `I[Entity]HttpClient` e implementar el endpoint en Infrastructure usando la instancia compartida de Axios; pasar signal en consultas.
-4. Crear el caso de uso e inyectar el cliente desde Dependencies. No importar Infrastructure dentro del caso de uso.
-5. Crear hook para carga, errores, cancelación y mutación. Cancelar/ignorar consultas anteriores y bloquear envíos duplicados.
-6. Conectar componentes y página, con estados vacío, cargando, error y éxito; labels accesibles y estilos en Styles.
-7. Registrar la ruta sólo si hay una página nueva. Para recursos anidados, mantener explícitos los ids del padre.
-8. Refrescar sólo las consultas afectadas tras mutaciones y mantener el formulario si hay errores.
-9. Probar un recorrido real entre componente y transporte con respuestas representativas; contemplar un error relevante, paginación y cancelación cuando aplique. Mockear sólo el transporte en esas pruebas, para no saltarse las capas.
-10. Ejecutar build, pruebas y verificaciones del repositorio. Hacer una prueba manual con backend levantado y marcar los ítems completados en este documento.
+| Caso de uso                      | Verbo y endpoint                                                          | Request / query             | Respuesta                             |
+| -------------------------------- | ------------------------------------------------------------------------- | --------------------------- | ------------------------------------- |
+| `BuscarColaboradorasPotenciales` | `GET /proyectos/:proyectoId/perfiles/:perfilId/colaboradoras-potenciales` | `PaginacionRequest` (query) | `PaginaDto<ColaboradoraPotencialDto>` |
+| `BuscarProyectosPotenciales`     | `GET /colaboradores/:colaboradorId/proyectos-potenciales`                 | `PaginacionRequest` (query) | `PaginaDto<ProyectoDto>`              |
+| `InvitarColaborador`             | `POST /proyectos/:proyectoId/perfiles/:perfilId/invitaciones`             | `InvitarColaboradorRequest` | `NotificacionDto`                     |
 
-## Ejecución y comprobación manual
+Colaboradoras potenciales devuelve una página de { colaborador, habilidadesOpcionalesQueTiene }; proyectos potenciales devuelve una página de ProyectoDto. Una invitación devuelve NotificacionDto, no una colaboración.
 
-Levantar frontend y backend según sus respectivos README y abrir `/habilidades`. En desarrollo, con `VITE_API_BASE_URL=/api`, una consulta sale a `/api/habilidades?page=1&limit=10`; Vite elimina `/api` y la reenvía al backend configurado en `VITE_API_URL`.
+### Notificacion
 
-Verificar carga, listado vacío si corresponde, alta, éxito, paginación y error de habilidad duplicada (409); con backend apagado, verificar error y reintento. La habilidad nueva puede estar en otra página porque backend no garantiza un orden específico. Las pruebas automatizadas usan un transporte simulado: no acreditan conexión a un backend real.
+Composición: `Presentation/Dependencies/notificacionDependencies.js`.
 
-El proxy de Vite sólo existe en desarrollo. Para producción, configurar `VITE_API_BASE_URL` con la URL pública del backend al hacer build, o servir `/api` con un reverse proxy que elimine el prefijo. El hosting del frontend también debe resolver rutas de BrowserRouter a `index.html`. Las variables `VITE_*` son públicas; no guardar secretos en ellas.
+| Caso de uso                   | Verbo y endpoint                                                            | Request / query             | Respuesta                    |
+| ----------------------------- | --------------------------------------------------------------------------- | --------------------------- | ---------------------------- |
+| `ListarNotificaciones`        | `GET /colaboradores/:colaboradorId/notificaciones`                          | `PaginacionRequest` (query) | `PaginaDto<NotificacionDto>` |
+| `MarcarNotificacionComoLeida` | `POST /colaboradores/:colaboradorId/notificaciones/:notificacionId/lectura` | Sin body                    | `NotificacionDto`            |
 
-## Evolución posterior
+La bandeja está paginada por colaborador. Marcar lectura devuelve NotificacionDto. ReferenciasNotificacionDto contempla los ids de invitaciones/resoluciones y proyectoIds para avisos de proyectos compatibles. No existe un endpoint de creación manual: las notificaciones se generan por las operaciones del backend.
 
-Agregar commands/modelos propios/adapters/repositorios sólo si aparece una necesidad concreta (contratos incompatibles, múltiples fuentes o reglas propias de frontend). La separación actual permite hacerlo por entidad; no hace falta crear esas capas ahora. Autenticación, sesión y restricciones por rol requieren contrato de backend y quedan fuera de esta base.
+### Logro
+
+Composición: `Presentation/Dependencies/logroDependencies.js`.
+
+| Caso de uso       | Verbo y endpoint                                | Request / query          | Respuesta    |
+| ----------------- | ----------------------------------------------- | ------------------------ | ------------ |
+| `ListarLogros`    | `GET /proyectos/:proyectoId/logros`             | Sin body                 | `LogroDto[]` |
+| `ObtenerLogro`    | `GET /proyectos/:proyectoId/logros/:logroId`    | Sin body                 | `LogroDto`   |
+| `CrearLogro`      | `POST /proyectos/:proyectoId/logros`            | `CrearLogroRequest`      | `LogroDto`   |
+| `ActualizarLogro` | `PUT /proyectos/:proyectoId/logros/:logroId`    | `ActualizarLogroRequest` | `LogroDto`   |
+| `EliminarLogro`   | `DELETE /proyectos/:proyectoId/logros/:logroId` | Sin body                 | `void (204)` |
+
+Listado simple. Tanto alta como edición requieren titulo y descripcion. Eliminar devuelve 204. Backend exige un proyecto abierto para modificar logros y valida títulos repetidos.
+
+### Avance
+
+Composición: `Presentation/Dependencies/avanceDependencies.js`.
+
+| Caso de uso       | Verbo y endpoint                               | Request / query          | Respuesta     |
+| ----------------- | ---------------------------------------------- | ------------------------ | ------------- |
+| `ListarAvances`   | `GET /proyectos/:proyectoId/avances`           | Sin body                 | `AvanceDto[]` |
+| `ObtenerAvance`   | `GET /proyectos/:proyectoId/avances/:avanceId` | Sin body                 | `AvanceDto`   |
+| `RegistrarAvance` | `POST /proyectos/:proyectoId/avances`          | `RegistrarAvanceRequest` | `AvanceDto`   |
+
+Sólo alta, listado y detalle; no hay edición/baja. El request requiere porcentaje numérico y ambas URLs HTTP/HTTPS. Backend exige un progreso mayor al actual y proyecto abierto.
+
+### Estadistica
+
+Composición: `Presentation/Dependencies/estadisticaDependencies.js`.
+
+| Caso de uso                      | Verbo y endpoint                            | Request / query | Respuesta                  |
+| -------------------------------- | ------------------------------------------- | --------------- | -------------------------- |
+| `ObtenerEstadisticasGlobales`    | `GET /estadisticas`                         | Sin body        | `EstadisticasGlobalesDto`  |
+| `ObtenerEstadisticasDeColectivo` | `GET /colectivos/:colectivoId/estadisticas` | Sin body        | `EstadisticasColectivoDto` |
+
+Dos DTOs distintos para globales y colectivo; no se calculan agregados en frontend. Las globales usan caché pública de 60 segundos. generadoEn es una fecha ISO.
+
+### Timeline
+
+Composición: `Presentation/Dependencies/timelineDependencies.js`.
+
+| Caso de uso                  | Verbo y endpoint                        | Request / query | Respuesta             |
+| ---------------------------- | --------------------------------------- | --------------- | --------------------- |
+| `ObtenerTimelineDeColectivo` | `GET /colectivos/:colectivoId/timeline` | Sin body        | `EventoTimelineDto[]` |
+
+Array cronológico de eventos públicos. Los campos adicionales dependen del tipo: proyecto, logro, avance o colaborador. Una colaboración anónima tiene colaborador null. No tiene mutaciones propias.
+
+### Health
+
+Composición: `Presentation/Dependencies/healthDependencies.js`.
+
+| Caso de uso       | Verbo y endpoint | Request / query | Respuesta   |
+| ----------------- | ---------------- | --------------- | ----------- |
+| `ConsultarHealth` | `GET /health`    | Sin body        | `HealthDto` |
+
+Consulta técnica de disponibilidad. Responde status, uptime (segundos) y timestamp. La documentación Swagger/OpenAPI no se trata como un flujo de entidades.
+
+## Cómo consumir un flujo desde presentación
+
+Las dependencias ya exportan los casos de uso listos. Al incorporar un hook, importar sólo la composición del módulo y pasar el request exacto de backend:
+
+```js
+import { proyectoDependencies } from "@/Presentation/Dependencies/proyectoDependencies.js";
+
+const controller = new AbortController();
+const pagina = await proyectoDependencies.listarProyectos(
+  { page: 1, limit: 10, etiqueta: "educacion" },
+  { signal: controller.signal },
+);
+
+const proyecto = await proyectoDependencies.crearProyecto(colectivoId, {
+  titulo: "Portal comunitario",
+  descripcion: "Sitio para la organización",
+  perfiles: [
+    {
+      descripcion: "Frontend",
+      codigosHabilidadesRequeridas: ["react"],
+      compromiso: { cantidadHoras: 4, periodo: "HS_SEMANALES" },
+    },
+  ],
+});
+```
+
+Los hooks futuros deben gestionar carga, error, cancelación y actualización de consultas después de mutaciones. Los casos de uso y HttpClients no guardan estado de UI ni toman decisiones de negocio. Cancelar una mutación no revierte una acción ya procesada por backend.
+
+Cada módulo también exporta `crear[Modulo]Dependencies(http)` para inyectar una instancia Axios en pruebas. Los contratos no exponen Axios: sólo la composición e Infrastructure lo conocen.
+
+## Consideraciones del contrato actual
+
+- DTOs de respuesta en Entities, contratos en Domain/HttpClients e implementaciones en Infrastructure/HttpClients: archivos sueltos. Requests y UseCases mantienen su agrupación por módulo.
+- Los ids de entidades llegan como strings JSON; Habilidad se identifica públicamente por codigo. No guardar objetos ObjectId ni recrear modelos de Mongoose en frontend.
+- Los DTOs describen la serialización pública de los modelos actuales, no sus campos internos: sin _id, __v ni contactos privados de colaboradores. FechaCreacion y el resto de las fechas se conservan como strings ISO.
+- Los requests de edición contienen sólo los campos permitidos por los schemas de backend. No enviar un DTO entero. Los PUT parciales requieren algún campo; Logro requiere ambos campos.
+- Al construir URLs se codifica cada segmento dinámico, incluidos ids, pronombres, códigos y valores de contacto.
+- Los HttpClients extraen sólo response.data y mantienen el contenido JSON intacto, incluido el sobre paginado. Las operaciones 204 no intentan devolver un DTO.
+- Se propagan los errores originales de Axios, conservando response.status y response.data (message, issues o detalle). No hay reintentos automáticos de mutaciones.
+- Las reglas de cupo, estados, habilidades, anonimato, cierre, contactos y validación siguen siendo responsabilidad del backend.
+- Los enums de Application/Domain/Enums corresponden a los valores del backend; no contienen sus validadores ni lógica de dominio.
+
+## Validación
+
+- La matriz de `tests/application/flujosBackend.test.js` recorre los 58 flujos desde las composiciones hasta el transporte de Axios, verificando método, URL, query, body, signal y salida, además de errores, aislamiento de instancias y cancelación.
+- Las pruebas existentes del ejemplo de Habilidad siguen cubriendo el recorrido desde UI.
+- La cobertura de endpoints se contrastó con los routers actuales del backend. Las pruebas del frontend sustituyen el transporte HTTP y no dependen de un checkout del backend.
+- Para comprobaciones manuales, levantar ambos proyectos según sus README. La instancia Axios usa la configuración compartida del proyecto; no se duplican URLs por entidad.
+
+## Pendiente para próximas entregas
+
+- [ ] Agregar hooks, componentes, páginas y navegación del resto de los módulos.
+- [ ] Conectar las acciones con recarga de los recursos relacionados y mensajes adecuados para sus errores.
+- [ ] Incorporar sesión y restricciones por rol cuando backend exponga autenticación.
+- [ ] Agregar pruebas de UI a medida que se implementen pantallas.
+
+El README general conserva sólo el arranque y el resumen de arquitectura. Este documento concentra el inventario y la guía de incorporación de entidades. Agregar adapters, repositories o commands sólo si aparece una necesidad concreta.
