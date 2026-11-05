@@ -69,7 +69,7 @@ src/
 │   ├── Http/           axiosClient.js
 │   ├── HttpClients/    implementación de cada contrato
 │   └── Auth/           adaptador del proveedor de identidad
-└── Styles/
+└── Styles/           tokens.css y base.css (globales); el resto, X.module.css junto a cada componente
 ```
 
 - **Flujo:** `Page` → `Hook` → `Dependencies` → `UseCase` → `HttpClient` → `axiosClient`.
@@ -149,8 +149,10 @@ _Pendiente: confirmar con el docente si se aceptan parámetros `:id` o va `?id=`
 
 ### 5.5 Estilos (§21.4.3 y §19.6)
 
-- Sin librería de componentes. Tokens de diseño (colores, tipografías, espaciados) como variables CSS en `Styles/`.
-- Convención de archivos: a definir (hoy hay un CSS global por módulo en `Styles/`; la alternativa es CSS Modules junto a cada componente). Ver `decisiones.md`.
+- Sin librería de componentes.
+- **CSS Modules:** cada componente y cada página tiene su `X.module.css` al lado (`Boton.jsx` + `Boton.module.css`) y lo importa como `import estilos from "./Boton.module.css"`. Las clases no chocan entre módulos.
+- **Solo dos archivos globales en `Styles/`:** `tokens.css`, con los tokens de `DESIGN.md` como variables CSS en `:root`, y `base.css`, con el reset, las tipografías (`@font-face`) y los estilos de las etiquetas HTML. Se importan una vez en `main.jsx`.
+- Los componentes usan las variables de `tokens.css`; ningún color, tamaño o espaciado suelto.
 - Lo dinámico va en variables CSS o props; lo estático, en CSS.
 - Para el diálogo se usa `<dialog>` nativo. Si aparece un componente complejo (combobox, menú desplegable), se evalúa una librería headless accesible (Radix, React Aria) puntualmente.
 

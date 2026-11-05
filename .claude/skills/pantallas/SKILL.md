@@ -11,6 +11,7 @@ description: Crea o modifica pantallas y componentes React del frontend de Códi
 
 ## No se negocia
 - Página en `src/Presentation/Pages/`, componentes en `src/Presentation/Components/<Modulo>/`, lógica en un hook de `src/Presentation/Hooks/`.
+- Estilos con CSS Modules: `X.module.css` al lado de cada componente o página, usando las variables de `src/Styles/tokens.css`. Nada de CSS global nuevo.
 - El hook usa los casos de uso de `Dependencies` y `useAsync`; nunca axios ni HttpClients.
 - Los requests se arman con la forma exacta de `Application/Domain/Requests`; las respuestas se usan sin transformar.
 - Estados de carga (skeleton), vacío, sin resultados y error con "Reintentar".
