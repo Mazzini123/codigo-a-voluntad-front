@@ -12,9 +12,6 @@
  * @property {import('./LogroDto.js').LogroDto[]} logros
  * @property {import('./AvanceDto.js').AvanceDto[]} avances
  * @property {string[]} etiquetas
- * @property {import('../Enums/MODO_ACEPTACION.js').ModoAceptacion} modoAceptacion
- * @property {number|null} limiteVacantes
- * @property {number|null} vacantesLibres Campo calculado por backend.
  * @property {string} fechaCreacion
  * @property {string|null} fechaFinalizacion
  * @property {string|null} fechaCierre

@@ -1,4 +1,6 @@
 import axios from "axios";
+import { COLABORACION_ESTADO } from "../../src/Application/Domain/Enums/COLABORACION_ESTADO.js";
+import { TIPO_NOTIFICACION } from "../../src/Application/Domain/Enums/TIPO_NOTIFICACION.js";
 import { crearHabilidadDependencies } from "../../src/Presentation/Dependencies/habilidadDependencies.js";
 import { crearColectivoDependencies } from "../../src/Presentation/Dependencies/colectivoDependencies.js";
 import { crearColaboradorDependencies } from "../../src/Presentation/Dependencies/colaboradorDependencies.js";
@@ -342,10 +344,12 @@ const cases = [
               cantidadHoras: 4,
               periodo: "HS_SEMANALES",
             },
+            modoAceptacion: "REVISION_MANUAL",
+            limiteColaboraciones: 2,
+            busquedaAbierta: true,
+            fechaCierreBusqueda: null,
           },
         ],
-        modoAceptacion: "REVISION_MANUAL",
-        limiteVacantes: 2,
         fechaCierre: null,
       },
     ],
@@ -360,10 +364,12 @@ const cases = [
             cantidadHoras: 4,
             periodo: "HS_SEMANALES",
           },
+          modoAceptacion: "REVISION_MANUAL",
+          limiteColaboraciones: 2,
+          busquedaAbierta: true,
+          fechaCierreBusqueda: null,
         },
       ],
-      modoAceptacion: "REVISION_MANUAL",
-      limiteVacantes: 2,
       fechaCierre: null,
     },
     empty: false,
@@ -384,13 +390,13 @@ const cases = [
     args: [
       "proyectoId-1",
       {
-        limiteVacantes: null,
         fechaCierre: null,
+        etiquetas: ["educacion"],
       },
     ],
     body: {
-      limiteVacantes: null,
       fechaCierre: null,
+      etiquetas: ["educacion"],
     },
     empty: false,
   },
@@ -432,6 +438,10 @@ const cases = [
           cantidadHoras: 4,
           periodo: "HS_SEMANALES",
         },
+        busquedaAbierta: true,
+        fechaCierreBusqueda: null,
+        limiteColaboraciones: 2,
+        modoAceptacion: "REVISION_MANUAL",
       },
     ],
     body: {
@@ -441,6 +451,10 @@ const cases = [
         cantidadHoras: 4,
         periodo: "HS_SEMANALES",
       },
+      busquedaAbierta: true,
+      fechaCierreBusqueda: null,
+      limiteColaboraciones: 2,
+      modoAceptacion: "REVISION_MANUAL",
     },
     empty: false,
   },
@@ -454,10 +468,18 @@ const cases = [
       "perfilId-1",
       {
         modalidadColaboracion: "GRATUITA",
+        busquedaAbierta: false,
+        fechaCierreBusqueda: null,
+        limiteColaboraciones: null,
+        modoAceptacion: "TODO_SUMA",
       },
     ],
     body: {
       modalidadColaboracion: "GRATUITA",
+      busquedaAbierta: false,
+      fechaCierreBusqueda: null,
+      limiteColaboraciones: null,
+      modoAceptacion: "TODO_SUMA",
     },
     empty: false,
   },
@@ -529,11 +551,13 @@ const cases = [
       {
         colaboradorId: "persona",
         esPublica: false,
+        perfilId: "perfilId-1",
       },
     ],
     body: {
       colaboradorId: "persona",
       esPublica: false,
+      perfilId: "perfilId-1",
     },
     empty: false,
   },
@@ -825,6 +849,22 @@ const cases = [
     args: [],
     empty: false,
   },
+  {
+    module: "Proyecto",
+    operation: "obtenerContactoDeColaborador",
+    method: "get",
+    url: "/proyectos/proyectoId-1/colaboradores/colaboradorId-1/contacto",
+    args: ["proyectoId-1", "colaboradorId-1"],
+    empty: false,
+  },
+  {
+    module: "Colaboracion",
+    operation: "desvincularColaboracion",
+    method: "post",
+    url: "/proyectos/proyectoId-1/colaboraciones/colaboracionId-1/desvinculacion",
+    args: ["proyectoId-1", "colaboracionId-1"],
+    empty: false,
+  },
 ];
 
 function respuesta(config, data, status = 200) {
@@ -889,11 +929,19 @@ test("conserva el sobre paginado, habilidades embebidas y campos anónimos sin a
     data: [
       {
         id: "proyecto",
-        vacantesLibres: 1,
         perfiles: [
-          { id: "perfil", habilidadesRequeridas: [{ codigo: "react", titulo: "React" }] },
+          {
+            id: "perfil",
+            habilidadesRequeridas: [{ codigo: "react", titulo: "React" }],
+            busquedaAbierta: true,
+            fechaCierreBusqueda: null,
+            limiteColaboraciones: 2,
+            modoAceptacion: "REVISION_MANUAL",
+          },
         ],
-        colaboraciones: [{ id: "colaboracion", colaborador: null, esPublica: false }],
+        colaboraciones: [
+          { id: "colaboracion", perfil: "perfil", colaborador: null, esPublica: false },
+        ],
       },
     ],
     meta: { page: 1, per_page: 10, total: 1, total_pages: 1 },
@@ -993,7 +1041,10 @@ test("no reintenta ni oculta conflictos al postularse", async () => {
   });
   const dependencies = crearColaboracionDependencies(axios.create({ adapter }));
   await expect(
-    dependencies.registrarColaboracion("proyecto", { colaboradorId: "persona" }),
+    dependencies.registrarColaboracion("proyecto", {
+      colaboradorId: "persona",
+      perfilId: "perfil",
+    }),
   ).rejects.toMatchObject({ response: { status: 409 } });
   expect(adapter).toHaveBeenCalledTimes(1);
 });
@@ -1041,4 +1092,64 @@ test("cada composición usa su instancia HTTP sin mezclar dependencias", async (
   ).toEqual({ id: "segundo" });
   expect(first.adapter).toHaveBeenCalledTimes(1);
   expect(second.adapter).toHaveBeenCalledTimes(1);
+});
+
+test("consulta contacto como una lista y codifica los ids del contexto del proyecto", async () => {
+  const contactos = [{ tipo: "EMAIL", valor: "persona@example.com" }];
+  const { http, adapter } = armarCliente(contactos);
+  const result = await crearProyectoDependencies(http).obtenerContactoDeColaborador(
+    "proyecto/1",
+    "persona?2",
+  );
+  expect(result).toBe(contactos);
+  expect(adapter.mock.lastCall[0].url).toBe(
+    "/proyectos/proyecto%2F1/colaboradores/persona%3F2/contacto",
+  );
+});
+
+test("conserva el 403 de contacto sin tratarlo como una lista vacía", async () => {
+  const adapter = vi.fn(async (config) => {
+    throw new axios.AxiosError(
+      "Forbidden",
+      "ERR_BAD_REQUEST",
+      config,
+      null,
+      respuesta(
+        config,
+        {
+          message: "Los datos de contacto solo se comparten con una postulacion aceptada",
+        },
+        403,
+      ),
+    );
+  });
+  const dependencies = crearProyectoDependencies(axios.create({ adapter }));
+  await expect(
+    dependencies.obtenerContactoDeColaborador("proyecto", "persona"),
+  ).rejects.toMatchObject({ response: { status: 403 } });
+  expect(adapter).toHaveBeenCalledTimes(1);
+});
+
+test("desvincular conserva el perfil, estado y fecha de fin devueltos por backend", async () => {
+  const payload = {
+    id: "colaboracion",
+    perfil: "perfil",
+    estado: "DESVINCULADA",
+    fechaFin: "2026-11-04T12:00:00.000Z",
+    colaborador: null,
+    esPublica: false,
+  };
+  const { http, adapter } = armarCliente(payload);
+  const result = await crearColaboracionDependencies(http).desvincularColaboracion(
+    "p/1",
+    "c?2",
+  );
+  expect(result).toBe(payload);
+  expect(result.estado).toBe(COLABORACION_ESTADO.DESVINCULADA);
+  expect(TIPO_NOTIFICACION.DESVINCULACION).toBe("DESVINCULACION");
+  expect(adapter.mock.lastCall[0]).toMatchObject({
+    method: "post",
+    url: "/proyectos/p%2F1/colaboraciones/c%3F2/desvinculacion",
+    data: undefined,
+  });
 });

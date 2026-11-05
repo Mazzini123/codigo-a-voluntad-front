@@ -1,6 +1,7 @@
 /**
  * Contrato HTTP de Colaboracion. Respuestas JSON sin transformación.
  * @typedef {Object} IColaboracionHttpClient
+ * @property {(proyectoId: string, colaboracionId: string, options?: {signal?: AbortSignal}) => Promise<import('../Entities/ColaboracionDto.js').ColaboracionDto>} desvincular
  * @property {(proyectoId: string, request: import('../Requests/Colaboracion/RegistrarColaboracionRequest.js').RegistrarColaboracionRequest, options?: {signal?: AbortSignal}) => Promise<import('../Entities/ColaboracionDto.js').ColaboracionDto>} registrar
  * @property {(proyectoId: string, options?: {signal?: AbortSignal}) => Promise<import('../Entities/ColaboracionDto.js').ColaboracionDto[]>} listarPorProyecto
  * @property {(colaboradorId: string, options?: {signal?: AbortSignal}) => Promise<import('../Entities/ColaboracionDeColaboradorDto.js').ColaboracionDeColaboradorDto[]>} listarPorColaborador

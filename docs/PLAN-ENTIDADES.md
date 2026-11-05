@@ -4,7 +4,7 @@
 
 El plan se basa en los routers, controllers, schemas, services, models y la serialización de las entidades de `packages/backend/src` del [backend](https://github.com/Mazzini123/tp-desarrollo-2c-2026). El backend es la fuente de verdad; su Swagger está en `/docs` y su especificación en `/openapi.json`. Antes de implementar cada módulo, contrastar ambos con el código vigente.
 
-Esta entrega completa la capa de acceso a los 58 endpoints actuales del backend, sin agregar pantallas. El ejemplo existente de Habilidad se conserva.
+Esta entrega completa la capa de acceso a los 60 endpoints actuales del backend, sin agregar pantallas. El ejemplo existente de Habilidad se conserva.
 
 - Arquitectura por capas: Presentation → UseCases → HttpClients → Axios → backend.
 - Sin repositories, commands, adapters ni clases de dominio en frontend.
@@ -163,7 +163,7 @@ No se calculan `codigo`, `fechaCreacion` o `activo` en frontend. `usuario` es op
 
 ## Estado de implementación
 
-La capa de acceso al backend está completa para los **58 endpoints** definidos en sus routers: DTOs, requests, enums, contratos, HttpClients, casos de uso y composición de dependencias. Todos son archivos JavaScript; los contratos se describen con JSDoc.
+La capa de acceso al backend está completa para los **60 endpoints** definidos en sus routers: DTOs, requests, enums, contratos, HttpClients, casos de uso y composición de dependencias. Todos son archivos JavaScript; los contratos se describen con JSDoc.
 
 El flujo listo para usar es `Dependencies → UseCase → HttpClient → Axios → backend`. Las pantallas, componentes, hooks y rutas nuevos quedan pendientes. Se conserva el ejemplo existente de Habilidad.
 
@@ -228,7 +228,13 @@ Composición: `Presentation/Dependencies/proyectoDependencies.js`.
 | `ActualizarProyecto`         | `PUT /proyectos/:proyectoId`               | `ActualizarProyectoRequest`         | `ProyectoDto`            |
 | `FinalizarProyecto`          | `POST /proyectos/:proyectoId/finalizacion` | Sin body                            | `ProyectoDto`            |
 
-Crear y listar por colectivo usa /colectivos/:colectivoId/proyectos. vacantesLibres es un campo calculado por backend. El detalle registra una visualización; las URLs y el progreso se actualizan mediante avances. El listado admite etiqueta.
+Crear y listar por colectivo usa /colectivos/:colectivoId/proyectos. El detalle registra una visualización; las URLs y el progreso se actualizan mediante avances. El listado admite etiqueta. Proyecto ya no recibe ni devuelve modoAceptacion, limiteVacantes o vacantesLibres: la configuración de búsqueda y aceptación pertenece a cada perfil.
+
+| Caso de uso                    | Verbo y endpoint                                                   | Request / query | Respuesta              |
+| ------------------------------ | ------------------------------------------------------------------ | --------------- | ---------------------- |
+| `ObtenerContactoDeColaborador` | `GET /proyectos/:proyectoId/colaboradores/:colaboradorId/contacto` | Sin body        | `MedioDeContactoDto[]` |
+
+El contacto sólo se comparte cuando la persona tiene una colaboración aceptada en el proyecto. Backend devuelve 403 si no cumple esa condición y 404 si el recurso no existe. Esta consulta contextual no cambia el DTO público de Colaborador, que sigue sin exponer contactos.
 
 ### Perfil
 
@@ -246,7 +252,9 @@ Composición: `Presentation/Dependencies/perfilDependencies.js`.
 | `AgregarHabilidadOpcional`  | `POST /proyectos/:proyectoId/perfiles/:perfilId/habilidades-opcionales`                    | `AgregarHabilidadRequest` | `PerfilDto`   |
 | `QuitarHabilidadOpcional`   | `DELETE /proyectos/:proyectoId/perfiles/:perfilId/habilidades-opcionales/:codigoHabilidad` | Sin body                  | `PerfilDto`   |
 
-El alta requiere al menos una habilidad requerida y compromiso. Editar descripción/compromiso/modalidad no cambia las habilidades: usar sus acciones específicas. Sólo eliminar el perfil devuelve 204.
+El alta requiere al menos una habilidad requerida y compromiso. PerfilDto y sus requests incluyen busquedaAbierta, fechaCierreBusqueda, limiteColaboraciones y modoAceptacion. Los valores por defecto son true, null, null y REVISION_MANUAL, respectivamente. El modo y el límite se configuran por perfil; editar habilidades sigue requiriendo sus acciones específicas. Sólo eliminar el perfil devuelve 204.
+
+Para cerrar o reabrir una búsqueda se usa ActualizarPerfil con busquedaAbierta. fechaCierreBusqueda admite una fecha ISO o null. Las reglas y efectos sobre postulaciones los decide backend, sin cálculos adicionales en frontend.
 
 ### Colaboracion
 
@@ -261,7 +269,13 @@ Composición: `Presentation/Dependencies/colaboracionDependencies.js`.
 | `RechazarPostulacion`               | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/rechazo`      | Sin body                       | `ColaboracionDto`                |
 | `FinalizarColaboracion`             | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/finalizacion` | Sin body                       | `ColaboracionDto`                |
 
-Postulación y colaboración son el mismo recurso con distintos estados. Registrar puede quedar aceptado automáticamente. colaborador es null en contribuciones anónimas; el historial por persona devuelve { proyectoId, colaboracion }[] y no incluye sus contribuciones anónimas.
+| Caso de uso               | Verbo y endpoint                                                            | Request / query | Respuesta         |
+| ------------------------- | --------------------------------------------------------------------------- | --------------- | ----------------- |
+| `DesvincularColaboracion` | `POST /proyectos/:proyectoId/colaboraciones/:colaboracionId/desvinculacion` | Sin body        | `ColaboracionDto` |
+
+Postulación y colaboración son el mismo recurso con distintos estados. Registrar exige colaboradorId y perfilId, y puede quedar aceptado automáticamente según la configuración del perfil. ColaboracionDto.perfil es el id del perfil (string), no un objeto PerfilDto. colaborador es null en contribuciones anónimas; el historial por persona devuelve { proyectoId, colaboracion }[] y no incluye sus contribuciones anónimas.
+
+Desvincular cambia una colaboración aceptada al estado DESVINCULADA y fija fechaFin. Es una acción distinta de finalizar: la valoración sigue requiriendo FINALIZADA. Backend puede emitir una notificación de tipo DESVINCULACION; ambos enums están reflejados en frontend.
 
 ### Valoracion
 
@@ -399,7 +413,7 @@ Cada módulo también exporta `crear[Modulo]Dependencies(http)` para inyectar un
 
 ## Validación
 
-- La matriz de `tests/application/flujosBackend.test.js` recorre los 58 flujos desde las composiciones hasta el transporte de Axios, verificando método, URL, query, body, signal y salida, además de errores, aislamiento de instancias y cancelación.
+- La matriz de `tests/application/flujosBackend.test.js` recorre los 60 flujos desde las composiciones hasta el transporte de Axios, verificando método, URL, query, body, signal y salida, además de errores, aislamiento de instancias y cancelación.
 - Las pruebas existentes del ejemplo de Habilidad siguen cubriendo el recorrido desde UI.
 - La cobertura de endpoints se contrastó con los routers actuales del backend. Las pruebas del frontend sustituyen el transporte HTTP y no dependen de un checkout del backend.
 - Para comprobaciones manuales, levantar ambos proyectos según sus README. La instancia Axios usa la configuración compartida del proyecto; no se duplican URLs por entidad.

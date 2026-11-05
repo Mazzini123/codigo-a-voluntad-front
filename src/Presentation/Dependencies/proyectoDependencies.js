@@ -4,6 +4,7 @@ import { crearCrearProyecto } from "../../Application/UseCases/Proyecto/CrearPro
 import { crearListarProyectosDeColectivo } from "../../Application/UseCases/Proyecto/ListarProyectosDeColectivo.js";
 import { crearActualizarProyecto } from "../../Application/UseCases/Proyecto/ActualizarProyecto.js";
 import { crearFinalizarProyecto } from "../../Application/UseCases/Proyecto/FinalizarProyecto.js";
+import { crearObtenerContactoDeColaborador } from "../../Application/UseCases/Proyecto/ObtenerContactoDeColaborador.js";
 import { crearProyectoHttpClient } from "../../Infrastructure/HttpClients/ProyectoHttpClient.js";
 import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
 
@@ -17,6 +18,7 @@ export function crearProyectoDependencies(http = axiosClient) {
     listarProyectosDeColectivo: crearListarProyectosDeColectivo(httpClient),
     actualizarProyecto: crearActualizarProyecto(httpClient),
     finalizarProyecto: crearFinalizarProyecto(httpClient),
+    obtenerContactoDeColaborador: crearObtenerContactoDeColaborador(httpClient),
   };
 }
 

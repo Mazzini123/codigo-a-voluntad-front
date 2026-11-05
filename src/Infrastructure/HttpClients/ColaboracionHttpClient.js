@@ -4,6 +4,14 @@
  */
 export function crearColaboracionHttpClient(http) {
   return {
+    async desvincular(proyectoId, colaboracionId, { signal } = {}) {
+      const response = await http.post(
+        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/desvinculacion`,
+        undefined,
+        { signal },
+      );
+      return response.data;
+    },
     async registrar(proyectoId, request, { signal } = {}) {
       const response = await http.post(
         `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones`,

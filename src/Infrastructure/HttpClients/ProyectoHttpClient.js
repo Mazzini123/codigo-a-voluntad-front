@@ -4,6 +4,13 @@
  */
 export function crearProyectoHttpClient(http) {
   return {
+    async obtenerContactoDeColaborador(proyectoId, colaboradorId, { signal } = {}) {
+      const response = await http.get(
+        `/proyectos/${encodeURIComponent(proyectoId)}/colaboradores/${encodeURIComponent(colaboradorId)}/contacto`,
+        { signal },
+      );
+      return response.data;
+    },
     async listar(query = {}, { signal } = {}) {
       const response = await http.get("/proyectos", { params: query, signal });
       return response.data;
