@@ -1,0 +1,27 @@
+.franja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-1) var(--espacio-4);
+  padding: var(--espacio-1) var(--espacio-4);
+  background: var(--color-info-tenue);
+  border-radius: var(--radio-md);
+  color: var(--color-info);
+  font-size: var(--texto-body-sm-tamano);
+  font-weight: var(--texto-label-peso);
+}
+
+.texto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-block-size: var(--toque-minimo);
+}
+
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  color: var(--color-info);
+}

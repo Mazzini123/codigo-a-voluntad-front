@@ -369,6 +369,16 @@ Composición: `Presentation/Dependencies/healthDependencies.js`.
 
 Consulta técnica de disponibilidad. Responde status, uptime (segundos) y timestamp. La documentación Swagger/OpenAPI no se trata como un flujo de entidades.
 
+### Auth
+
+Composición: `Presentation/Dependencies/authDependencies.js`.
+
+| Caso de uso           | Verbo y endpoint | Request / query | Respuesta   |
+| --------------------- | ---------------- | --------------- | ----------- |
+| `ObtenerCuentaActual` | `GET /auth/me`   | Sin body        | `CuentaDto` |
+
+Pendiente en el back. Devuelve `{ id, rol, perfilId }` de la persona con sesión; `rol` es `COLECTIVO`, `COLABORADORA` o `null` si la cuenta todavía no tiene perfil (`ROL_CUENTA`). Responde 401 con un token inválido o vencido. El proveedor de identidad (Logto) vive en `Infrastructure/Auth/` detrás del contrato `Identidad` y solo se compone en `Presentation/Dependencies/identidadDependencies.js`.
+
 ## Cómo consumir un flujo desde presentación
 
 Las dependencias ya exportan los casos de uso listos. Al incorporar un hook, importar sólo la composición del módulo y pasar el request exacto de backend:
@@ -407,7 +417,7 @@ Cada módulo también exporta `crear[Modulo]Dependencies(http)` para inyectar un
 - Los requests de edición contienen sólo los campos permitidos por los schemas de backend. No enviar un DTO entero. Los PUT parciales requieren algún campo; Logro requiere ambos campos.
 - Al construir URLs se codifica cada segmento dinámico, incluidos ids, pronombres, códigos y valores de contacto.
 - Los HttpClients extraen sólo response.data y mantienen el contenido JSON intacto, incluido el sobre paginado. Las operaciones 204 no intentan devolver un DTO.
-- Se propagan los errores originales de Axios, conservando response.status y response.data (message, issues o detalle). No hay reintentos automáticos de mutaciones.
+- HttpClients y UseCases propagan el error tal como lo lanza la instancia de Axios, sin envolverlo. Con `axiosClient`, los interceptores ya lo convirtieron en un `ApiError` (`status`, `mensaje`, `esReintentable`, `issues`, y el error de Axios en `cause`); la presentación lee `mensaje` y `esReintentable`. Solo los GET se reintentan solos, y solo ante falta de respuesta o timeout.
 - Las reglas de cupo, estados, habilidades, anonimato, cierre, contactos y validación siguen siendo responsabilidad del backend.
 - Los enums de Application/Domain/Enums corresponden a los valores del backend; no contienen sus validadores ni lógica de dominio.
 

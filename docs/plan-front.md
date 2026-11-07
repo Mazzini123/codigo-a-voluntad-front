@@ -21,22 +21,22 @@
 
 ## 3. Pantallas mínimas
 
-| Pantalla                                | Rol                      | Puntos clave                                                                                                                                                                          |
-| --------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Login y registro                        | Todos                    | Ingreso con el proveedor de identidad. Al primer ingreso, elegir el tipo de cuenta y completar el perfil.                                                                            |
-| Perfil de colectivo (alta y edición)    | Colectivo                | Ubicación con selector de provincia y texto libre para ciudad o barrio. Tipo de colectivo tomado de la lista del sistema.                                                             |
-| Perfil de colaboradora (alta y edición) | Colaboradora             | Elegir entre nombre de fantasía o nombre real. GitHub o GitLab, pronombres y presentación opcionales. Habilidades desde el catálogo. Medios de contacto y opción de recibir mensajes. |
+| Pantalla                                | Rol                      | Puntos clave                                                                                                                                                                               |
+| --------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login y registro                        | Todos                    | Ingreso con el proveedor de identidad. Al primer ingreso, elegir el tipo de cuenta y completar el perfil.                                                                                  |
+| Perfil de colectivo (alta y edición)    | Colectivo                | Ubicación con selector de provincia y texto libre para ciudad o barrio. Tipo de colectivo tomado de la lista del sistema.                                                                  |
+| Perfil de colaboradora (alta y edición) | Colaboradora             | Elegir entre nombre de fantasía o nombre real. GitHub o GitLab, pronombres y presentación opcionales. Habilidades desde el catálogo. Medios de contacto y opción de recibir mensajes.      |
 | Mis proyectos (ABM)                     | Colectivo                | Proyecto con perfiles (habilidades requeridas y opcionales, compromiso, modalidad, límite de colaboraciones, modo de aceptación) y búsqueda abierta o cerrada con fecha límite por perfil. |
-| Buscar proyectos                        | Colaboradora / visitante | Filtros en la URL y paginación. Los proyectos que encajan con mis habilidades van primero.                                                                                            |
-| Detalle del proyecto                    | Todos                    | Atributos, perfiles con su estado (abierto o cerrado, quién lo ocupa; si es anónimo, "Contribución anónima"), "Postularme" por perfil.                                                |
-| Avance del proyecto                     | Todos                    | Porcentaje, logros, enlace al repositorio y al sistema en producción.                                                                                                                 |
-| Buscar colaboradoras para un perfil     | Colectivo                | Resultados según el perfil y "Contactar" solo si la persona lo aceptó. Si no, botón deshabilitado con el motivo.                                                                      |
-| Postulaciones recibidas                 | Colectivo                | Aceptar o rechazar. Si el perfil alcanzó su límite, el botón de aceptar queda deshabilitado con el motivo. Desvincular a quien ya colabora.                                           |
-| Mis postulaciones y colaboraciones      | Colaboradora             | Estados (pendiente, aceptada, rechazada, finalizada, desvinculada) y "Darme de baja".                                                                                                 |
-| Desanotar                               | Ambos                    | Diálogo de confirmación que avise que es permanente.                                                                                                                                  |
-| Mensajes internos                       | Ambos                    | Listado de mensajes, leídos y sin leer, con su estado vacío.                                                                                                                          |
-| Datos de contacto                       | Colectivo                | Solo si tiene acceso (postulación aceptada). Si no, mensaje claro, sin mostrar el error técnico.                                                                                      |
-| No encontrada / sin permiso             | Todos                    | Mensaje claro y link de vuelta.                                                                                                                                                       |
+| Buscar proyectos                        | Colaboradora / visitante | Filtros en la URL y paginación. Los proyectos que encajan con mis habilidades van primero.                                                                                                 |
+| Detalle del proyecto                    | Todos                    | Atributos, perfiles con su estado (abierto o cerrado, quién lo ocupa; si es anónimo, "Contribución anónima"), "Postularme" por perfil.                                                     |
+| Avance del proyecto                     | Todos                    | Porcentaje, logros, enlace al repositorio y al sistema en producción.                                                                                                                      |
+| Buscar colaboradoras para un perfil     | Colectivo                | Resultados según el perfil y "Contactar" solo si la persona lo aceptó. Si no, botón deshabilitado con el motivo.                                                                           |
+| Postulaciones recibidas                 | Colectivo                | Aceptar o rechazar. Si el perfil alcanzó su límite, el botón de aceptar queda deshabilitado con el motivo. Desvincular a quien ya colabora.                                                |
+| Mis postulaciones y colaboraciones      | Colaboradora             | Estados (pendiente, aceptada, rechazada, finalizada, desvinculada) y "Darme de baja".                                                                                                      |
+| Desanotar                               | Ambos                    | Diálogo de confirmación que avise que es permanente.                                                                                                                                       |
+| Mensajes internos                       | Ambos                    | Listado de mensajes, leídos y sin leer, con su estado vacío.                                                                                                                               |
+| Datos de contacto                       | Colectivo                | Solo si tiene acceso (postulación aceptada). Si no, mensaje claro, sin mostrar el error técnico.                                                                                           |
+| No encontrada / sin permiso             | Todos                    | Mensaje claro y link de vuelta.                                                                                                                                                            |
 
 ## 4. Criterios específicos del dominio
 
@@ -60,6 +60,7 @@ src/
 │   ├── Pages/          una por pantalla (XxxPage.jsx)
 │   ├── Components/     App/ (compartidos) y una carpeta por módulo
 │   ├── Hooks/          estado de carga, error, cancelación y refresco
+│   ├── Context/        contextos compartidos (avisos; después, sesión)
 │   ├── Dependencies/   composición de HttpClients y casos de uso
 │   └── Routes/         AppRoutes.jsx y rutas protegidas
 ├── Application/
@@ -83,13 +84,14 @@ src/
 
 Son piezas que usan todas las pantallas. Se construyen una vez:
 
-| Pieza | Dónde | Para qué |
-| --- | --- | --- |
-| Interceptores de axios | `Infrastructure/Http/axiosClient.js` | Token, errores normalizados y reintentos (ver 5.2). |
-| `ApiError` y mensajes por status | `Infrastructure/Http/` | La presentación recibe un error propio, no el de axios. |
-| `useAsync` | `Presentation/Hooks/useAsync.js` | Carga, error, cancelación y reintento en un solo lugar (ver 5.4). |
-| Skeleton, EmptyState, ErrorState, ConfirmDialog, Paginación, Notificaciones | `Presentation/Components/App/` | Feedback visual y confirmación que exige la consigna. |
-| Sesión y rutas protegidas | `Infrastructure/Auth/` + `Presentation` | Ver 5.3. |
+| Pieza                                                       | Dónde                                                 | Para qué                                                                                                                        |
+| ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Interceptores de axios                                      | `Infrastructure/Http/axiosClient.js`                  | Token, errores normalizados y reintentos (ver 5.2).                                                                             |
+| `ApiError` y mensajes por status                            | `Infrastructure/Http/`                                | La presentación recibe un error propio, no el de axios.                                                                         |
+| `useAsync`                                                  | `Presentation/Hooks/useAsync.js`                      | Carga, error, cancelación y reintento en un solo lugar (ver 5.4).                                                               |
+| Skeleton, EmptyState, ErrorState, ConfirmDialog, Paginación | `Presentation/Components/App/`                        | Feedback visual y confirmación que exige la consigna.                                                                           |
+| Avisos (`AvisosProvider` + `useAvisos`)                     | `Presentation/Context/`, `Hooks/` y `Components/App/` | Mensaje de éxito o error después de cada acción. Se llaman "avisos" para no confundirlos con el módulo `Notificacion` del back. |
+| Sesión y rutas protegidas                                   | `Infrastructure/Auth/` + `Presentation`               | Ver 5.3.                                                                                                                        |
 
 ### 5.2 Cliente HTTP (`axiosClient.js`, §22.1.2)
 
@@ -99,16 +101,17 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
   - **Sin `error.response`:** la petición no tuvo respuesta (red, back caído o CORS) → "No pudimos conectarnos con el servidor".
   - **401** (no sabe quién sos): cierra la sesión y lleva al login.
   - **403** (sabe quién sos, pero no tenés permiso): muestra "sin permiso", sin cerrar la sesión.
-  - **429:** "Hiciste muchas búsquedas seguidas, esperá unos segundos". Sin reintento automático.
-  - **Resto:** el `message` del back o, si no viene, un texto según el status.
+  - **429:** "Hiciste muchos pedidos seguidos. Esperá unos segundos y volvé a intentar." Sin reintento automático.
+  - **Resto (400, 404, 409, 422):** un texto escrito por el front según el status y la operación (por ejemplo, 409 al postularse: "Ya te postulaste a este proyecto."; 409 al crear un perfil: "Tu cuenta ya tiene un perfil."), con un texto genérico por status como respaldo. **Nunca se muestra el `message` del back.**
+  - **`issues` de validación:** cada formulario los traduce por `path` y `code` a los mensajes de sus campos; si no hay traducción, "Revisá este dato."
 - **Reintentos (§22.3.3):** automáticos solo en GET (idempotentes) ante red o timeout, con espera creciente y tope. Las altas, postulaciones, aceptaciones y rechazos se reintentan solo con el botón "Reintentar".
 
 ### 5.3 Sesión y rutas (§22.4)
 
-- **Proveedor de identidad externo** (Auth0 o Logto: a definir). Su SDK se usa solo en `Infrastructure/Auth/`, detrás de un contrato propio: `{ autenticado, cargando, iniciar(), cerrar(), obtenerToken() }`. Cambiar de proveedor es cambiar ese adaptador.
+- **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/SesionLogtoProvider.jsx`, consumido a través de Dependencies y del contrato propio de identidad (`estaAutenticado`, `iniciarSesion`, `completarIngreso`, `obtenerToken`, `cerrarSesion`, `olvidarSesion`). El callback real lo completa `useHandleSignInCallback`; `AuthProvider` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
 - **El rol y el perfil vienen del back** (`GET /auth/me`, pendiente en el back), no del proveedor: el proveedor dice quién es la persona; el back, qué es en la plataforma.
 - **`AuthProvider` + `useAuth()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe el adaptador por parámetro para poder probarlo con uno falso.
-- **Token en memoria,** nunca en `localStorage` (§22.4.3). Lo maneja el SDK del proveedor.
+- **Almacenamiento a cargo del SDK de Logto en `localStorage`**, según la decisión aprobada del 05/11 que revisa la preferencia inicial por memoria (§22.4.3). El frontend no copia tokens a otro almacenamiento. Mantener la mitigación de vencimiento corto, rotación del refresh token y CSP en el despliegue.
 - **Contexto en vez de Zustand o Redux:** en una aplicación mediana el contexto alcanza (§21.4.12).
 - **`ProtectedRoute` recibe los roles permitidos** (`<ProtectedRoute roles={['COLECTIVO']} />`):
   - Con `cargando`, muestra "Verificando sesión…" (evita expulsar al login a alguien autenticado al recargar).
@@ -119,22 +122,26 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 - **`lazy()` y `Suspense`** para las pantallas privadas, no para `/proyectos`, que es la entrada (§21.5.5).
 - **Rutas:**
 
-| Ruta                                                        | Acceso       | Spec                    |
-| ----------------------------------------------------------- | ------------ | ----------------------- |
-| `/`                                                         | pública      | redirige a `/proyectos` |
-| `/login`, `/callback`, `/registro`                          | pública      | 01                      |
-| `/proyectos`                                                | pública      | 05                      |
-| `/proyectos/:id`                                            | pública      | 06                      |
-| `/proyectos/:id/avance`                                     | pública      | 07                      |
-| `/colectivo/perfil`                                         | COLECTIVO    | 02                      |
-| `/colectivo/proyectos`                                      | COLECTIVO    | 04                      |
-| `/colectivo/proyectos/:id/perfiles/:perfilId/colaboradoras` | COLECTIVO    | 08                      |
-| `/colectivo/postulaciones`                                  | COLECTIVO    | 09                      |
-| `/colectivo/proyectos/:id/colaboradoras/:colaboradorId/contacto` | COLECTIVO | 12                    |
-| `/colaboradora/perfil`                                      | COLABORADORA | 03                      |
-| `/colaboradora/postulaciones`                               | COLABORADORA | 10                      |
-| `/mensajes`                                                 | ambos roles  | 11                      |
-| `/sin-permiso`, `*`                                         | pública      | —                       |
+| Ruta                                                             | Acceso       | Spec                    |
+| ---------------------------------------------------------------- | ------------ | ----------------------- |
+| `/`                                                              | pública      | redirige a `/proyectos` |
+| `/login`, `/callback`, `/registro`                               | pública      | 01                      |
+| `/proyectos`                                                     | pública      | 05                      |
+| `/proyectos/:id`                                                 | pública      | 06                      |
+| `/proyectos/:id/avance`                                          | pública      | 07                      |
+| `/colectivo/perfil`                                              | COLECTIVO    | 02                      |
+| `/bienvenida/colectivo`                                          | sin perfil   | 02                      |
+| `/colectivos/:id`                                                | pública      | 02                      |
+| `/bienvenida/colaboradora`                                       | sin perfil   | 03                      |
+| `/colaboradoras/:id`                                             | pública      | 03                      |
+| `/colectivo/proyectos`                                           | COLECTIVO    | 04                      |
+| `/colectivo/proyectos/:id/perfiles/:perfilId/colaboradoras`      | COLECTIVO    | 08                      |
+| `/colectivo/postulaciones`                                       | COLECTIVO    | 09                      |
+| `/colectivo/proyectos/:id/colaboradoras/:colaboradorId/contacto` | COLECTIVO    | 12                      |
+| `/colaboradora/perfil`                                           | COLABORADORA | 03                      |
+| `/colaboradora/postulaciones`                                    | COLABORADORA | 10                      |
+| `/mensajes`                                                      | ambos roles  | 11                      |
+| `/sin-permiso`, `*`                                              | pública      | —                       |
 
 _Pendiente: confirmar con el docente si se aceptan parámetros `:id` o va `?id=` por la restricción de rutas dinámicas._
 

@@ -15,6 +15,7 @@ import { crearAvanceDependencies } from "../../src/Presentation/Dependencies/ava
 import { crearEstadisticaDependencies } from "../../src/Presentation/Dependencies/estadisticaDependencies.js";
 import { crearTimelineDependencies } from "../../src/Presentation/Dependencies/timelineDependencies.js";
 import { crearHealthDependencies } from "../../src/Presentation/Dependencies/healthDependencies.js";
+import { crearAuthDependencies } from "../../src/Presentation/Dependencies/authDependencies.js";
 
 const factories = {
   Habilidad: crearHabilidadDependencies,
@@ -31,6 +32,7 @@ const factories = {
   Estadistica: crearEstadisticaDependencies,
   Timeline: crearTimelineDependencies,
   Health: crearHealthDependencies,
+  Auth: crearAuthDependencies,
 };
 
 // Contratos públicos de la API: verbos, paths, queries y bodies por operación.
@@ -839,6 +841,14 @@ const cases = [
     method: "get",
     url: "/colectivos/colectivoId-1/timeline",
     args: ["colectivoId-1"],
+    empty: false,
+  },
+  {
+    module: "Auth",
+    operation: "obtenerCuentaActual",
+    method: "get",
+    url: "/auth/me",
+    args: [],
     empty: false,
   },
   {

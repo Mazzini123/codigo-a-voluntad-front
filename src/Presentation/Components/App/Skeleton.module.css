@@ -1,0 +1,31 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.bloque {
+  display: block;
+  background: var(--color-hundido);
+  border-radius: var(--radio-sm);
+  animation: pulso var(--duracion-pulso) ease-in-out infinite;
+}
+
+.linea {
+  height: 1em;
+}
+
+.pildora {
+  height: var(--alto-chip);
+  border-radius: var(--radio-pildora);
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--opacidad-atenuada);
+  }
+}

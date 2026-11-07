@@ -1,0 +1,24 @@
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-7) var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) dashed var(--color-linea);
+  border-radius: var(--radio-lg);
+  text-align: center;
+}
+
+.icono {
+  color: var(--color-petroleo);
+}
+
+.descripcion {
+  max-inline-size: var(--ancho-vacio);
+  color: var(--color-tinta-suave);
+}
+
+.accion {
+  margin-block-start: var(--espacio-2);
+}

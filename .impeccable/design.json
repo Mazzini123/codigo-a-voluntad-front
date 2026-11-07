@@ -1,0 +1,639 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T01:17:04.781Z",
+  "title": "Design System: Código a Voluntad",
+  "extensions": {
+    "colorMeta": {
+      "crema": {
+        "role": "neutral",
+        "displayName": "Crema",
+        "canonical": "#FBF6EE",
+        "tonalRamp": [
+          "#3F3E3C",
+          "#716F6B",
+          "#A3A09B",
+          "#D5D1CA",
+          "#FCF8F1",
+          "#FDFAF6",
+          "#FEFCFA",
+          "#FFFEFD"
+        ]
+      },
+      "superficie": {
+        "role": "neutral",
+        "displayName": "Superficie",
+        "canonical": "#FFFDF8",
+        "tonalRamp": [
+          "#403F3E",
+          "#737270",
+          "#A6A4A1",
+          "#D9D7D3",
+          "#FFFDF9",
+          "#FFFEFB",
+          "#FFFEFD",
+          "#FFFFFE"
+        ]
+      },
+      "hundido": {
+        "role": "neutral",
+        "displayName": "Hundido",
+        "canonical": "#F2EADC",
+        "tonalRamp": [
+          "#3D3B37",
+          "#6D6963",
+          "#9D988F",
+          "#CEC7BB",
+          "#F5EEE3",
+          "#F8F3EC",
+          "#FBF9F5",
+          "#FEFDFC"
+        ]
+      },
+      "linea": {
+        "role": "neutral",
+        "displayName": "Línea",
+        "canonical": "#E3D8C6",
+        "tonalRamp": [
+          "#393632",
+          "#666159",
+          "#948C81",
+          "#C1B8A8",
+          "#E9E0D1",
+          "#F0EAE0",
+          "#F7F3EE",
+          "#FCFBF9"
+        ]
+      },
+      "borde-campo": {
+        "role": "neutral",
+        "displayName": "Borde de campo",
+        "canonical": "#857A6A",
+        "tonalRamp": [
+          "#211F1B",
+          "#3C3730",
+          "#564F45",
+          "#71685A",
+          "#9D9588",
+          "#BCB6AD",
+          "#DAD7D2",
+          "#F3F2F0"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#16282B",
+        "tonalRamp": [
+          "#060A0B",
+          "#0A1213",
+          "#0E1A1C",
+          "#132225",
+          "#455355",
+          "#7F898A",
+          "#B9BFBF",
+          "#E8EAEA"
+        ]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "canonical": "#4E5F61",
+        "tonalRamp": [
+          "#141818",
+          "#232B2C",
+          "#333E3F",
+          "#425152",
+          "#717F81",
+          "#9EA7A8",
+          "#CACFD0",
+          "#EDEFEF"
+        ]
+      },
+      "blanco": {
+        "role": "neutral",
+        "displayName": "Blanco",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#404040",
+          "#737373",
+          "#A6A6A6",
+          "#D9D9D9",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF",
+          "#FFFFFF"
+        ]
+      },
+      "petroleo": {
+        "role": "secondary",
+        "displayName": "Verde petróleo",
+        "canonical": "#0F4C4F",
+        "tonalRamp": [
+          "#041314",
+          "#072224",
+          "#0A3133",
+          "#0D4143",
+          "#3F7072",
+          "#7B9D9E",
+          "#B7C9CA",
+          "#E7EDED"
+        ]
+      },
+      "petroleo-hover": {
+        "role": "secondary",
+        "displayName": "Petróleo profundo",
+        "canonical": "#0A3739",
+        "tonalRamp": [
+          "#030E0E",
+          "#05191A",
+          "#072425",
+          "#092F30",
+          "#3B5F61",
+          "#789192",
+          "#B6C3C4",
+          "#E7EBEB"
+        ]
+      },
+      "petroleo-tenue": {
+        "role": "secondary",
+        "displayName": "Petróleo tenue",
+        "canonical": "#E1EDEB",
+        "tonalRamp": [
+          "#383B3B",
+          "#656B6A",
+          "#929A99",
+          "#BFC9C8",
+          "#E7F1EF",
+          "#EFF5F4",
+          "#F6FAF9",
+          "#FCFDFD"
+        ]
+      },
+      "coral-vivo": {
+        "role": "primary",
+        "displayName": "Coral vivo",
+        "canonical": "#FF6F4D",
+        "tonalRamp": [
+          "#401C13",
+          "#733223",
+          "#A64832",
+          "#D95E41",
+          "#FF8C71",
+          "#FFB09D",
+          "#FFD4CA",
+          "#FFF1ED"
+        ]
+      },
+      "coral": {
+        "role": "primary",
+        "displayName": "Coral oscurecido",
+        "canonical": "#B23A1C",
+        "tonalRamp": [
+          "#2D0F07",
+          "#501A0D",
+          "#742612",
+          "#973118",
+          "#C16149",
+          "#D59382",
+          "#E8C4BB",
+          "#F7EBE8"
+        ]
+      },
+      "coral-hover": {
+        "role": "primary",
+        "displayName": "Coral profundo",
+        "canonical": "#8F2D14",
+        "tonalRamp": [
+          "#240B05",
+          "#401409",
+          "#5D1D0D",
+          "#7A2611",
+          "#A55743",
+          "#C18C7E",
+          "#DDC0B9",
+          "#F4EAE8"
+        ]
+      },
+      "coral-tenue": {
+        "role": "primary",
+        "displayName": "Coral tenue",
+        "canonical": "#FCE6DE",
+        "tonalRamp": [
+          "#3F3A38",
+          "#716764",
+          "#A49690",
+          "#D6C4BD",
+          "#FDEBE5",
+          "#FDF1ED",
+          "#FEF8F5",
+          "#FFFDFC"
+        ]
+      },
+      "peligro": {
+        "role": "status",
+        "displayName": "Peligro",
+        "canonical": "#A3122A",
+        "tonalRamp": [
+          "#29050B",
+          "#490813",
+          "#6A0C1B",
+          "#8B0F24",
+          "#B54155",
+          "#CC7D8A",
+          "#E3B8BF",
+          "#F6E7EA"
+        ]
+      },
+      "peligro-hover": {
+        "role": "status",
+        "displayName": "Peligro profundo",
+        "canonical": "#7F0D20",
+        "tonalRamp": [
+          "#200308",
+          "#39060E",
+          "#530815",
+          "#6C0B1B",
+          "#993D4D",
+          "#B97A84",
+          "#D9B6BC",
+          "#F2E7E9"
+        ]
+      },
+      "peligro-tenue": {
+        "role": "status",
+        "displayName": "Peligro tenue",
+        "canonical": "#FBE4E6",
+        "tonalRamp": [
+          "#3F393A",
+          "#716767",
+          "#A39496",
+          "#D5C2C4",
+          "#FCE9EB",
+          "#FDF0F1",
+          "#FEF7F8",
+          "#FFFCFD"
+        ]
+      },
+      "exito": {
+        "role": "status",
+        "displayName": "Éxito",
+        "canonical": "#1F6B3A",
+        "tonalRamp": [
+          "#081B0F",
+          "#0E301A",
+          "#144626",
+          "#1A5B31",
+          "#4C8961",
+          "#84AE93",
+          "#BCD3C4",
+          "#E9F0EB"
+        ]
+      },
+      "exito-tenue": {
+        "role": "status",
+        "displayName": "Éxito tenue",
+        "canonical": "#E3F1E6",
+        "tonalRamp": [
+          "#393C3A",
+          "#666C67",
+          "#949D96",
+          "#C1CDC4",
+          "#E9F4EB",
+          "#F0F7F1",
+          "#F7FBF8",
+          "#FCFEFD"
+        ]
+      },
+      "aviso": {
+        "role": "status",
+        "displayName": "Aviso",
+        "canonical": "#8A4B00",
+        "tonalRamp": [
+          "#231300",
+          "#3E2200",
+          "#5A3100",
+          "#754000",
+          "#A16F33",
+          "#BF9C73",
+          "#DCC9B3",
+          "#F3EDE6"
+        ]
+      },
+      "aviso-tenue": {
+        "role": "status",
+        "displayName": "Aviso tenue",
+        "canonical": "#FBEBD3",
+        "tonalRamp": [
+          "#3F3B35",
+          "#716A5F",
+          "#A39989",
+          "#D5C8B3",
+          "#FCEFDC",
+          "#FDF4E7",
+          "#FEF9F2",
+          "#FFFDFB"
+        ]
+      },
+      "info": {
+        "role": "status",
+        "displayName": "Información",
+        "canonical": "#1D5794",
+        "tonalRamp": [
+          "#071625",
+          "#0D2743",
+          "#133960",
+          "#194A7E",
+          "#4A79A9",
+          "#83A3C4",
+          "#BBCDDF",
+          "#E8EEF4"
+        ]
+      },
+      "info-tenue": {
+        "role": "status",
+        "displayName": "Información tenue",
+        "canonical": "#E2ECF7",
+        "tonalRamp": [
+          "#393B3E",
+          "#666A6F",
+          "#9399A1",
+          "#C0C9D2",
+          "#E8F0F9",
+          "#EFF5FB",
+          "#F6F9FD",
+          "#FCFDFE"
+        ]
+      },
+      "telon": {
+        "role": "neutral",
+        "displayName": "Telón",
+        "canonical": "rgba(22, 40, 43, 0.55)"
+      },
+      "velo-tinta": {
+        "role": "neutral",
+        "displayName": "Velo de tinta",
+        "canonical": "rgba(22, 40, 43, 0.08)"
+      },
+      "velo-petroleo": {
+        "role": "neutral",
+        "displayName": "Velo de petróleo",
+        "canonical": "rgba(15, 76, 79, 0.12)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "El h1 de la introducción pública de Inicio y de la búsqueda de proyectos; en Inicio va en petróleo, con un ancho máximo de lectura."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "El h1 de las demás pantallas."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "h2 y h3, título de tarjeta y de diálogo, y la marca de la cabecera."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corrido, campos y descripciones, hasta 68ch."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Metadatos, ayudas, motivos, franja de encaje y conteos."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Labels, chips, sellos y avisos; tamaño mínimo de la app."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Texto de botones, en una sola línea."
+      }
+    },
+    "shadows": [
+      {
+        "name": "respuesta",
+        "value": "0 2px 4px rgba(15, 76, 79, 0.06), 0 8px 20px -6px rgba(15, 76, 79, 0.14)",
+        "purpose": "Hover de la tarjeta de proyecto."
+      },
+      {
+        "name": "elevacion",
+        "value": "0 4px 8px rgba(15, 76, 79, 0.08), 0 24px 48px -12px rgba(15, 76, 79, 0.28)",
+        "purpose": "Diálogo, menú de cuenta, menú de celular y avisos."
+      }
+    ],
+    "motion": [
+      {
+        "name": "presion",
+        "value": "120ms",
+        "purpose": "Botón presionado: baja 1px."
+      },
+      {
+        "name": "hover",
+        "value": "150ms",
+        "purpose": "Cambios de color, borde y sombra en hover."
+      },
+      {
+        "name": "dialogo",
+        "value": "180ms ease-out",
+        "purpose": "Entrada del diálogo (escala 0.97 a 1) y de los avisos (suben 8px)."
+      },
+      {
+        "name": "pulso",
+        "value": "1.6s ease-in-out infinite",
+        "purpose": "Pulso de opacidad del skeleton."
+      },
+      {
+        "name": "giro",
+        "value": "0.8s linear infinite",
+        "purpose": "Indicador circular de un botón enviando."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compacto",
+        "value": "360px"
+      },
+      {
+        "name": "celular",
+        "value": "480px"
+      },
+      {
+        "name": "intermedio",
+        "value": "640px"
+      },
+      {
+        "name": "tableta",
+        "value": "768px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Recorrido público del colectivo",
+      "kind": "custom",
+      "description": "Fila de lectura con pasos ordenados, fondo petróleo tenue y acción secundaria con ayuda; se apila en celular y abre columnas 1:2 desde 768px.",
+      "html": "<section class=\"ds-recorrido-publico\"><div class=\"ds-recorrido-titulo\"><h3>Mi colectivo necesita software</h3><p>Contá qué necesitan y qué personas podrían sumarse.</p></div><div class=\"ds-recorrido-contenido\"><ol><li>Creá el perfil de tu colectivo.</li><li>Publicá el proyecto con los perfiles que necesitan.</li><li>Gestioná las postulaciones según la forma de aceptación que elijas para cada perfil.</li></ol><div class=\"ds-recorrido-accion\"><a href=\"/registro\" aria-describedby=\"ds-antes-de-publicar\">Publicar un proyecto</a><p id=\"ds-antes-de-publicar\">Primero creás una cuenta y completás el perfil de tu colectivo.</p></div></div></section>",
+      "css": ".ds-recorrido-publico { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--espacio-5); padding:var(--espacio-5); background:var(--color-petroleo-tenue); border-radius:var(--radio-lg); color:var(--color-tinta); font-family:var(--fuente-texto); font-size:var(--texto-body-tamano); line-height:var(--texto-body-altura); } .ds-recorrido-titulo,.ds-recorrido-contenido { display:flex; flex-direction:column; gap:var(--espacio-3); } .ds-recorrido-titulo h3 { margin:0; font-family:var(--fuente-titulos); font-size:var(--texto-title-tamano); font-weight:var(--texto-title-peso); line-height:var(--texto-title-altura); letter-spacing:var(--texto-title-espaciado); font-variation-settings:'opsz' var(--texto-title-opsz); text-wrap:balance; color:var(--color-petroleo); } .ds-recorrido-publico p { margin:0; color:var(--color-tinta-suave); text-wrap:pretty; } .ds-recorrido-publico ol { display:flex; flex-direction:column; gap:var(--espacio-3); margin:0; padding-inline-start:var(--espacio-5); } .ds-recorrido-publico li { padding-inline-start:var(--espacio-1); } .ds-recorrido-publico li::marker { color:var(--color-petroleo); font-weight:var(--texto-label-peso); } .ds-recorrido-accion { display:flex; flex-direction:column; align-items:flex-start; gap:var(--espacio-2); margin-block-start:var(--espacio-3); } .ds-recorrido-accion p { font-size:var(--texto-body-sm-tamano); } .ds-recorrido-accion a { display:inline-flex; align-items:center; justify-content:center; gap:var(--espacio-2); min-height:var(--toque-minimo); padding:var(--relleno-boton); border:var(--borde-control) solid var(--color-petroleo); border-radius:var(--radio-md); background:var(--color-superficie); color:var(--color-petroleo); font-family:var(--fuente-texto); font-size:var(--texto-button-tamano); font-weight:var(--texto-button-peso); line-height:var(--texto-button-altura); white-space:nowrap; text-decoration:none; transition:background-color var(--duracion-hover),color var(--duracion-hover),border-color var(--duracion-hover),transform var(--duracion-presion); } .ds-recorrido-accion a:hover,.ds-recorrido-accion a:active { background:var(--color-petroleo-tenue); color:var(--color-petroleo-hover); } .ds-recorrido-accion a:active { transform:translateY(var(--borde)); } .ds-recorrido-accion a:focus-visible { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } @media(min-width:768px) { .ds-recorrido-publico { grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:var(--espacio-7); padding:var(--espacio-6); } } @media(prefers-reduced-motion:reduce) { .ds-recorrido-accion a { transition:none; } }"
+    },
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "La única acción principal de la pantalla.",
+      "html": "<button class=\"ds-btn ds-btn-primario\">Enviar postulación</button>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--espacio-2); min-height:var(--toque-minimo); padding:var(--relleno-boton); border:var(--borde-control) solid transparent; border-radius:var(--radio-md); font-family:var(--fuente-texto); font-size:var(--texto-button-tamano); font-weight:var(--texto-button-peso); line-height:var(--texto-button-altura); white-space:nowrap; cursor:pointer; transition:background-color var(--duracion-hover), color var(--duracion-hover), transform var(--duracion-presion); } .ds-btn:focus-visible { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-btn:not(:disabled):active { transform:translateY(1px); } .ds-btn-primario { background:var(--color-coral); color:var(--color-blanco); } .ds-btn-primario:hover { background:var(--color-coral-hover); }"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Variante por defecto: Cancelar, Reintentar, Postularme.",
+      "html": "<button class=\"ds-btn ds-btn-secundario\">Postularme</button>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--espacio-2); min-height:var(--toque-minimo); padding:var(--relleno-boton); border:var(--borde-control) solid transparent; border-radius:var(--radio-md); font-family:var(--fuente-texto); font-size:var(--texto-button-tamano); font-weight:var(--texto-button-peso); line-height:var(--texto-button-altura); white-space:nowrap; cursor:pointer; transition:background-color var(--duracion-hover), color var(--duracion-hover), transform var(--duracion-presion); } .ds-btn:focus-visible { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-btn:not(:disabled):active { transform:translateY(1px); } .ds-btn-secundario { background:var(--color-superficie); border-color:var(--color-petroleo); color:var(--color-petroleo); } .ds-btn-secundario:hover { background:var(--color-petroleo-tenue); color:var(--color-petroleo-hover); }"
+    },
+    {
+      "name": "Botón peligroso de confirmación",
+      "kind": "button",
+      "refersTo": "button-danger-confirm",
+      "description": "Solo dentro del diálogo, para lo irreversible o lo que hace perder algo.",
+      "html": "<button class=\"ds-btn ds-btn-peligro\">Cerrar sesión</button>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--espacio-2); min-height:var(--toque-minimo); padding:var(--relleno-boton); border:var(--borde-control) solid transparent; border-radius:var(--radio-md); font-family:var(--fuente-texto); font-size:var(--texto-button-tamano); font-weight:var(--texto-button-peso); line-height:var(--texto-button-altura); white-space:nowrap; cursor:pointer; transition:background-color var(--duracion-hover), color var(--duracion-hover), transform var(--duracion-presion); } .ds-btn:focus-visible { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-btn:not(:disabled):active { transform:translateY(1px); } .ds-btn-peligro { background:var(--color-peligro); color:var(--color-blanco); } .ds-btn-peligro:hover { background:var(--color-peligro-hover); }"
+    },
+    {
+      "name": "Botón deshabilitado con motivo",
+      "kind": "button",
+      "refersTo": "button-disabled",
+      "description": "Nunca con opacidad; el motivo va visible debajo.",
+      "html": "<div class=\"ds-deshab\"><button class=\"ds-btn ds-btn-off\" disabled aria-describedby=\"ds-motivo-1\">Postularme</button><p id=\"ds-motivo-1\" class=\"ds-motivo\">La búsqueda de este perfil está cerrada.</p></div>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--espacio-2); min-height:var(--toque-minimo); padding:var(--relleno-boton); border:var(--borde-control) solid transparent; border-radius:var(--radio-md); font-family:var(--fuente-texto); font-size:var(--texto-button-tamano); font-weight:var(--texto-button-peso); line-height:var(--texto-button-altura); white-space:nowrap; cursor:pointer; transition:background-color var(--duracion-hover), color var(--duracion-hover), transform var(--duracion-presion); } .ds-btn:focus-visible { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-btn:not(:disabled):active { transform:translateY(1px); } .ds-deshab { display:inline-flex; flex-direction:column; align-items:flex-start; gap:var(--espacio-2); } .ds-btn-off { background:var(--color-hundido); color:var(--color-tinta-suave); cursor:not-allowed; } .ds-motivo { margin:0; font-family:var(--fuente-texto); font-size:var(--texto-body-sm-tamano); color:var(--color-tinta-suave); }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label visible arriba, ayuda debajo y anillo de foco en info.",
+      "html": "<label class=\"ds-campo\"><span class=\"ds-label\">Buscar por etiqueta</span><input class=\"ds-input\" type=\"search\"><span class=\"ds-ayuda\">Por ejemplo: educación, salud, ambiente.</span></label>",
+      "css": ".ds-campo { display:flex; flex-direction:column; gap:var(--espacio-2); font-family:var(--fuente-texto); } .ds-label { font-size:var(--texto-label-tamano); font-weight:var(--texto-label-peso); color:var(--color-tinta); } .ds-input { min-height:var(--toque-minimo); padding:var(--relleno-campo); background:var(--color-superficie); border:var(--borde) solid var(--color-borde-campo); border-radius:var(--radio-md); font:inherit; font-size:var(--texto-body-tamano); color:var(--color-tinta); } .ds-input::-webkit-search-cancel-button { display:none; } .ds-input:focus-visible { border-color:var(--color-petroleo); outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-ayuda { font-size:var(--texto-body-sm-tamano); color:var(--color-tinta-suave); }"
+    },
+    {
+      "name": "Chips requerida y opcional",
+      "kind": "chip",
+      "refersTo": "chip-requerida",
+      "description": "Habilidades: borde continuo y peso 600 contra borde rayado y peso 400.",
+      "html": "<ul class=\"ds-chips\"><li class=\"ds-chip ds-chip-req\">React</li><li class=\"ds-chip ds-chip-opc\">Diseño de interfaces</li></ul>",
+      "css": ".ds-chips { display:flex; flex-wrap:wrap; gap:var(--espacio-2); margin:0; padding:0; list-style:none; } .ds-chip { display:inline-flex; align-items:center; min-height:var(--alto-chip); padding:var(--espacio-1) var(--espacio-3); border-radius:var(--radio-pildora); font-family:var(--fuente-texto); font-size:var(--texto-label-tamano); letter-spacing:var(--texto-label-espaciado); } .ds-chip-req { border:var(--borde) solid var(--color-petroleo); background:var(--color-petroleo-tenue); color:var(--color-petroleo); font-weight:600; } .ds-chip-opc { border:var(--borde) dashed var(--color-borde-campo); background:var(--color-superficie); color:var(--color-tinta-suave); font-weight:400; }"
+    },
+    {
+      "name": "Etiqueta de tema",
+      "kind": "chip",
+      "refersTo": "etiqueta-busqueda",
+      "description": "Etiqueta rectangular de tema; junto al buscador es un botón seleccionable de al menos 44×44px.",
+      "html": "<button type=\"button\" class=\"ds-tema\" aria-pressed=\"true\">alimentacion</button><button type=\"button\" class=\"ds-tema\" aria-pressed=\"false\">logistica</button>",
+      "css": ".ds-tema{min-height:var(--toque-minimo);min-width:var(--toque-minimo);padding:var(--espacio-2) var(--espacio-3);border:var(--borde) solid var(--color-borde-campo);border-radius:var(--radio-sm);background:var(--color-hundido);color:var(--color-tinta);font-family:var(--fuente-texto);font-size:var(--texto-label-tamano);cursor:pointer}.ds-tema:hover,.ds-tema[aria-pressed=\"true\"]{background:var(--color-petroleo-tenue);border-color:var(--color-petroleo)}.ds-tema:focus-visible{outline:var(--anillo-foco) solid var(--color-info);outline-offset:var(--anillo-foco)}"
+    },
+    {
+      "name": "Sello de estado",
+      "kind": "custom",
+      "refersTo": "sello-abierta",
+      "description": "El aviso de la cartelera: estado en texto, ícono y color.",
+      "html": "<span class=\"ds-sello ds-sello-abierta\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg>Abierta hasta el 15/12</span> <span class=\"ds-sello ds-sello-cerrada\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 12h12\"/></svg>Cerrada</span>",
+      "css": ".ds-sello { display:inline-flex; align-items:center; gap:var(--espacio-1); padding:var(--espacio-1) var(--espacio-2); border:var(--borde) solid; border-radius:var(--radio-sm); font-family:var(--fuente-texto); font-size:var(--texto-label-tamano); font-weight:600; font-variant-numeric:tabular-nums; } .ds-sello-abierta { border-color:var(--color-exito); background:var(--color-exito-tenue); color:var(--color-exito); } .ds-sello-cerrada { border-color:var(--color-borde-campo); background:var(--color-hundido); color:var(--color-tinta-suave); }"
+    },
+    {
+      "name": "Tarjeta de proyecto",
+      "kind": "card",
+      "refersTo": "card-proyecto",
+      "description": "Un aviso de la cartelera, clickeable entera desde el título.",
+      "html": "<article class=\"ds-tarjeta\"><h3 class=\"ds-tarjeta-titulo\"><a href=\"#\">Sistema de turnos y stock para el comedor</a></h3><p class=\"ds-tarjeta-desc\">Hoy anotamos en un cuaderno quién cocina cada día y qué mercadería entra y sale.</p><p class=\"ds-encaje\">Tenés 1 de 1 habilidad requerida</p><div class=\"ds-pie\"><span>5 h por semana · Colaboración sin remuneración</span></div></article>",
+      "css": ".ds-tarjeta { position:relative; display:flex; flex-direction:column; gap:var(--espacio-3); max-width:360px; padding:var(--espacio-5); background:var(--color-superficie); border:var(--borde) solid var(--color-linea); border-radius:var(--radio-lg); font-family:var(--fuente-texto); transition:border-color var(--duracion-hover), box-shadow var(--duracion-hover); } .ds-tarjeta:hover { border-color:var(--color-petroleo); box-shadow:var(--sombra-respuesta); } .ds-tarjeta:has(a:focus-visible) { outline:var(--anillo-foco) solid var(--color-info); outline-offset:var(--anillo-foco); } .ds-tarjeta-titulo { margin:0; font-family:var(--fuente-titulos); font-size:var(--texto-title-tamano); font-weight:600; } .ds-tarjeta-titulo a { color:var(--color-petroleo); text-decoration:none; } .ds-tarjeta-titulo a:focus-visible { outline:none; } .ds-tarjeta-titulo a::after { content:''; position:absolute; inset:0; border-radius:inherit; } .ds-tarjeta-desc { margin:0; color:var(--color-tinta); } .ds-encaje { margin:0; padding:var(--espacio-2) var(--espacio-3); border-radius:var(--radio-md); background:var(--color-coral-tenue); color:var(--color-coral); font-size:var(--texto-body-sm-tamano); font-weight:600; } .ds-pie { padding-top:var(--espacio-3); border-top:var(--borde) solid var(--color-linea); font-size:var(--texto-body-sm-tamano); color:var(--color-tinta-suave); }"
+    },
+    {
+      "name": "Cabecera",
+      "kind": "nav",
+      "refersTo": "cabecera",
+      "description": "Franja petróleo con marca y navegación, ingreso directo y creación de cuenta a la derecha; segunda fila de accesos en celular.",
+      "html": "<header class=\"ds-cab\"><a class=\"ds-marca\" href=\"#\">Código a Voluntad</a><nav class=\"ds-nav\"><a class=\"ds-enlace\" aria-current=\"page\" href=\"#\">Proyectos</a></nav><div class=\"ds-accesos\"><button class=\"ds-ingresar\">Ingresar</button><button class=\"ds-cuenta\">Crear una cuenta</button></div></header>",
+      "css": ".ds-cab { display:flex; align-items:center; gap:var(--espacio-3); min-height:var(--espacio-8); padding-inline:var(--espacio-6); background:var(--color-petroleo); color:var(--color-crema-marca); font-family:var(--fuente-texto); } .ds-cab :focus-visible { outline:var(--anillo-foco) solid var(--color-crema-marca); outline-offset:var(--anillo-foco); } .ds-marca { margin-right:auto; font-family:var(--fuente-titulos); font-size:var(--texto-title-tamano); font-weight:700; color:var(--color-crema-marca); text-decoration:none; white-space:nowrap; } .ds-nav { display:flex; gap:var(--espacio-2); } .ds-enlace { display:flex; align-items:center; min-height:var(--toque-minimo); padding-inline:var(--espacio-3); color:var(--color-crema-marca); text-decoration:none; text-underline-offset:var(--espacio-2); } .ds-enlace:hover { text-decoration:underline; text-decoration-thickness:1px; } .ds-enlace[aria-current='page'] { font-weight:600; text-decoration:underline; text-decoration-color:var(--color-coral-vivo); text-decoration-thickness:3px; } .ds-cuenta { min-height:var(--toque-minimo); padding-inline:var(--espacio-3); border:var(--borde-control) solid var(--color-crema-marca); border-radius:var(--radio-md); background:transparent; color:var(--color-crema-marca); font:inherit; font-weight:600; cursor:pointer; } .ds-cuenta:hover { background:var(--color-petroleo-hover); } .ds-accesos{display:flex;justify-content:flex-end;gap:var(--espacio-2)}.ds-ingresar{min-height:var(--toque-minimo);padding-inline:var(--espacio-3);border:var(--borde-control) solid transparent;border-radius:var(--radio-md);background:transparent;color:var(--color-crema-marca);font:inherit;font-weight:var(--texto-button-peso);cursor:pointer;white-space:nowrap}.ds-ingresar:hover{background:var(--color-petroleo-hover)}.ds-cuenta{white-space:nowrap}@media(max-width:767px){.ds-cab{flex-wrap:wrap;row-gap:0;padding-inline:var(--espacio-4)}.ds-accesos{flex-basis:100%;padding-bottom:var(--espacio-2)}}@media(max-width:374px){.ds-cab{padding-inline:var(--espacio-1);gap:var(--espacio-1);row-gap:0}.ds-marca{font-size:var(--texto-button-tamano)}.ds-enlace{padding-inline:0}}"
+    },
+    {
+      "name": "Pie de página compartido",
+      "kind": "nav",
+      "refersTo": "pie-pagina",
+      "description": "Pie compacto de tres bloques en una fila de escritorio, apilado en celular, con la identidad de la cabecera.",
+      "html": "<footer class=\"ds-pie\"><div class=\"ds-pie-contenido\"><div><p class=\"ds-pie-nombre\">Código a Voluntad</p><p>Colectivos sociales y colaboradoras de software.</p></div><nav aria-label=\"Información del sitio\"><a href=\"/#como-empezar\">Cómo funciona</a></nav><p class=\"ds-pie-academico\">Proyecto académico de Desarrollo de Software · UTN FRBA</p></div></footer>",
+      "css": ".ds-pie{padding:var(--espacio-4);background:var(--color-petroleo);color:var(--color-crema-marca)}.ds-pie-contenido{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--espacio-2);align-items:center;max-width:calc(var(--ancho-contenedor) - var(--espacio-6)*2);margin-inline:auto}.ds-pie-nombre{font-family:var(--fuente-titulos);font-size:var(--texto-title-tamano);font-weight:var(--texto-headline-peso);line-height:var(--texto-title-altura);letter-spacing:var(--texto-title-espaciado);font-variation-settings:\"opsz\" var(--texto-title-opsz);color:var(--color-crema-marca)}.ds-pie a{display:inline-flex;align-items:center;min-height:var(--toque-minimo);color:var(--color-crema-marca);font-weight:var(--texto-button-peso);text-decoration:none;text-underline-offset:var(--espacio-2)}.ds-pie a:hover{color:var(--color-crema-marca);text-decoration:underline;text-decoration-thickness:var(--borde)}.ds-pie a:focus-visible{outline:var(--anillo-foco) solid var(--color-crema-marca);outline-offset:var(--anillo-foco)}.ds-pie-academico{font-size:var(--texto-body-sm-tamano)}@media(min-width:768px){.ds-pie{padding-inline:var(--espacio-6)}.ds-pie-contenido{grid-template-columns:minmax(0,1.2fr) auto minmax(0,1fr);gap:var(--espacio-6)}.ds-pie-academico{justify-self:end;max-width:var(--ancho-aviso)}}.ds-pie-contenido>div{display:flex;flex-direction:column;gap:var(--espacio-1);font-size:var(--texto-body-sm-tamano)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "La cartelera comunitaria",
+    "overview": "Código a Voluntad se ve como la cartelera de un centro cultural bien cuidada: cada aviso se lee de un vistazo, dice qué necesita y si todavía está vigente. Quien llega desde un comedor o una cooperativa entiende sin saber de software; quien programa encuentra rápido dónde encaja. La metáfora gobierna la estructura y el tono, no el material: no hay corcho, chinches ni papel envejecido. Lo que se toma de la cartelera es la claridad de cada aviso y el **sello de estado**, que dice en texto si una búsqueda está abierta, completa o cerrada.\n\nEs una superficie para operar: buscar, comparar, postularse, aceptar. La densidad es media, con aire generoso entre bloques y grupos apretados adentro. El crema es el fondo de todo (60 %), el verde petróleo da estructura (cabecera, títulos, chips requeridos, botones secundarios; 30 %) y el coral marca la única acción principal de cada pantalla y poco más (10 %). Tema claro solamente: la escena real es una pantalla compartida en un espacio comunitario o un celular a la luz del día.\n\nTodo valor vive como variable CSS en `src/Styles/tokens.css` (`--color-*`, `--espacio-*`, `--radio-*`, `--texto-*`, `--sombra-*`, `--duracion-*`) y cada componente lo toma de ahí, con CSS Modules. Ningún módulo lleva colores ni medidas sueltas.",
+    "keyCharacteristics": [
+      "Fondo crema cálido, texto en tinta petróleo casi negra, nunca negro puro ni gris neutro.",
+      "Una sola acción coral por pantalla; todo lo demás es petróleo o neutro.",
+      "Estados siempre con texto e ícono, jamás solo con color.",
+      "Títulos en Bricolage Grotesque con personalidad; texto en Source Sans 3, muy legible.",
+      "Plano en reposo; las sombras aparecen solo como respuesta (hover) o elevación real (diálogo, menús, avisos)."
+    ],
+    "rules": [
+      {
+        "name": "La regla de la voz única",
+        "body": "El coral oscurecido aparece en una sola acción por pantalla. Si dos botones coral compiten, uno pasa a secundario. Por eso \"Postularme\" es secundario en el detalle del proyecto, aunque haya varios perfiles, y el coral queda para \"Enviar postulación\" dentro del diálogo.",
+        "section": "colors"
+      },
+      {
+        "name": "La regla del coral que no habla",
+        "body": "El coral vivo es decoración: nunca texto, nunca el único indicio de un estado.",
+        "section": "colors"
+      },
+      {
+        "name": "La regla del rojo que no es coral",
+        "body": "El peligro es carmesí (hacia el magenta) y el acento es coral (hacia el naranja). Además, en la página el botón peligroso va con contorno; el relleno rojo existe solo dentro del diálogo de confirmación. Así un \"Rechazar\" nunca se confunde con un \"Postularme\".",
+        "section": "colors"
+      },
+      {
+        "name": "La regla de los 14 píxeles",
+        "body": "Ningún texto baja de 0.875rem. Lo que no entra se resume, no se achica. La única excepción es la marca de la cabecera, que baja a 1rem por debajo de 360px para seguir en una línea.",
+        "section": "typography"
+      },
+      {
+        "name": "La regla sin rótulo",
+        "body": "Ningún título lleva una etiqueta chiquita encima. El título se sostiene solo.",
+        "section": "typography"
+      },
+      {
+        "name": "La regla del plano por defecto",
+        "body": "Nada tiene sombra quieto. Si una sombra no responde a algo, sobra.",
+        "section": "elevation"
+      },
+      {
+        "name": "La regla de la píldora",
+        "body": "La forma de píldora es de las habilidades. Una etiqueta de tema (\"alimentación\") va con esquinas de 4px sobre hundido, para que nadie la confunda con una habilidad requerida.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** usar el coral oscurecido (`coral`) en una sola acción principal por pantalla.",
+      "**Do** acompañar cada estado con texto e ícono: el color confirma, no informa solo.",
+      "**Do** mostrar el motivo debajo de todo botón deshabilitado, enlazado con `aria-describedby`.",
+      "**Do** separar las habilidades en \"Requeridas\" y \"Opcionales\" y diferenciar los chips con borde continuo o rayado y con el peso.",
+      "**Do** mostrar las etiquetas de tema con esquinas de 4px sobre hundido, nunca como píldora.",
+      "**Do** tomar todo valor de `src/Styles/tokens.css`; ningún color, medida ni duración suelta en un módulo.",
+      "**Do** mantener 44×44px en todo lo clickeable y verificar el contraste de todo par de color nuevo antes de usarlo.",
+      "**Do** dar los botones peligrosos con contorno en la página y con relleno solo dentro del diálogo.",
+      "**Do** escribir cada mensaje de error en el front, según el status y la operación."
+    ],
+    "donts": [
+      "**Don't** poner texto sobre el coral vivo ni usarlo como único indicador de nada (2.56:1 sobre crema).",
+      "**Don't** usar texto más claro que la tinta suave, ni grises neutros: los neutros vienen del crema y del petróleo.",
+      "**Don't** deshabilitar con opacidad. La opacidad atenuada es solo para contenido viejo mientras carga el nuevo y para el pulso del skeleton.",
+      "**Don't** usar mayúsculas sostenidas, rótulos encima de los títulos ni numeración de secciones.",
+      "**Don't** usar monoespaciada, ni siquiera en chips o números.",
+      "**Don't** usar bordes laterales gruesos de color en tarjetas, alertas o avisos.",
+      "**Don't** usar sombras sin desplazamiento, sombras duras sin difuminado, vidrio ni degradados en texto.",
+      "**Don't** inventar logos, ilustraciones, fotos de portada ni testimonios para llenar huecos.",
+      "**Don't** usar `window.confirm()`: las acciones permanentes van por el diálogo de confirmación.",
+      "**Don't** mostrar el `message` del back, un status ni un ID técnico en pantalla."
+    ]
+  }
+}

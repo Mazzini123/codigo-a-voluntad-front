@@ -1,0 +1,8 @@
+.volver {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--espacio-2);
+  min-block-size: var(--toque-minimo);
+  font-weight: var(--texto-button-peso);
+}

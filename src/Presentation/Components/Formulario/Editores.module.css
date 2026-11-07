@@ -1,0 +1,101 @@
+.fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-md);
+}
+
+.fila > legend {
+  padding-inline: var(--espacio-1);
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  color: var(--color-tinta-suave);
+}
+
+.quitar {
+  justify-self: start;
+}
+
+.agregar {
+  align-self: flex-start;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  padding: 0;
+  list-style: none;
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  min-block-size: var(--alto-chip);
+  padding-inline-start: var(--espacio-3);
+  border: var(--borde) solid var(--color-petroleo);
+  border-radius: var(--radio-pildora);
+  background: var(--color-petroleo-tenue);
+  color: var(--color-petroleo);
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+}
+
+.quitarEtiqueta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--toque-minimo);
+  block-size: var(--alto-chip);
+  padding: 0;
+  border: none;
+  border-radius: var(--radio-pildora);
+  background: transparent;
+  color: inherit;
+}
+
+.quitarEtiqueta::before {
+  content: "";
+  position: absolute;
+  inset-block: calc((var(--toque-minimo) - var(--alto-chip)) / -2);
+  inset-inline: 0;
+}
+
+.quitarEtiqueta:hover {
+  background: var(--color-velo-petroleo);
+}
+
+.nuevaEtiqueta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+}
+
+.nuevaEtiqueta > :first-child {
+  flex: 1 1 var(--ancho-opcion);
+}
+
+.nuevaEtiqueta > button {
+  margin-block-start: calc(
+    var(--texto-label-tamano) * var(--texto-label-altura) + var(--espacio-2)
+  );
+}
+
+@media (min-width: 640px) {
+  .fila {
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .quitar {
+    margin-block-start: calc(
+      var(--texto-label-tamano) * var(--texto-label-altura) + var(--espacio-2)
+    );
+  }
+}

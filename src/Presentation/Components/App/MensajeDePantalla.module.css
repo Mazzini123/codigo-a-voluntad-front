@@ -1,0 +1,22 @@
+.mensaje {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  padding-block: var(--espacio-7);
+}
+
+.texto {
+  max-inline-size: var(--ancho-texto);
+  color: var(--color-tinta-suave);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-block-size: var(--toque-minimo);
+  font-weight: var(--texto-button-peso);
+}

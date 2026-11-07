@@ -1,0 +1,69 @@
+import { useLocation } from "react-router-dom";
+import { COLABORACION_ESTADO } from "../../../Application/Domain/Enums/COLABORACION_ESTADO.js";
+import { PROYECTO_ESTADO } from "../../../Application/Domain/Enums/PROYECTO_ESTADO.js";
+import { ROL_CUENTA } from "../../../Application/Domain/Enums/ROL_CUENTA.js";
+import { ESTADO_BUSQUEDA, motivoNoPostulable } from "../../Formatos/proyecto.js";
+import { RUTA_BIENVENIDA } from "../../Routes/rutas.js";
+import { Boton } from "../App/Boton.jsx";
+import { EnlaceBoton } from "../App/EnlaceBoton.jsx";
+import { idDePostulacion } from "./idsDePerfil.js";
+import { SelloDeBusqueda } from "./SelloDeBusqueda.jsx";
+import estilos from "./AccionDePerfil.module.css";
+
+const SELLO_DE_POSTULACION = Object.freeze({
+  [COLABORACION_ESTADO.PENDIENTE]: {
+    tipo: ESTADO_BUSQUEDA.LIMITE,
+    texto: "Tu postulación está pendiente",
+  },
+  [COLABORACION_ESTADO.ACEPTADA]: {
+    tipo: ESTADO_BUSQUEDA.ABIERTA,
+    texto: "Tu postulación fue aceptada",
+  },
+  [COLABORACION_ESTADO.RECHAZADA]: {
+    tipo: ESTADO_BUSQUEDA.RECHAZADA,
+    texto: "Tu postulación fue rechazada",
+  },
+});
+
+export function AccionDePerfil({
+  perfil,
+  proyecto,
+  usuario,
+  postulacion = null,
+  alPostular,
+  hoy = new Date(),
+}) {
+  const { pathname, search, hash } = useLocation();
+
+  if (proyecto.estado === PROYECTO_ESTADO.FINALIZADO) return null;
+  if (usuario?.rol === ROL_CUENTA.COLECTIVO) return null;
+  if (postulacion)
+    return (
+      <span id={idDePostulacion(perfil.id)} tabIndex={-1} className={estilos.sello}>
+        <SelloDeBusqueda estado={SELLO_DE_POSTULACION[postulacion.estado]} />
+      </span>
+    );
+
+  const motivo = motivoNoPostulable(perfil, proyecto, hoy);
+  if (motivo) {
+    return (
+      <Boton disabled motivoDeshabilitado={motivo}>
+        Postularme
+      </Boton>
+    );
+  }
+  if (!usuario) {
+    return (
+      <div className={estilos.grupo}>
+        <EnlaceBoton to="/login" state={{ desde: { pathname, search, hash } }}>
+          Postularme
+        </EnlaceBoton>
+        <p className={estilos.nota}>Ingresá como colaboradora para postularte.</p>
+      </div>
+    );
+  }
+  if (!usuario.rol) {
+    return <EnlaceBoton to={RUTA_BIENVENIDA}>Postularme</EnlaceBoton>;
+  }
+  return <Boton onClick={() => alPostular(perfil)}>Postularme</Boton>;
+}

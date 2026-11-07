@@ -1,0 +1,53 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.bajada {
+  color: var(--color-tinta-suave);
+}
+
+.catalogo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.cabeceraCatalogo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espacio-4);
+}
+
+.conteo {
+  font-size: var(--texto-body-sm-tamano);
+  color: var(--color-tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.tarjetaSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.listaSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}

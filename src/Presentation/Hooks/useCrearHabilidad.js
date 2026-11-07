@@ -1,29 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { habilidadDependencies } from "../Dependencies/habilidadDependencies.js";
-import { obtenerMensajeError } from "./obtenerMensajeError.js";
+import { useAsync } from "./useAsync.js";
+import { useAvisos } from "./useAvisos.js";
 
 export function useCrearHabilidad(dependencies = habilidadDependencies) {
-  const [estado, setEstado] = useState({ guardando: false, error: "" });
-  const pendiente = useRef(null);
-  useEffect(() => () => pendiente.current?.abort(), []);
+  const avisar = useAvisos();
+  const crearHabilidad = useCallback(
+    (signal, request) => dependencies.crearHabilidad(request, { signal }),
+    [dependencies],
+  );
+  const { cargando, error, ejecutar } = useAsync(crearHabilidad, { inmediato: false });
 
-  async function crear(request) {
-    if (pendiente.current) return false;
-    const controller = new AbortController();
-    pendiente.current = controller;
-    setEstado({ guardando: true, error: "" });
-    try {
-      await dependencies.crearHabilidad(request, { signal: controller.signal });
-      if (controller.signal.aborted) return false;
-      setEstado({ guardando: false, error: "" });
-      return true;
-    } catch (error) {
-      if (!controller.signal.aborted)
-        setEstado({ guardando: false, error: obtenerMensajeError(error) });
-      return false;
-    } finally {
-      if (pendiente.current === controller) pendiente.current = null;
-    }
-  }
-  return { ...estado, crear };
+  const crear = useCallback(
+    async (request) => {
+      const creada = await ejecutar(request);
+      if (creada) avisar.exito("Habilidad creada correctamente.");
+      return creada;
+    },
+    [ejecutar, avisar],
+  );
+
+  return { guardando: cargando, error, crear };
 }

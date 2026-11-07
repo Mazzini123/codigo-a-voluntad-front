@@ -1,0 +1,129 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-8);
+}
+
+.introduccion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-5);
+  padding-block: var(--espacio-6);
+}
+
+.introduccion h1 {
+  max-inline-size: var(--ancho-lectura);
+  color: var(--color-petroleo);
+  font-size: var(--texto-display-tamano);
+  font-weight: var(--texto-display-peso);
+  line-height: var(--texto-display-altura);
+  letter-spacing: var(--texto-display-espaciado);
+  font-variation-settings: "opsz" var(--texto-display-opsz);
+}
+
+.introduccion p {
+  max-inline-size: var(--ancho-texto);
+  color: var(--color-tinta-suave);
+}
+
+.recorridos,
+.preguntas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+}
+
+.recorrido {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-5);
+  padding-block: var(--espacio-6);
+  border-block-start: var(--borde) solid var(--color-linea);
+}
+
+.tituloDeRecorrido,
+.contenidoDeRecorrido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.tituloDeRecorrido h3 {
+  color: var(--color-petroleo);
+}
+
+.tituloDeRecorrido p {
+  color: var(--color-tinta-suave);
+}
+
+.pasos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding-inline-start: var(--espacio-5);
+}
+
+.pasos li {
+  padding-inline-start: var(--espacio-1);
+}
+
+.pasos li::marker {
+  color: var(--color-petroleo);
+  font-weight: var(--texto-label-peso);
+}
+
+.colectivo {
+  background: var(--color-petroleo-tenue);
+  border-block-start: none;
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-5);
+}
+
+.accionDeColectivo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  margin-block-start: var(--espacio-3);
+}
+
+.accionDeColectivo p {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.preguntas dl {
+  display: flex;
+  flex-direction: column;
+}
+
+.preguntas dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-3);
+  padding-block: var(--espacio-5);
+  border-block-start: var(--borde) solid var(--color-linea);
+}
+
+.preguntas dt {
+  color: var(--color-petroleo);
+  font-weight: var(--texto-label-peso);
+}
+
+.preguntas dd {
+  margin: 0;
+  max-inline-size: var(--ancho-texto);
+}
+
+@media (min-width: 768px) {
+  .recorrido,
+  .preguntas dl > div {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--espacio-7);
+  }
+
+  .colectivo {
+    padding: var(--espacio-6);
+  }
+}

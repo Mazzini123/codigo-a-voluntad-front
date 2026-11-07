@@ -1,0 +1,17 @@
+.sello {
+  display: inline-flex;
+  border-radius: var(--radio-sm);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.nota {
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  color: var(--color-tinta-suave);
+}

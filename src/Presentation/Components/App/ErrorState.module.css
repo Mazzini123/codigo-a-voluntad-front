@@ -1,0 +1,26 @@
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+  background: var(--color-peligro-tenue);
+  border: var(--borde) solid var(--color-peligro);
+  border-radius: var(--radio-lg);
+}
+
+.icono {
+  flex-shrink: 0;
+  margin-block-start: calc(var(--espacio-1) / 2);
+  color: var(--color-peligro);
+}
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.accion {
+  margin-block-start: var(--espacio-2);
+}

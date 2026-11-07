@@ -1,0 +1,68 @@
+.formulario {
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  box-shadow: var(--sombra-tarjeta);
+  border-radius: var(--radio-lg);
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.etiqueta {
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+}
+
+.control {
+  min-block-size: var(--toque-minimo);
+  padding: var(--relleno-campo);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-borde-campo);
+  border-radius: var(--radio-md);
+  color: var(--color-tinta);
+}
+
+.control:focus-visible {
+  border-color: var(--color-petroleo);
+}
+
+textarea.control {
+  min-block-size: calc(var(--toque-minimo) * 2);
+  resize: vertical;
+}
+
+.ayuda {
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  color: var(--color-tinta-suave);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  margin-block-start: var(--espacio-4);
+  color: var(--color-peligro);
+  font-weight: var(--texto-label-peso);
+}

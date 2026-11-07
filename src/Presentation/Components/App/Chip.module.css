@@ -1,0 +1,25 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  min-height: var(--alto-chip);
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-pildora);
+  font-size: var(--texto-label-tamano);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+}
+
+.requerida {
+  border: var(--borde) solid var(--color-petroleo);
+  background: var(--color-petroleo-tenue);
+  color: var(--color-petroleo);
+  font-weight: var(--texto-label-peso);
+}
+
+.opcional {
+  border: var(--borde) dashed var(--color-borde-campo);
+  background: var(--color-superficie);
+  color: var(--color-tinta-suave);
+  font-weight: var(--texto-body-peso);
+}

@@ -1,0 +1,111 @@
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  box-shadow: var(--sombra-tarjeta);
+  border-radius: var(--radio-lg);
+}
+
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.titulo {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.recortado {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.verMas {
+  align-self: flex-start;
+  min-block-size: var(--toque-minimo);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-petroleo);
+  font-weight: var(--texto-button-peso);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.verMas:hover {
+  color: var(--color-petroleo-hover);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.subtitulo {
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+  color: var(--color-tinta-suave);
+}
+
+.chips,
+.personas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  padding: 0;
+  list-style: none;
+}
+
+.personas {
+  flex-direction: column;
+}
+
+.personas a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-3) var(--espacio-4);
+  margin: 0;
+}
+
+.dato dt {
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  color: var(--color-tinta-suave);
+}
+
+.dato dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.vacio {
+  color: var(--color-tinta-suave);
+}
+
+.accion {
+  padding-block-start: var(--espacio-3);
+  border-block-start: var(--borde) solid var(--color-linea);
+}
+
+.accion:empty {
+  display: none;
+}

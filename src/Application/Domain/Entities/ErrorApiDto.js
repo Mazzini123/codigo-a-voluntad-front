@@ -1,5 +1,5 @@
 /**
- * Body de error; los clientes propagan el error HTTP original.
+ * Body de error del back. axiosClient lo traduce a un ApiError (Infrastructure/Http/ApiError.js).
  * @typedef {Object} ErrorApiDto
  * @property {string} message
  * @property {string} [detalle]

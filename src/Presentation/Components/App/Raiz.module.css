@@ -1,0 +1,10 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+}
+
+.pagina > main {
+  flex: 1;
+}

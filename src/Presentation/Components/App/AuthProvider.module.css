@@ -1,0 +1,5 @@
+.error {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  padding: var(--espacio-7) var(--espacio-4);
+}

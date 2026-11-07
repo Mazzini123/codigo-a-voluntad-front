@@ -1,0 +1,8 @@
+.franja {
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-md);
+  background: var(--color-coral-tenue);
+  color: var(--color-coral);
+  font-size: var(--texto-body-sm-tamano);
+  font-weight: var(--texto-label-peso);
+}

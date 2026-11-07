@@ -1,0 +1,42 @@
+.sello {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  flex-shrink: 0;
+  padding: var(--espacio-1) var(--espacio-2);
+  border: var(--borde) solid;
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+  font-variant-numeric: tabular-nums;
+}
+
+.aceptada,
+.abierta {
+  border-color: var(--color-exito);
+  background: var(--color-exito-tenue);
+  color: var(--color-exito);
+}
+
+.pendiente,
+.limite {
+  border-color: var(--color-aviso);
+  background: var(--color-aviso-tenue);
+  color: var(--color-aviso);
+}
+
+.rechazada {
+  border-color: var(--color-peligro);
+  background: var(--color-peligro-tenue);
+  color: var(--color-peligro);
+}
+
+.mixta,
+.cerrada,
+.finalizado {
+  border-color: var(--color-borde-campo);
+  background: var(--color-hundido);
+  color: var(--color-tinta-suave);
+}

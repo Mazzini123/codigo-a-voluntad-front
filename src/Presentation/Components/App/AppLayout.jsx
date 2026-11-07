@@ -1,14 +1,25 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { useRef } from "react";
+import { Outlet } from "react-router-dom";
+import { useFocoAlNavegar } from "../../Hooks/useFocoAlNavegar.js";
+import { Cabecera } from "./Cabecera.jsx";
+import estilos from "./AppLayout.module.css";
+
 export function AppLayout() {
+  const refContenido = useRef(null);
+  useFocoAlNavegar(refContenido);
+
+  function saltarAlContenido(evento) {
+    evento.preventDefault();
+    refContenido.current?.focus();
+  }
+
   return (
     <>
-      <header className="app-header">
-        <strong>Código a Voluntad</strong>
-        <nav aria-label="Principal">
-          <NavLink to="/habilidades">Habilidades</NavLink>
-        </nav>
-      </header>
-      <main>
+      <a href="#contenido" className={estilos.saltar} onClick={saltarAlContenido}>
+        Saltar al contenido
+      </a>
+      <Cabecera />
+      <main id="contenido" ref={refContenido} tabIndex={-1} className={estilos.principal}>
         <Outlet />
       </main>
     </>
