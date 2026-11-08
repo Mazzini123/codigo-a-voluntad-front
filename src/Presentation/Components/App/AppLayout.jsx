@@ -6,6 +6,9 @@ export function AppLayout() {
         <strong>Código a Voluntad</strong>
         <nav aria-label="Principal">
           <NavLink to="/habilidades">Habilidades</NavLink>
+          {import.meta.env.DEV && (
+            <NavLink to="/auth-test" style={{ marginLeft: 12 }}>Prueba de Auth</NavLink>
+          )}
         </nav>
       </header>
       <main>
