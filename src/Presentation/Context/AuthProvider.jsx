@@ -1,15 +1,16 @@
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { useSesionLogto } from '../../Infrastructure/Auth/useSesionLogto';
+import { obtenerConfiguracionAuth } from '../../Infrastructure/Auth/authFactory';
 import { configurarAuth } from '../../Infrastructure/Http/axiosClient';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children, usarSesion = useSesionLogto }) {
+const { usarSesion: usarSesionPorDefecto } = obtenerConfiguracionAuth();
+
+export function AuthProvider({ children, usarSesion = usarSesionPorDefecto }) {
   const sesion = usarSesion();
   const [usuario, setUsuario] = useState(null);
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
 
-  // Sincroniza el token con el interceptor de Axios
   useEffect(() => {
     configurarAuth({
       obtenerToken: sesion.obtenerToken,
@@ -17,7 +18,6 @@ export function AuthProvider({ children, usarSesion = useSesionLogto }) {
     });
   }, [sesion.obtenerToken, sesion.cerrar]);
 
-  // Consulta al backend cuando la sesión de Logto está activa
   useEffect(() => {
     if (!sesion.autenticado) {
       setUsuario(null);
@@ -35,10 +35,11 @@ export function AuthProvider({ children, usarSesion = useSesionLogto }) {
       usuario,
       estaAutenticado: Boolean(usuario || sesion.autenticado),
       cargando: sesion.cargando || cargandoUsuario,
-      iniciarSesion: sesion.iniciarSesion,
-      cerrarSesion: sesion.cerrarSesion,
+      iniciarSesion: sesion.iniciar,
+      cerrarSesion: sesion.cerrar,
+      obtenerToken: sesion.obtenerToken,
     }),
-    [usuario, sesion.autenticado, sesion.cargando, cargandoUsuario, sesion.iniciarSesion, sesion.cerrarSesion]
+    [usuario, sesion.autenticado, sesion.cargando, cargandoUsuario, sesion.iniciar, sesion.cerrar, sesion.obtenerToken]
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

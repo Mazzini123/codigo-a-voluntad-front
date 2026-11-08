@@ -1,9 +1,11 @@
 import { LogtoSesionProvider } from './logto/LogtoSesionProvider';
 import { useSesionLogto } from './logto/useSesionLogto';
+import { LogtoCallback } from './logto/LogtoCallback';
 
 // (En el futuro, si cambian de proveedor, solo importan el nuevo aquí)
 // import { FirebaseSesionProvider } from './firebase/FirebaseSesionProvider';
 // import { useSesionFirebase } from './firebase/useSesionFirebase';
+// import { FirebaseCallback } from './firebase/FirebaseCallback';
 
 // En el .env se define el proveedor a usar
 const PROVEEDOR_ACTIVO = import.meta.env.VITE_AUTH_PROVIDER || 'logto'; // Por ahora por defecto logto, dsp puede haber uno simulado
@@ -19,6 +21,7 @@ export function obtenerConfiguracionAuth() {
       return {
         Provider: LogtoSesionProvider,
         usarSesion: useSesionLogto,
+        CallbackComponent: LogtoCallback,
       };
       
     // Ejemplo de integracion con otro proveedor
@@ -26,6 +29,7 @@ export function obtenerConfiguracionAuth() {
     //   return {
     //     Provider: FirebaseSesionProvider,
     //     usarSesion: useSesionFirebase,
+    //     CallbackComponent: FirebaseCallback,
     //   };
 
     default:
