@@ -56,14 +56,18 @@ export function AccionDePerfil({
     return (
       <div className={estilos.grupo}>
         <EnlaceBoton to="/login" state={{ desde: { pathname, search, hash } }}>
-          Postularme
+          Ingresar para postularme
         </EnlaceBoton>
         <p className={estilos.nota}>Ingresá como colaboradora para postularte.</p>
       </div>
     );
   }
   if (!usuario.rol) {
-    return <EnlaceBoton to={RUTA_BIENVENIDA}>Postularme</EnlaceBoton>;
+    return <EnlaceBoton to={RUTA_BIENVENIDA}>Completar mi perfil</EnlaceBoton>;
   }
-  return <Boton onClick={() => alPostular(perfil)}>Postularme</Boton>;
+  return (
+    <Boton variante="primario" onClick={() => alPostular(perfil)}>
+      Postularme
+    </Boton>
+  );
 }

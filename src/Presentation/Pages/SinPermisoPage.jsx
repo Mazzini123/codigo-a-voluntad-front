@@ -2,7 +2,9 @@ import { MensajeDePantalla } from "../Components/App/MensajeDePantalla.jsx";
 import { useAuth } from "../Hooks/useAuth.js";
 import { inicioPorRol } from "../Routes/rutas.js";
 
-export function SinPermisoPage() {
+export function SinPermisoPage({
+  children = "Esta sección es para otro tipo de cuenta.",
+}) {
   const { usuario } = useAuth();
   return (
     <MensajeDePantalla
@@ -10,7 +12,7 @@ export function SinPermisoPage() {
       tituloDePestana="Sin permiso"
       volverA={usuario ? inicioPorRol(usuario.rol) : "/"}
     >
-      Esta sección es para otro tipo de cuenta.
+      {children}
     </MensajeDePantalla>
   );
 }

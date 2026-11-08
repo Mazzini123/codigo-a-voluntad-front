@@ -1,0 +1,45 @@
+.pagina,
+.seccion,
+.perfil,
+.lista {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.seccion,
+.perfil {
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.lista {
+  padding: 0;
+  list-style: none;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  justify-self: start;
+}
+
+.ayuda {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}

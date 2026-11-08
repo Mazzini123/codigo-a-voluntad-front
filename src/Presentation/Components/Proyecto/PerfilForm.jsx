@@ -43,6 +43,8 @@ export function PerfilForm({
   alGuardar,
   alDescartar,
   refFormulario,
+  enviando = false,
+  textoGuardar = "Guardar perfil",
 }) {
   const idDe = (clave) => idDeCampo(idBase, clave);
   const codigosRequeridas = useMemo(
@@ -91,12 +93,12 @@ export function PerfilForm({
 
   function enviar(evento) {
     evento.preventDefault();
-    alGuardar();
+    if (!enviando) alGuardar();
   }
 
   return (
     <form ref={refFormulario} noValidate onSubmit={enviar} className={estilos.formulario}>
-      <fieldset className={estilos.campos}>
+      <fieldset className={estilos.campos} disabled={enviando}>
         <legend className={estilos.leyendaDeFormulario}>
           {esEdicion ? "Editar perfil" : "Nuevo perfil"}
         </legend>
@@ -217,10 +219,19 @@ export function PerfilForm({
       <ResumenDeErrores items={resumen} />
 
       <div className={estilos.accionesDeFila}>
-        <Boton variante="primario" type="submit">
-          Guardar perfil
+        <Boton
+          variante="primario"
+          type="submit"
+          enviando={enviando}
+          textoEnviando="Guardando…"
+        >
+          {textoGuardar}
         </Boton>
-        {puedeDescartar && <Boton onClick={alDescartar}>Descartar perfil</Boton>}
+        {puedeDescartar && (
+          <Boton onClick={alDescartar} disabled={enviando}>
+            Descartar perfil
+          </Boton>
+        )}
       </div>
     </form>
   );

@@ -244,9 +244,7 @@ test("un 401 del backend limpia la sesión del SDK y permite ingresar de nuevo",
     }),
   );
   const { user, router } = montar("/bienvenida");
-  expect(
-    await screen.findByRole("heading", { name: "Ingresá a Código a Voluntad" }),
-  ).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeVisible();
   expect(
     await screen.findByText("Tu sesión venció. Iniciá sesión de nuevo."),
   ).toBeVisible();

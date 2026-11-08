@@ -20,12 +20,13 @@
 
 .presentacion {
   display: flex;
-  flex-direction: column;
-  gap: var(--espacio-1);
+  align-items: center;
+  gap: var(--espacio-3);
   font-size: var(--texto-body-sm-tamano);
 }
 
 .nombre {
+  margin-block-end: var(--espacio-1);
   color: var(--color-crema-marca);
   font-family: var(--fuente-titulos);
   font-size: var(--texto-title-tamano);
@@ -57,12 +58,18 @@
 
 @media (min-width: 768px) {
   .pie {
+    padding-block: calc(var(--espacio-4) + var(--espacio-1));
     padding-inline: var(--espacio-6);
   }
 
   .contenido {
-    grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1.35fr);
     gap: var(--espacio-6);
+  }
+
+  .contenido nav {
+    border-inline: var(--borde) solid color-mix(in srgb, currentColor 55%, transparent);
+    text-align: center;
   }
 
   .academico {

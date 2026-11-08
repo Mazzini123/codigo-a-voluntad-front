@@ -8,6 +8,7 @@ import {
 import { Icono } from "./Icono.jsx";
 import { MenuDeCuenta } from "./MenuDeCuenta.jsx";
 import estilos from "./Cabecera.module.css";
+import marca from "./Marca.module.css";
 
 export function Cabecera() {
   const { usuario } = useAuth();
@@ -62,6 +63,7 @@ export function Cabecera() {
     <header ref={refCabecera} className={estilos.cabecera}>
       <div className={`${estilos.barra} ${!usuario ? estilos.visitante : ""}`}>
         <Link to="/" className={estilos.marca} onClick={() => setMenuAbierto(false)}>
+          <Icono nombre="codigo" tamano={32} className={marca.simbolo} />
           Código a Voluntad
         </Link>
         <nav ref={refNavegacion} aria-label="Principal" onBlur={cerrarAlSalirElFoco}>

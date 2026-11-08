@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Proveedores } from "../../../test/Proveedores.jsx";
 import { crearIdentidadFalsa } from "../../Dependencies/identidadDependencies.js";
@@ -71,16 +71,18 @@ test("un error avisa sin exponer detalles y permite reintentar", async () => {
 });
 
 test.each(["/login", "/registro"])(
-  "en %s los accesos permanecen en la pantalla y no se duplican en la cabecera",
+  "en %s la cabecera conserva ambos accesos",
   async (ruta) => {
     montar({ ruta });
-    await waitFor(() =>
-      expect(screen.getByRole("link", { name: "Proyectos" })).toBeInTheDocument(),
+    const cabecera = within(screen.getByRole("banner"));
+    expect(await cabecera.findByRole("link", { name: "Ingresar" })).toHaveAttribute(
+      "href",
+      "/login",
     );
-    await act(async () => {});
-    expect(
-      within(screen.getByRole("banner")).queryByRole("button", { name: "Ingresar" }),
-    ).not.toBeInTheDocument();
+    expect(cabecera.getByRole("link", { name: "Crear una cuenta" })).toHaveAttribute(
+      "href",
+      "/registro",
+    );
   },
 );
 

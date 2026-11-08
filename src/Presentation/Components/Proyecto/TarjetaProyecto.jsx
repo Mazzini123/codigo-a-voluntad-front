@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Chip } from "../App/Chip.jsx";
+import { Icono } from "../App/Icono.jsx";
 import { BloqueSkeleton } from "../App/Skeleton.jsx";
 import {
   encajeCon,
@@ -26,6 +27,7 @@ export function TarjetaProyecto({
   codigosPropios = null,
   postulaciones = [],
   propia = false,
+  estadoAlCostado = false,
   pendientes = null,
   hoy = new Date(),
 }) {
@@ -34,8 +36,20 @@ export function TarjetaProyecto({
   const resto = habilidades.length - visibles.length;
   const abiertos = perfilesAbiertos(proyecto, hoy).length;
   const destacado = perfilDestacado(proyecto, hoy);
-  const estado = destacado ? estadoDeBusqueda(destacado, proyecto, hoy) : null;
   const finalizado = proyecto.estado === "FINALIZADO";
+  const estado =
+    finalizado || !destacado
+      ? selloDeProyecto(proyecto.estado)
+      : estadoDeBusqueda(destacado, proyecto, hoy);
+  const detalleDePerfil =
+    !finalizado && destacado
+      ? [
+          textoCompromiso(destacado.compromiso),
+          textoModalidad(destacado.modalidadColaboracion),
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "";
   const activas = postulaciones.filter(({ estado }) => esPostulacionActiva(estado));
   const postulados = new Set(activas.map(({ perfilId }) => perfilId));
   const encaje =
@@ -46,13 +60,32 @@ export function TarjetaProyecto({
   const { search } = useLocation();
 
   return (
-    <article className={estilos.tarjeta} aria-labelledby={idTitulo}>
-      <h3 id={idTitulo} className={estilos.titulo}>
-        <Link to={`/proyectos/${proyecto.id}`} state={{ busqueda: search }}>
-          {proyecto.titulo}
-        </Link>
-      </h3>
-      <p className={estilos.descripcion}>{proyecto.descripcion}</p>
+    <article
+      className={`${estilos.tarjeta} ${propia ? "" : estilos.exploracion}`}
+      aria-labelledby={idTitulo}
+    >
+      <div
+        className={`${estilos.encabezado} ${estadoAlCostado ? estilos.estadoAlCostado : ""}`}
+      >
+        <h3 id={idTitulo} className={estilos.titulo}>
+          <Link to={`/proyectos/${proyecto.id}`} state={{ busqueda: search }}>
+            {proyecto.titulo}
+          </Link>
+        </h3>
+        {!propia && estado && <SelloDeBusqueda estado={estado} />}
+      </div>
+      {proyecto.descripcion?.trim() && (
+        <p className={estilos.descripcion}>{proyecto.descripcion}</p>
+      )}
+      {!propia && proyecto.etiquetas?.length > 0 && (
+        <ul className={estilos.chips} aria-label="Etiquetas">
+          {proyecto.etiquetas.map((etiqueta) => (
+            <li key={etiqueta} className={estilos.etiqueta}>
+              {etiqueta}
+            </li>
+          ))}
+        </ul>
+      )}
       {visibles.length > 0 && (
         <ul className={estilos.chips} aria-label="Habilidades requeridas">
           {visibles.map((habilidad) => (
@@ -83,27 +116,16 @@ export function TarjetaProyecto({
       ) : (
         <div className={estilos.pie}>
           <div className={estilos.datos}>
-            {!finalizado && (
+            {!finalizado && Array.isArray(proyecto.perfiles) && (
               <span>
                 {abiertos === 1 ? "1 perfil abierto" : `${abiertos} perfiles abiertos`}
               </span>
             )}
-            {!finalizado && destacado && (
-              <span>
-                {[
-                  textoCompromiso(destacado.compromiso),
-                  textoModalidad(destacado.modalidadColaboracion),
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            )}
+            {detalleDePerfil && <span>{detalleDePerfil}</span>}
           </div>
-          {(finalizado || estado) && (
-            <SelloDeBusqueda
-              estado={finalizado ? { tipo: "finalizado", texto: "Finalizado" } : estado}
-            />
-          )}
+          <span className={estilos.verProyecto} aria-hidden="true">
+            Ver proyecto <Icono nombre="avanzar" tamano={16} />
+          </span>
         </div>
       )}
     </article>

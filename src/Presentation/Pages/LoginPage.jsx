@@ -1,6 +1,7 @@
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Boton } from "../Components/App/Boton.jsx";
-import { Campo } from "../Components/App/Campo.jsx";
+import { EnlaceBoton } from "../Components/App/EnlaceBoton.jsx";
+import { Icono } from "../Components/App/Icono.jsx";
 import { TituloDePagina } from "../Components/App/TituloDePagina.jsx";
 import { useAuth } from "../Hooks/useAuth.js";
 import { useIngreso } from "../Hooks/useIngreso.js";
@@ -13,87 +14,76 @@ export function LoginPage({ registro = false }) {
 
   if (usuario) return <Navigate to={inicioPorRol(usuario.rol)} replace />;
 
-  const ingresar = (
-    <Boton
-      key="ingresar"
-      variante={registro ? "secundario" : "primario"}
-      enviando={abriendo === "ingreso"}
-      textoEnviando="Abriendo…"
-      disabled={abriendo !== null}
-      onClick={() => abrir(false)}
-    >
-      Ingresar
-    </Boton>
-  );
-  const crearCuenta = (
-    <Boton
-      key="crear"
-      variante={registro ? "primario" : "secundario"}
-      enviando={abriendo === "registro"}
-      textoEnviando="Abriendo…"
-      disabled={abriendo !== null}
-      onClick={() => abrir(true)}
-    >
-      Crear una cuenta
-    </Boton>
-  );
+  const titulo = registro ? "Crear una cuenta" : "Iniciar sesión";
+  const accion = registro ? "Crear una cuenta" : "Ingresar";
+  const alternativa = registro ? "Ingresar" : "Crear una cuenta";
+  const modoActual = registro ? "registro" : "ingreso";
+  const modoAlternativo = registro ? "ingreso" : "registro";
 
   return (
-    <section className={estilos.login} aria-labelledby="titulo-login">
-      <TituloDePagina>{registro ? "Crear una cuenta" : "Ingresar"}</TituloDePagina>
-      <div className={estilos.encabezado}>
+    <section
+      className={`${estilos.login} ${ingresoSinConfigurar ? estilos.sinAcceso : ""}`}
+      aria-labelledby="titulo-login"
+    >
+      <TituloDePagina>{registro ? titulo : "Ingresar"}</TituloDePagina>
+      <header className={estilos.encabezado}>
+        <span className={estilos.simbolo}>
+          <Icono nombre="codigo" tamano={32} />
+        </span>
         <h1 id="titulo-login" tabIndex={-1}>
-          {registro
-            ? "Creá tu cuenta en Código a Voluntad"
-            : "Ingresá a Código a Voluntad"}
+          {titulo}
         </h1>
-        <p className={estilos.bajada}>
-          Con una cuenta, los colectivos publican proyectos y buscan colaboradoras, y las
-          colaboradoras se postulan a los perfiles que encajan con sus habilidades.
-        </p>
-      </div>
-      {ingresoSinConfigurar ? (
-        <AccesoNoDisponible registro={registro} />
-      ) : (
-        <>
-          <div className={estilos.acciones}>
-            {registro ? [crearCuenta, ingresar] : [ingresar, crearCuenta]}
-          </div>
-          <p className={estilos.ayuda}>
-            El ingreso se hace en una pantalla segura y después volvés acá.
+        {!ingresoSinConfigurar && (
+          <p className={estilos.bajada}>
+            {registro
+              ? "Sumate a Código a Voluntad para publicar proyectos o aportar tus habilidades a un colectivo."
+              : "Ingresá a tu cuenta de Código a Voluntad para participar en proyectos de impacto social."}
           </p>
-        </>
+        )}
+      </header>
+
+      <div className={estilos.acciones}>
+        {ingresoSinConfigurar ? (
+          <>
+            <div className={estilos.aviso}>
+              <h2>Acceso a cuentas no disponible</h2>
+              <p>El ingreso y el registro todavía no están habilitados.</p>
+            </div>
+            <EnlaceBoton to="/proyectos" variante="primario">
+              Explorar proyectos
+            </EnlaceBoton>
+          </>
+        ) : (
+          <>
+            <Boton
+              variante="primario"
+              enviando={abriendo === modoActual}
+              textoEnviando="Abriendo…"
+              disabled={abriendo !== null}
+              onClick={() => abrir(registro)}
+            >
+              {accion}
+            </Boton>
+            <p className={estilos.ayuda}>
+              Continuá en Logto. Cuando termines, vas a volver a Código a Voluntad.
+            </p>
+          </>
+        )}
+      </div>
+
+      {!ingresoSinConfigurar && (
+        <div className={estilos.alternativa}>
+          <span>{registro ? "¿Ya tenés una cuenta?" : "¿No tenés una cuenta?"}</span>
+          <button
+            type="button"
+            disabled={abriendo !== null}
+            aria-busy={abriendo === modoAlternativo || undefined}
+            onClick={() => abrir(!registro)}
+          >
+            {abriendo === modoAlternativo ? "Abriendo…" : alternativa}
+          </button>
+        </div>
       )}
     </section>
-  );
-}
-
-function AccesoNoDisponible({ registro }) {
-  const { state } = useLocation();
-  return (
-    <div className={estilos.vistaPrevia}>
-      <p id="estado-acceso" className={estilos.ayuda}>
-        El ingreso y el registro todavía no están habilitados. Mientras tanto, podés
-        explorar los proyectos sin una cuenta.
-      </p>
-      <fieldset
-        disabled
-        className={estilos.campos}
-        aria-label={registro ? "Datos de registro" : "Datos de ingreso"}
-        aria-describedby="estado-acceso"
-      >
-        <Campo etiqueta="Correo electrónico" type="email" />
-        <Campo etiqueta="Contraseña" type="password" />
-        <Boton variante="primario" aria-describedby="estado-acceso">
-          {registro ? "Crear una cuenta" : "Ingresar"}
-        </Boton>
-      </fieldset>
-      <div className={estilos.enlaces}>
-        <Link to={registro ? "/login" : "/registro"} state={state}>
-          {registro ? "Ya tengo una cuenta" : "Crear una cuenta"}
-        </Link>
-        <Link to="/proyectos">Explorar proyectos</Link>
-      </div>
-    </div>
   );
 }

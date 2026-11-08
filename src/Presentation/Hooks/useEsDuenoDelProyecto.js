@@ -15,10 +15,11 @@ export function useEsDuenoDelProyecto(proyectoId, dependencies = colectivoDepend
       colectivoId ? dependencies.obtenerColectivo(colectivoId, { signal }) : null,
     [colectivoId, dependencies],
   );
-  const { datos, error } = useAsync(obtener);
+  const { datos, error, reintentar } = useAsync(obtener);
 
   if (!colectivoId) return NO_ES_COLECTIVO;
-  if (error || !datos) return SIN_SABER;
+  if (error) return { ...SIN_SABER, error, reintentar };
+  if (!datos) return SIN_SABER;
   return {
     esColectivo: true,
     esDueno: (datos.proyectos ?? []).some((proyecto) => proyecto.id === proyectoId),

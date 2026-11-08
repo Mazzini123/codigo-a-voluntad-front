@@ -7,6 +7,7 @@ export function MensajeDePantalla({
   titulo,
   tituloDePestana,
   volverA = "/",
+  estadoVolver,
   textoVolver = "Volver al inicio",
   children,
 }) {
@@ -17,7 +18,7 @@ export function MensajeDePantalla({
         {titulo}
       </h1>
       <p className={estilos.texto}>{children}</p>
-      <Link to={volverA} className={estilos.volver}>
+      <Link to={volverA} state={estadoVolver} className={estilos.volver}>
         <Icono nombre="flechaIzquierda" />
         {textoVolver}
       </Link>

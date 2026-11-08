@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import ilustracion from "../../assets/explorar-proyectos.webp";
 import { ROL_CUENTA } from "../../Application/Domain/Enums/ROL_CUENTA.js";
 import { Boton } from "../Components/App/Boton.jsx";
 import { Campo } from "../Components/App/Campo.jsx";
@@ -40,39 +41,51 @@ export function ProyectosPage() {
     <div className={estilos.pagina}>
       <TituloDePagina>Proyectos</TituloDePagina>
       <header className={estilos.encabezado}>
-        <h1 tabIndex={-1} className={estilos.titulo}>
-          Proyectos de colectivos sociales
-        </h1>
-        <p className={estilos.bajada}>
-          Sumate con lo que sabés hacer a proyectos de colectivos sociales.
-        </p>
+        <div>
+          <h1 tabIndex={-1} className={estilos.titulo}>
+            Proyectos de colectivos sociales
+          </h1>
+          <p className={estilos.bajada}>
+            Conocé iniciativas que necesitan apoyo tecnológico y encontrá cómo aportar tus
+            habilidades.
+          </p>
+        </div>
+        <img
+          className={estilos.ilustracion}
+          src={ilustracion}
+          alt=""
+          width="1200"
+          height="315"
+        />
       </header>
 
-      <form
-        role="search"
-        aria-label="Buscar proyectos"
-        className={estilos.buscador}
-        onSubmit={(e) => {
-          e.preventDefault();
-          busqueda.aplicarAhora();
-        }}
-      >
-        <Campo
-          etiqueta="Buscar por etiqueta"
-          type="search"
-          autoComplete="off"
-          ayuda={
-            busqueda.vista === VISTA.PARA_VOS
-              ? `${AYUDA_DE_ETIQUETA} ${AYUDA_EN_PARA_VOS}`
-              : AYUDA_DE_ETIQUETA
-          }
-          value={busqueda.texto}
-          onChange={(e) => busqueda.escribir(e.target.value)}
-        />
-        {busqueda.texto && <Boton onClick={busqueda.limpiar}>Limpiar</Boton>}
-      </form>
+      <div className={estilos.controles}>
+        <form
+          role="search"
+          aria-label="Buscar proyectos"
+          className={estilos.buscador}
+          onSubmit={(e) => {
+            e.preventDefault();
+            busqueda.aplicarAhora();
+          }}
+        >
+          <Campo
+            etiqueta="Buscar por etiqueta"
+            type="search"
+            autoComplete="off"
+            ayuda={
+              busqueda.vista === VISTA.PARA_VOS
+                ? `${AYUDA_DE_ETIQUETA} ${AYUDA_EN_PARA_VOS}`
+                : AYUDA_DE_ETIQUETA
+            }
+            value={busqueda.texto}
+            onChange={(e) => busqueda.escribir(e.target.value)}
+          />
+          {busqueda.texto && <Boton onClick={busqueda.limpiar}>Limpiar</Boton>}
+        </form>
 
-      <TemasDeBusqueda proyectos={proyectos} busqueda={busqueda} />
+        <TemasDeBusqueda proyectos={proyectos} busqueda={busqueda} />
+      </div>
 
       {esColaboradora && (
         <nav aria-label="Vistas de proyectos">
@@ -173,6 +186,7 @@ function ListaDeResultados({ busqueda, proyectos, colaboradoraId }) {
   if (error) {
     return (
       <section className={estilos.resultados}>
+        {titulo}
         <ErrorState
           titulo="No pudimos cargar los proyectos"
           error={error}
@@ -222,7 +236,11 @@ function ListaDeResultados({ busqueda, proyectos, colaboradoraId }) {
       {titulo}
       <div className={estilos.encabezadoDeConteo}>
         <p ref={refConteo} tabIndex={-1} className={estilos.conteo}>
-          Mostrando {desde}–{hasta} de {total} {total === 1 ? "proyecto" : "proyectos"}
+          {total_pages > 1
+            ? `Mostrando ${desde}–${hasta} de ${total} proyectos`
+            : total === 1
+              ? "1 proyecto encontrado"
+              : `${total} proyectos encontrados`}
         </p>
         {cargando && (
           <p className={estilos.cargandoPagina}>Cargando página {busqueda.pagina}…</p>

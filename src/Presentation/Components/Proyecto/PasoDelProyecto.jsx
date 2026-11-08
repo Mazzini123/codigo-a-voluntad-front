@@ -9,10 +9,21 @@ import { ResumenDeErrores } from "../Formulario/ResumenDeErrores.jsx";
 import { itemsDelResumenDelAlta } from "./formularioProyecto.js";
 import { validarDatosDelProyecto } from "./validarProyecto.js";
 
-export function PasoDelProyecto({ idBase, refTitulo, proyecto, alCambiar, alSiguiente }) {
+export function PasoDelProyecto({
+  idBase,
+  refTitulo,
+  proyecto,
+  alCambiar,
+  alSiguiente,
+  fechaOriginal,
+  enviando = false,
+  textoAccion = "Siguiente",
+}) {
   const [intento, setIntento] = useState(0);
   const refFormulario = useRef(null);
-  const errores = intento > 0 ? validarDatosDelProyecto(proyecto) : {};
+  const datosParaValidar =
+    proyecto.fechaCierre === fechaOriginal ? { ...proyecto, fechaCierre: "" } : proyecto;
+  const errores = intento > 0 ? validarDatosDelProyecto(datosParaValidar) : {};
   const resumen = itemsDelResumenDelAlta(errores, idBase);
 
   useEffect(() => {
@@ -22,7 +33,8 @@ export function PasoDelProyecto({ idBase, refTitulo, proyecto, alCambiar, alSigu
 
   function enviar(evento) {
     evento.preventDefault();
-    if (Object.keys(validarDatosDelProyecto(proyecto)).length > 0) {
+    if (enviando) return;
+    if (Object.keys(validarDatosDelProyecto(datosParaValidar)).length > 0) {
       setIntento((actual) => actual + 1);
       return;
     }
@@ -34,7 +46,7 @@ export function PasoDelProyecto({ idBase, refTitulo, proyecto, alCambiar, alSigu
       <h2 ref={refTitulo} tabIndex={-1}>
         El proyecto
       </h2>
-      <fieldset className={estilos.campos}>
+      <fieldset className={estilos.campos} disabled={enviando}>
         <Campo
           id={idDeCampo(idBase, "titulo")}
           etiqueta="Título"
@@ -80,8 +92,13 @@ export function PasoDelProyecto({ idBase, refTitulo, proyecto, alCambiar, alSigu
       <ResumenDeErrores items={resumen} />
 
       <div className={estilos.acciones}>
-        <Boton variante="primario" type="submit">
-          Siguiente
+        <Boton
+          variante="primario"
+          type="submit"
+          enviando={enviando}
+          textoEnviando="Guardando…"
+        >
+          {textoAccion}
         </Boton>
       </div>
     </form>

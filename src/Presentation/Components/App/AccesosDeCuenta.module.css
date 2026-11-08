@@ -25,6 +25,13 @@
   border-color: var(--color-crema-marca);
 }
 
+.accesos [aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--color-coral-vivo);
+  text-decoration-thickness: var(--anillo-foco);
+  text-underline-offset: var(--espacio-2);
+}
+
 .ingresar:hover:not(:disabled),
 .crear:hover:not(:disabled) {
   color: var(--color-crema-marca);

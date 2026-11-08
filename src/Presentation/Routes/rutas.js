@@ -1,6 +1,16 @@
 export const RUTA_BIENVENIDA = "/bienvenida";
 export const RUTA_MIS_PROYECTOS = "/colectivo/proyectos";
 export const RUTA_NUEVO_PROYECTO = "/colectivo/proyectos/nuevo";
+export const RUTA_ADMINISTRAR_PROYECTO = "/proyectos/:id/administrar";
+export const RUTA_POSTULACIONES_RECIBIDAS = "/proyectos/:id/postulaciones";
+
+export function rutaPostulacionesRecibidas(id) {
+  return RUTA_POSTULACIONES_RECIBIDAS.replace(":id", encodeURIComponent(id));
+}
+
+export function rutaAdministrarProyecto(id) {
+  return RUTA_ADMINISTRAR_PROYECTO.replace(":id", encodeURIComponent(id));
+}
 
 const INICIO_POR_ROL = Object.freeze({
   COLECTIVO: RUTA_MIS_PROYECTOS,

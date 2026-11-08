@@ -20,7 +20,7 @@ Usar el mismo SDK de React que la integración de Facundo, conservando la consul
 - `AuthProvider` sigue resolviendo la cuenta de dominio y la expiración por 401; autenticación de Logto no implica perfil ni rol de la plataforma.
 - Se mantiene `/callback`, el retorno de salida a `/` y `VITE_LOGTO_RECURSO` como nombre de configuración del recurso. No se integra el router ni el cliente HTTP antiguo del ZIP.
 - El header conserva petróleo y crema de marca; ambos accesos a la derecha en escritorio y en una segunda fila en celular. Objetivos de al menos 44px y sin desborde a 320px.
-- `/login` y `/registro` conservan su propósito para enlaces existentes, rutas protegidas y recuperación de errores, sin duplicar los controles en su cabecera.
+- `/login` y `/registro` conservan la cabecera con ambos accesos como enlaces y presentan las acciones de autenticación en el contenido.
 - Configuración incompleta: el header lleva a `/login` o `/registro`. Allí se muestran los campos deshabilitados, el estado del acceso y el enlace a proyectos. No se monta un SDK con valores parciales ni se reciben credenciales. Con tenant o simulación, se mantiene el flujo directo.
 - Se conserva la sesión simulada solo en desarrollo y la inyección de dobles para tests.
 

@@ -1,40 +1,57 @@
 .pagina {
   display: flex;
   flex-direction: column;
-  gap: var(--espacio-6);
+  gap: var(--espacio-5);
   max-inline-size: var(--ancho-contenedor);
   margin-inline: auto;
 }
 
 .encabezado {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-2);
+  display: grid;
+  align-items: center;
+  gap: var(--espacio-5);
+  padding-block-end: var(--espacio-4);
+  border-block-end: var(--borde) solid var(--color-linea);
 }
 
 .titulo {
+  color: var(--color-petroleo-hover);
   font-size: var(--texto-display-tamano);
   font-weight: var(--texto-display-peso);
   line-height: var(--texto-display-altura);
   letter-spacing: var(--texto-display-espaciado);
   font-variation-settings: "opsz" var(--texto-display-opsz);
+  text-wrap: wrap;
 }
 
 .bajada {
-  max-inline-size: var(--ancho-texto);
+  max-inline-size: 52ch;
+  margin-block-start: var(--espacio-2);
   color: var(--color-tinta-suave);
+  line-height: 1.4;
+}
+
+.ilustracion {
+  display: none;
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--espacio-4);
 }
 
 .buscador {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
-  gap: var(--espacio-3);
+  flex: 1 1 var(--ancho-opcion);
   max-inline-size: var(--ancho-lectura);
+  gap: var(--espacio-2);
 }
 
 .buscador > :first-child {
-  flex: 1 1 var(--ancho-opcion);
+  flex: 1;
 }
 
 .buscador > button {
@@ -54,6 +71,8 @@
 .temas {
   display: flex;
   flex-direction: column;
+  flex: 1 1 var(--ancho-opcion);
+  min-inline-size: 0;
   gap: var(--espacio-2);
 }
 
@@ -76,7 +95,7 @@
   padding: var(--espacio-2) var(--espacio-3);
   border: var(--borde) solid var(--color-borde-campo);
   border-radius: var(--radio-sm);
-  background: var(--color-hundido);
+  background: var(--color-crema-marca);
   color: var(--color-tinta);
   font-size: var(--texto-label-tamano);
   overflow-wrap: anywhere;
@@ -146,10 +165,15 @@
 
 .grilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-5);
   padding: 0;
   list-style: none;
+}
+
+.grilla > :only-child {
+  grid-column: 1 / -1;
+  max-inline-size: var(--ancho-lectura);
 }
 
 .oculto {
@@ -164,5 +188,30 @@
 @media (max-width: 767px) {
   .soloEscritorio {
     display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .encabezado {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    min-block-size: calc(var(--espacio-8) * 2 + var(--espacio-5));
+  }
+
+  .bajada {
+    font-size: var(--texto-title-tamano);
+  }
+
+  .ilustracion {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    max-block-size: calc(var(--espacio-8) * 2 + var(--espacio-3));
+    object-fit: contain;
+    object-position: right bottom;
+    align-self: end;
+  }
+
+  .grilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

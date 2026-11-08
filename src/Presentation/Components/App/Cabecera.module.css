@@ -37,6 +37,7 @@
 .marca {
   display: inline-flex;
   align-items: center;
+  gap: var(--espacio-2);
   min-block-size: var(--toque-minimo);
   margin-inline-end: auto;
   font-family: var(--fuente-titulos);
@@ -74,6 +75,11 @@
 
   .marca {
     font-size: 1rem;
+  }
+
+  .marca svg {
+    inline-size: var(--icono-lg);
+    block-size: var(--icono-lg);
   }
 }
 

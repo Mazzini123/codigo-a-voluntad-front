@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ColaboradoraForm } from "../Components/Colaboradora/ColaboradoraForm.jsx";
 import { ErrorState } from "../Components/App/ErrorState.jsx";
 import { Icono } from "../Components/App/Icono.jsx";
@@ -11,9 +11,11 @@ import { useAuth } from "../Hooks/useAuth.js";
 import { useCatalogoDeHabilidades } from "../Hooks/useCatalogoDeHabilidades.js";
 import { useColaboradora } from "../Hooks/useColaboradora.js";
 import { useHabilidadesDeColaboradora } from "../Hooks/useHabilidadesDeColaboradora.js";
+import { estadoParaVolver } from "../Routes/rutas.js";
 import estilos from "./Perfil.module.css";
 
 export function PerfilColaboradoraPage() {
+  const location = useLocation();
   const { usuario } = useAuth();
   const consulta = useColaboradora(usuario.perfilId);
   const [actualizada, setActualizada] = useState(null);
@@ -32,7 +34,11 @@ export function PerfilColaboradoraPage() {
           </h1>
           <p className={estilos.bajada}>Editá cómo te ven los colectivos.</p>
         </div>
-        <Link to={`/colaboradoras/${usuario.perfilId}`} className={estilos.enlace}>
+        <Link
+          to={`/colaboradoras/${usuario.perfilId}`}
+          state={estadoParaVolver(location, "Volver a mi perfil")}
+          className={estilos.enlace}
+        >
           Ver perfil público
         </Link>
       </div>

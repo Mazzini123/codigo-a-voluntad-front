@@ -66,6 +66,8 @@ beforeEach(() => {
     }
     if (method === "get" && url === "/colaboradores/co1")
       return respuesta(config, guardada);
+    if (method === "get" && url === "/colaboradores/co1/colaboraciones")
+      return respuesta(config, []);
     if (method === "get") return falla(config, 404);
     if (method === "post" && url === "/colaboradores") {
       cuenta = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "co1" };
@@ -246,6 +248,15 @@ describe("edición", () => {
 });
 
 describe("vista pública", () => {
+  test("vuelve a la edición desde el perfil público y conserva la URL de origen", async () => {
+    const { user, router } = montar("/colaboradora/perfil?origen=cuenta");
+    await user.click(await screen.findByRole("link", { name: "Ver perfil público" }));
+    const volver = await screen.findByRole("link", { name: "Volver a mi perfil" });
+    await user.click(volver);
+    expect(router.state.location.pathname).toBe("/colaboradora/perfil");
+    expect(router.state.location.search).toBe("?origen=cuenta");
+  });
+
   test("muestra el perfil sin medios de contacto", async () => {
     cuenta = null;
     guardada = {
@@ -276,5 +287,55 @@ describe("vista pública", () => {
     expect(
       await screen.findByRole("heading", { name: "No encontramos esta colaboradora" }),
     ).toBeInTheDocument();
+  });
+
+  test("el historial consulta solo proyectos de participaciones públicas", async () => {
+    cuenta = null;
+    const original = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      if (config.url === "/colaboradores/co1/colaboraciones") {
+        return respuesta(config, [
+          {
+            proyectoId: "p1",
+            colaboracion: {
+              id: "c1",
+              perfil: "pe1",
+              esPublica: true,
+              estado: "ACEPTADA",
+            },
+          },
+          {
+            proyectoId: "privado",
+            colaboracion: { id: "c2", esPublica: false, estado: "FINALIZADA" },
+          },
+          {
+            proyectoId: "pendiente",
+            colaboracion: { id: "c3", esPublica: true, estado: "PENDIENTE" },
+          },
+        ]);
+      }
+      if (config.url === "/proyectos/p1") {
+        return respuesta(config, {
+          id: "p1",
+          titulo: "Mapa comunitario",
+          estado: "FINALIZADO",
+          perfiles: [{ id: "pe1", descripcion: "Desarrollo frontend" }],
+        });
+      }
+      return original(config);
+    });
+    montar("/colaboradoras/co1");
+    const historial = screen.findByRole("region", { name: "Colaboraciones" });
+    const region = within(await historial);
+    expect(await region.findByText("En curso")).toBeVisible();
+    expect(region.getByText("Desarrollo frontend")).toBeVisible();
+    expect(
+      region.getByRole("link", { name: /Ver proyecto.*Mapa comunitario/ }),
+    ).toHaveAttribute("href", "/proyectos/p1");
+    expect(
+      pedidos("get")
+        .filter(({ url }) => url.startsWith("/proyectos/"))
+        .map(({ url }) => url),
+    ).toEqual(["/proyectos/p1"]);
   });
 });

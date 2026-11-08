@@ -1,6 +1,6 @@
 # Mis proyectos: inicio del colectivo, listado y alta — hecho
 
-Origen: `specs/backlog/04-mis-proyectos.md`, recortado con `/impeccable shape` el 06/11/2026 después de la critique de ese día (P1: "el recorrido del colectivo termina en su propio formulario"). Editar proyectos y perfiles, cambiar habilidades, cerrar o reabrir búsquedas y finalizar pasan a `specs/backlog/04b-administrar-proyecto.md`. También `docs/plan-front.md` §3 y §4, `DESIGN.md` y `docs/PLAN-ENTIDADES.md` (Proyecto y Perfil).
+Origen: `specs/backlog/04-mis-proyectos.md`, recortado con `/impeccable shape` el 06/11/2026 después de la critique de ese día (P1: "el recorrido del colectivo termina en su propio formulario"). Editar proyectos y perfiles, cambiar habilidades, cerrar o reabrir búsquedas y finalizar pasan a `specs/active/04b-administrar-proyecto.md`. También `docs/plan-front.md` §3 y §4, `DESIGN.md` y `docs/PLAN-ENTIDADES.md` (Proyecto y Perfil).
 
 ## Intención
 

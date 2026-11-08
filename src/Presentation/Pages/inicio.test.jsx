@@ -82,15 +82,15 @@ test("el visitante ve la portada con contenido completo sin consultar proyectos"
   expect(router.state.location.pathname).toBe("/");
   expect(document.title).toBe("Inicio · Código a Voluntad");
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-  expect(screen.getAllByRole("heading").map((el) => el.tagName)).toEqual([
-    "H1",
-    "H2",
-    "H3",
-    "H3",
-    "H2",
-  ]);
-  expect(screen.getAllByRole("term")).toHaveLength(3);
-  expect(screen.getByText(/Si la aceptación es automática/)).toBeVisible();
+  expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(2);
+  expect(screen.getByText("¿Necesito una cuenta para explorar?")).toBeVisible();
+  expect(
+    screen.getByText("¿Todas las colaboraciones son sin remuneración?"),
+  ).toBeVisible();
+  expect(screen.getByText("¿Cuándo se comparten mis datos de contacto?")).toBeVisible();
+  expect(
+    screen.getByText(/Si la aceptación es automática/).closest("details"),
+  ).not.toHaveAttribute("open");
   expect(screen.getByRole("link", { name: "Explorar proyectos" })).toHaveAttribute(
     "href",
     "/proyectos",
@@ -139,14 +139,30 @@ test.each([
 
 test("Publicar un proyecto lleva al registro con la aclaración del paso previo", async () => {
   const { router, user } = montar();
+  await user.click(screen.getByText("Mi colectivo necesita software"));
   const publicar = screen.getByRole("link", { name: "Publicar un proyecto" });
   expect(publicar).toHaveAccessibleDescription(
     "Primero creás una cuenta y completás el perfil de tu colectivo.",
   );
   await user.click(publicar);
-  await screen.findByRole("heading", { name: "Creá tu cuenta en Código a Voluntad" });
+  await screen.findByRole("heading", { name: "Crear una cuenta" });
   expect(router.state.location.pathname).toBe("/registro");
   expect(transporte).not.toHaveBeenCalled();
+});
+
+test("las respuestas se pueden desplegar individualmente o todas juntas", async () => {
+  const { user } = montar();
+  const pregunta = screen.getByText("¿Necesito una cuenta para explorar?");
+  await user.click(pregunta);
+  expect(pregunta.closest("details")).toHaveAttribute("open");
+
+  await user.click(screen.getByRole("button", { name: "Ver todas las respuestas" }));
+  const ultimaRespuesta = screen.getByText(/Si la aceptación es automática/);
+  expect(ultimaRespuesta.closest("details")).toHaveAttribute("open");
+
+  await user.click(screen.getByRole("button", { name: "Ocultar todas las respuestas" }));
+  expect(pregunta.closest("details")).not.toHaveAttribute("open");
+  expect(ultimaRespuesta.closest("details")).not.toHaveAttribute("open");
 });
 
 test("se explora un detalle sin sesión y la marca permite volver a la landing", async () => {
@@ -198,7 +214,7 @@ test.each(["/", "/login", "/registro", "/no-existe", "/proyectos/p1"])(
 );
 
 test.each([
-  [null, "Ingresá a Código a Voluntad"],
+  [null, "Iniciar sesión"],
   [COLECTIVO, "Mis proyectos"],
   [COLABORADORA, "Proyectos de colectivos sociales"],
   [{ id: "s", rol: null, perfilId: null }, "¿Cómo vas a usar Código a Voluntad?"],

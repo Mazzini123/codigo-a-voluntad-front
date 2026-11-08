@@ -288,6 +288,7 @@ describe("ver el proyecto", () => {
       within(frontend).getByText("Colaboración sin remuneración"),
     ).toBeInTheDocument();
     expect(within(frontend).getByText("Hasta 3 colaboraciones")).toBeInTheDocument();
+    expect(within(frontend).getByText("1 vacante disponible")).toBeInTheDocument();
     expect(
       within(frontend).getByText("El colectivo revisa cada postulación"),
     ).toBeInTheDocument();
@@ -305,6 +306,18 @@ describe("ver el proyecto", () => {
       within(tester).getByText("Todavía nadie ocupa este perfil."),
     ).toBeInTheDocument();
     expect(within(tester).queryByRole("list", { name: "Opcionales" })).toBeNull();
+  });
+
+  test("muestra los logros y el historial sin inventar un porcentaje general", async () => {
+    delete proyecto.porcentajeConcrecion;
+    proyecto.logros = [{ id: "l1", titulo: "Primer relevamiento", fecha: "2026-11-03" }];
+    proyecto.avances = [{ id: "a1", porcentajeConcrecion: 25, fecha: "2026-11-03" }];
+    const { user } = montar("/proyectos/p1");
+    const avance = await screen.findByRole("region", { name: "Avance del proyecto" });
+    expect(within(avance).getByText("Primer relevamiento")).toBeVisible();
+    expect(within(avance).queryByRole("progressbar")).not.toBeInTheDocument();
+    await user.click(within(avance).getByText("Historial de avances (1)"));
+    expect(within(avance).getByText("Avance registrado: 25 %")).toBeVisible();
   });
 
   test("los niveles de título van en orden", async () => {
@@ -341,7 +354,7 @@ describe("ver el proyecto", () => {
     const frontend = await perfil("Desarrolladora frontend");
     expect(within(frontend).getByText("Finalizado")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Postularme" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Postularme" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /postularme/i })).not.toBeInTheDocument();
   });
 
   test("un proyecto que no existe lleva de vuelta a la búsqueda", async () => {
@@ -379,7 +392,9 @@ describe("quién ve qué acción", () => {
   test("el visitante va a /login y el ingreso vuelve a este proyecto", async () => {
     const { user, router } = montar("/proyectos/p1");
     const frontend = await perfil("Desarrolladora frontend");
-    await user.click(within(frontend).getByRole("link", { name: "Postularme" }));
+    await user.click(
+      within(frontend).getByRole("link", { name: "Ingresar para postularme" }),
+    );
     expect(await screen.findByRole("heading", { name: "Ingresar" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/login");
     expect(router.state.location.state.desde).toEqual({
@@ -393,7 +408,7 @@ describe("quién ve qué acción", () => {
     montar("/proyectos/p1", SIN_PERFIL);
     const frontend = await perfil("Desarrolladora frontend");
     expect(
-      await within(frontend).findByRole("link", { name: "Postularme" }),
+      await within(frontend).findByRole("link", { name: "Completar mi perfil" }),
     ).toHaveAttribute("href", "/bienvenida");
   });
 
@@ -401,7 +416,7 @@ describe("quién ve qué acción", () => {
     montar("/proyectos/p1", COLECTIVO);
     await perfil("Desarrolladora frontend");
     await waitFor(() =>
-      expect(screen.queryByRole("link", { name: "Postularme" })).not.toBeInTheDocument(),
+      expect(screen.queryByRole("link", { name: /postularme/i })).not.toBeInTheDocument(),
     );
     expect(screen.queryByRole("button", { name: "Postularme" })).not.toBeInTheDocument();
   });
@@ -688,7 +703,7 @@ describe("búsqueda, detalle y postulación", () => {
   test("una colaboradora recorre el camino completo", async () => {
     const { user, router } = montar("/proyectos?vista=todos", COLABORADORA);
 
-    await screen.findByText("Mostrando 1–1 de 1 proyecto");
+    await screen.findByText("1 proyecto encontrado");
     await user.click(screen.getByRole("link", { name: "Sistema de turnos del comedor" }));
     expect(router.state.location.pathname).toBe("/proyectos/p1");
 
@@ -707,7 +722,7 @@ describe("búsqueda, detalle y postulación", () => {
     await user.click(screen.getByRole("link", { name: "Volver a la búsqueda" }));
     expect(router.state.location.pathname).toBe("/proyectos");
     expect(router.state.location.search).toBe("?vista=todos");
-    expect(await screen.findByText("Mostrando 1–1 de 1 proyecto")).toBeInTheDocument();
+    expect(await screen.findByText("1 proyecto encontrado")).toBeInTheDocument();
   });
 
   test("de la tarjeta al detalle, el foco llega al título aunque el proyecto tarde en cargar", async () => {
@@ -743,10 +758,9 @@ describe("acción de cada perfil según quién mira", () => {
   test("un visitante ve un enlace a ingresar y por qué", async () => {
     montar("/proyectos/p1");
     const frontend = await perfil("Desarrolladora frontend");
-    expect(within(frontend).getByRole("link", { name: "Postularme" })).toHaveAttribute(
-      "href",
-      "/login",
-    );
+    expect(
+      within(frontend).getByRole("link", { name: "Ingresar para postularme" }),
+    ).toHaveAttribute("href", "/login");
     expect(
       within(frontend).getByText("Ingresá como colaboradora para postularte."),
     ).toBeInTheDocument();

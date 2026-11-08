@@ -16,7 +16,17 @@ import { ProyectosPage } from "../Pages/ProyectosPage.jsx";
 import { SinPermisoPage } from "../Pages/SinPermisoPage.jsx";
 import { ProtectedRoute } from "./ProtectedRoute.jsx";
 import { ROL_CUENTA } from "../../Application/Domain/Enums/ROL_CUENTA.js";
-import { RUTA_BIENVENIDA, RUTA_MIS_PROYECTOS, RUTA_NUEVO_PROYECTO } from "./rutas.js";
+import {
+  RUTA_ADMINISTRAR_PROYECTO,
+  RUTA_POSTULACIONES_RECIBIDAS,
+  RUTA_BIENVENIDA,
+  RUTA_MIS_PROYECTOS,
+  RUTA_NUEVO_PROYECTO,
+} from "./rutas.js";
+
+const cargarAdministrarProyecto = () => import("../Pages/AdministrarProyectoPage.jsx");
+const cargarPostulacionesRecibidas = () =>
+  import("../Pages/PostulacionesRecibidasPage.jsx");
 
 const cargarAltaColaboradoraPage = () =>
   import("../Pages/AltaColaboradoraPage.jsx").then((modulo) => ({
@@ -66,6 +76,14 @@ export const rutas = createRoutesFromElements(
           element={<PantallaDiferida cargar={cargarPerfilColectivoPage} />}
         />
         <Route path={RUTA_MIS_PROYECTOS} element={<MisProyectosPage />} />
+        <Route
+          path={RUTA_ADMINISTRAR_PROYECTO}
+          element={<PantallaDiferida cargar={cargarAdministrarProyecto} />}
+        />
+        <Route
+          path={RUTA_POSTULACIONES_RECIBIDAS}
+          element={<PantallaDiferida cargar={cargarPostulacionesRecibidas} />}
+        />
         <Route
           path={RUTA_NUEVO_PROYECTO}
           element={<PantallaDiferida cargar={cargarNuevoProyectoPage} />}

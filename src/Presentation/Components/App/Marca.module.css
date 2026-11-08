@@ -1,0 +1,6 @@
+.simbolo {
+  box-sizing: content-box;
+  padding: var(--espacio-1);
+  border-radius: var(--radio-md);
+  background: color-mix(in srgb, var(--color-crema-marca) 10%, transparent);
+}

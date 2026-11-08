@@ -24,6 +24,55 @@
   outline-offset: var(--anillo-foco);
 }
 
+.exploracion .encabezado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.exploracion .titulo {
+  min-inline-size: 0;
+  font-weight: var(--texto-headline-peso);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .exploracion .estadoAlCostado {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: var(--espacio-3);
+  }
+
+  .estadoAlCostado .titulo {
+    flex: 1 1 20ch;
+  }
+}
+
+.exploracion .descripcion {
+  color: var(--color-tinta-suave);
+  line-height: 1.4;
+}
+
+.exploracion .datos {
+  flex: 1 1 auto;
+}
+
+.verProyecto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin-inline-start: auto;
+  color: var(--color-coral);
+  font-weight: var(--texto-button-peso);
+}
+
+.exploracion:is(:hover, :focus-within) .verProyecto {
+  text-decoration: underline;
+}
+
 .titulo a {
   color: var(--color-petroleo);
   text-decoration: none;
@@ -61,6 +110,16 @@
 .mas {
   font-size: var(--texto-label-tamano);
   color: var(--color-tinta-suave);
+}
+
+.etiqueta {
+  max-inline-size: 100%;
+  padding: var(--espacio-1) var(--espacio-2);
+  border-radius: var(--radio-sm);
+  background: var(--color-hundido);
+  color: var(--color-tinta);
+  font-size: var(--texto-label-tamano);
+  overflow-wrap: anywhere;
 }
 
 .encaje {
@@ -102,4 +161,10 @@
 .filaEsqueleto {
   display: flex;
   gap: var(--espacio-2);
+}
+
+@media (max-width: 479px) {
+  .exploracion {
+    padding: var(--espacio-4);
+  }
 }

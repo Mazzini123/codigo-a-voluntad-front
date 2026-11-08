@@ -51,7 +51,7 @@ El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/reac
 2. En **API resources**, crear el recurso del back con el identificador de `VITE_LOGTO_RECURSO`. El back valida que el token tenga esa audiencia.
 3. Recomendado: vencimiento corto del access token y rotación del refresh token (el SDK guarda la sesión en `localStorage`; ver `docs/decisiones.md`).
 
-Las tres variables de Logto son necesarias para autenticar. Con configuración incompleta, el header abre las pantallas locales `/login` y `/registro`, que muestran los campos deshabilitados, explican que el acceso todavía no está habilitado y permiten seguir explorando proyectos. No reciben credenciales.
+Las tres variables de Logto son necesarias para autenticar. Con configuración incompleta, el header abre las pantallas locales `/login` y `/registro`, que explican que el acceso todavía no está habilitado y permiten seguir explorando proyectos. Los formularios de credenciales viven en Logto.
 
 ### Integración con la rama de Logto
 

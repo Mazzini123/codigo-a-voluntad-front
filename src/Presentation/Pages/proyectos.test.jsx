@@ -161,7 +161,7 @@ test("los temas son únicos y elegir con teclado sincroniza campo, URL, vista y 
   expect(screen.getAllByRole("button", { name: "salud", exact: true })).toHaveLength(1);
   tema.focus();
   await user.keyboard("{Enter}");
-  await screen.findByText("Mostrando 1–2 de 2 proyectos");
+  await screen.findByText("2 proyectos encontrados");
   expect(screen.getByRole("searchbox")).toHaveValue("salud");
   const params = new URLSearchParams(router.state.location.search);
   expect(params.get("etiqueta")).toBe("salud");
@@ -194,7 +194,7 @@ test("busca por etiqueta al dejar de escribir, vuelve a la página 1 y lo deja e
     screen.getByRole("searchbox", { name: "Buscar por etiqueta" }),
     "salud",
   );
-  expect(await screen.findByText("Mostrando 1–2 de 2 proyectos")).toBeInTheDocument();
+  expect(await screen.findByText("2 proyectos encontrados")).toBeInTheDocument();
   expect(router.state.location.search).toBe("?etiqueta=salud");
   expect(screen.getByRole("searchbox")).toHaveValue("salud");
   expect(
@@ -273,13 +273,13 @@ test("si falla ofrece Reintentar sin perder la búsqueda", async () => {
   expect(await screen.findByText("No pudimos cargar los proyectos")).toBeInTheDocument();
   expect(screen.getByRole("searchbox")).toHaveValue("salud");
   await user.click(screen.getByRole("button", { name: "Reintentar" }));
-  expect(await screen.findByText("Mostrando 1–2 de 2 proyectos")).toBeInTheDocument();
+  expect(await screen.findByText("2 proyectos encontrados")).toBeInTheDocument();
 });
 
 describe("colaboradora", () => {
   test("arranca en Para vos, con el encaje marcado", async () => {
     montar("/proyectos", COLABORADORA);
-    expect(await screen.findByText("Mostrando 1–3 de 3 proyectos")).toBeInTheDocument();
+    expect(await screen.findByText("3 proyectos encontrados")).toBeInTheDocument();
     expect(pedidosA("/proyectos")).toHaveLength(0);
     expect(screen.getByRole("link", { name: "Para vos" })).toHaveAttribute(
       "aria-current",
@@ -292,7 +292,7 @@ describe("colaboradora", () => {
 
   test("Todos los proyectos cambia de vista y la URL lo recuerda", async () => {
     const { user, router } = montar("/proyectos", COLABORADORA);
-    await screen.findByText("Mostrando 1–3 de 3 proyectos");
+    await screen.findByText("3 proyectos encontrados");
     await user.click(screen.getByRole("link", { name: "Todos los proyectos" }));
     expect(await screen.findByText("Mostrando 1–12 de 30 proyectos")).toBeInTheDocument();
     expect(router.state.location.search).toBe("?vista=todos");
@@ -300,7 +300,7 @@ describe("colaboradora", () => {
 
   test("buscar una etiqueta pasa a Todos los proyectos", async () => {
     const { user, router } = montar("/proyectos", COLABORADORA);
-    await screen.findByText("Mostrando 1–3 de 3 proyectos");
+    await screen.findByText("3 proyectos encontrados");
     await user.type(screen.getByRole("searchbox"), "salud{Enter}");
     await waitFor(() =>
       expect(router.state.location.search).toBe("?etiqueta=salud&vista=todos"),

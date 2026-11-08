@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useFocoAlNavegar } from "../../Hooks/useFocoAlNavegar.js";
 import { Cabecera } from "./Cabecera.jsx";
 import estilos from "./AppLayout.module.css";
 
 export function AppLayout() {
+  const { pathname } = useLocation();
   const refContenido = useRef(null);
   useFocoAlNavegar(refContenido);
 
@@ -19,7 +20,12 @@ export function AppLayout() {
         Saltar al contenido
       </a>
       <Cabecera />
-      <main id="contenido" ref={refContenido} tabIndex={-1} className={estilos.principal}>
+      <main
+        id="contenido"
+        ref={refContenido}
+        tabIndex={-1}
+        className={pathname === "/" ? estilos.inicio : estilos.principal}
+      >
         <Outlet />
       </main>
     </>

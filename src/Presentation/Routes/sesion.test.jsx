@@ -144,7 +144,7 @@ test("el pedido de la cuenta lleva el token de la sesión", async () => {
 test("sin sesión lleva a /login y, después de ingresar, vuelve a la ruta pedida", async () => {
   cuenta = null;
   const { user, identidad, unmount } = montar("/colectivo/privada");
-  await titulo("Ingresá a Código a Voluntad");
+  await titulo("Iniciar sesión");
   expect(transporte).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Ingresar" }));
   expect(identidad.inicios).toEqual([{ registro: false }]);
@@ -200,7 +200,7 @@ test("ante un 401 avisa una sola vez, olvida la sesión y lleva a /login", async
     return falla(config, 401);
   });
   const { identidad } = montar("/colectivo/privada");
-  expect(await titulo("Ingresá a Código a Voluntad")).toBeInTheDocument();
+  expect(await titulo("Iniciar sesión")).toBeInTheDocument();
   expect(screen.getAllByText("Tu sesión venció. Iniciá sesión de nuevo.")).toHaveLength(
     1,
   );
@@ -282,7 +282,7 @@ describe("sesión simulada", () => {
   async function ingresarDesde(ruta, tipo) {
     const { ubicacion, identidad, dependencies } = simulada(tipo);
     const { user, unmount } = montar(ruta, { identidad, dependencies });
-    await titulo("Ingresá a Código a Voluntad");
+    await titulo("Iniciar sesión");
     await user.click(await screen.findByRole("button", { name: "Ingresar" }));
     expect(ubicacion.assign).toHaveBeenCalledWith("/callback");
     unmount();
@@ -309,8 +309,8 @@ describe("sesión simulada", () => {
 });
 
 test.each([
-  ["Ingresar", "Ingresá a Código a Voluntad"],
-  ["Crear una cuenta", "Creá tu cuenta en Código a Voluntad"],
+  ["Ingresar", "Iniciar sesión"],
+  ["Crear una cuenta", "Crear una cuenta"],
 ])(
   "sin Logto, %s abre la pantalla local sin pedir credenciales",
   async (accion, encabezado) => {
@@ -322,9 +322,9 @@ test.each([
       await within(screen.getByRole("banner")).findByRole("link", { name: accion }),
     );
     expect(await titulo(encabezado)).toBeVisible();
-    expect(screen.getByLabelText("Correo electrónico")).toBeDisabled();
-    expect(screen.getByLabelText("Contraseña")).toBeDisabled();
-    expect(screen.getByRole("button", { name: accion })).toBeDisabled();
+    expect(screen.queryByLabelText("Correo electrónico")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: accion })).not.toBeInTheDocument();
     expect(
       screen.getByText(/El ingreso y el registro todavía no están habilitados/),
     ).toBeVisible();

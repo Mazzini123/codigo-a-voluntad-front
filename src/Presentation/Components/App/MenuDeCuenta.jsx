@@ -11,8 +11,6 @@ import { BloqueSkeleton } from "./Skeleton.jsx";
 import { AccesosDeCuenta } from "./AccesosDeCuenta.jsx";
 import estilos from "./MenuDeCuenta.module.css";
 
-const RUTAS_DE_INGRESO = new Set(["/login", "/registro", "/callback"]);
-
 export function MenuDeCuenta() {
   const { usuario, cargando, cerrarSesion, sesionSimulada } = useAuth();
   const location = useLocation();
@@ -45,7 +43,7 @@ export function MenuDeCuenta() {
   if (cargando) return null;
 
   if (!usuario) {
-    if (RUTAS_DE_INGRESO.has(location.pathname)) return null;
+    if (location.pathname === "/callback") return null;
     return <AccesosDeCuenta />;
   }
 

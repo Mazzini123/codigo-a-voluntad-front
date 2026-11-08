@@ -4,6 +4,7 @@ import { nombreVisible } from "../../Formatos/colaboradora.js";
 import {
   colaboracionesAceptadasDe,
   estadoDeBusqueda,
+  ESTADO_BUSQUEDA,
   textoCompromiso,
   textoLimite,
   textoModalidad,
@@ -25,6 +26,7 @@ export function PerfilDelProyecto({
   encaje = null,
   hoy = new Date(),
   vistaPrevia = false,
+  enDetalle = false,
   children,
 }) {
   const location = useLocation();
@@ -35,6 +37,14 @@ export function PerfilDelProyecto({
   const idColaboran = `colaboran-${perfil.id}`;
   const opcionales = perfil.habilidadesOpcionales ?? [];
   const aceptadas = colaboracionesAceptadasDe(proyecto, perfil);
+  const estado = estadoDeBusqueda(perfil, proyecto, hoy);
+  const vacantes =
+    enDetalle &&
+    estado.tipo === ESTADO_BUSQUEDA.ABIERTA &&
+    Number.isInteger(perfil.limiteColaboraciones) &&
+    Array.isArray(proyecto.colaboraciones)
+      ? perfil.limiteColaboraciones - aceptadas.length
+      : null;
   const datos = [
     ["Compromiso", textoCompromiso(perfil.compromiso)],
     ["Modalidad", textoModalidad(perfil.modalidadColaboracion)],
@@ -43,7 +53,10 @@ export function PerfilDelProyecto({
   ].filter(([, valor]) => valor);
 
   return (
-    <article className={estilos.perfil} aria-labelledby={idTitulo}>
+    <article
+      className={`${estilos.perfil} ${enDetalle ? estilos.detalle : ""}`}
+      aria-labelledby={idTitulo}
+    >
       <header className={estilos.encabezado}>
         <h3
           ref={refTitulo}
@@ -53,7 +66,7 @@ export function PerfilDelProyecto({
         >
           {perfil.descripcion}
         </h3>
-        <SelloDeBusqueda estado={estadoDeBusqueda(perfil, proyecto, hoy)} />
+        <SelloDeBusqueda estado={estado} />
       </header>
       {(recortada || expandida) && (
         <button
@@ -86,15 +99,27 @@ export function PerfilDelProyecto({
 
       <dl className={estilos.datos}>
         {datos.map(([etiqueta, valor]) => (
-          <div key={etiqueta} className={estilos.dato}>
+          <div
+            key={etiqueta}
+            className={`${estilos.dato} ${etiqueta === "Compromiso" || etiqueta === "Modalidad" ? estilos.datoPrincipal : ""}`}
+          >
             <dt>{etiqueta}</dt>
-            <dd>{valor}</dd>
+            <dd>
+              {valor}
+              {etiqueta === "Límite" && vacantes !== null && (
+                <span className={estilos.vacantes}>
+                  {vacantes === 1
+                    ? "1 vacante disponible"
+                    : `${vacantes} vacantes disponibles`}
+                </span>
+              )}
+            </dd>
           </div>
         ))}
       </dl>
 
       {!vistaPrevia && (
-        <div className={estilos.grupo}>
+        <div className={`${estilos.grupo} ${estilos.participantes}`}>
           <h4 id={idColaboran} className={estilos.subtitulo}>
             Quiénes colaboran
           </h4>
@@ -130,7 +155,7 @@ export function PerfilDelProyecto({
 
 function GrupoDeHabilidades({ idBase, titulo, tipo, habilidades, codigosPropios }) {
   return (
-    <div className={estilos.grupo}>
+    <div className={`${estilos.grupo} ${tipo === "requerida" ? estilos.requeridas : ""}`}>
       <h4 id={idBase} className={estilos.subtitulo}>
         {titulo}
       </h4>
