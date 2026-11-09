@@ -1,10 +1,7 @@
-/** @param {import('../../Domain/HttpClients/IHabilidadHttpClient.js').IHabilidadHttpClient} httpClient */
+import { aPagina } from "@/Application/Adaptadores/aPagina.js";
+
 export function crearListarHabilidades(httpClient) {
-  /**
-   * @param {import('../../Domain/Requests/App/PaginacionRequest.js').PaginacionRequest} [query]
-   * @param {{signal?: AbortSignal}} [options]
-   */
-  return function listarHabilidades(query = {}, options = {}) {
-    return httpClient.listar(query, options);
+  return async function listarHabilidades(query = {}, options = {}) {
+    return aPagina(await httpClient.listar(query, options));
   };
 }

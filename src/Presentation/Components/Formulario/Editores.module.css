@@ -87,7 +87,7 @@
   );
 }
 
-@media (min-width: 640px) {
+@media (width >= 40rem) {
   .fila {
     grid-template-columns: minmax(0, 12rem) minmax(0, 1fr) auto;
     align-items: start;

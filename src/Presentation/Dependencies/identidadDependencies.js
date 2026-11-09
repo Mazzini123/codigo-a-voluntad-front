@@ -1,10 +1,9 @@
-import { crearIdentidad } from "../../Infrastructure/Auth/crearIdentidad.js";
 import {
-  crearIdentidadSimulada,
-  leerSesionSimulada,
-} from "../../Infrastructure/Auth/sesionSimulada.js";
+  elegirProveedorDeIdentidad,
+  PROVEEDOR_DE_IDENTIDAD,
+} from "@/Infrastructure/Auth/elegirProveedorDeIdentidad.js";
 
-export { SesionLogtoProvider } from "../../Infrastructure/Auth/SesionLogtoProvider.jsx";
+export { ProveedorDeSesionLogto } from "@/Infrastructure/Auth/ProveedorDeSesionLogto.jsx";
 
 export const configuracionLogto = {
   endpoint: import.meta.env.VITE_LOGTO_ENDPOINT,
@@ -12,19 +11,9 @@ export const configuracionLogto = {
   resources: [import.meta.env.VITE_LOGTO_RECURSO],
 };
 
-export { recordarVolverA, tomarVolverA } from "../../Infrastructure/Auth/volverA.js";
-export { crearIdentidadFalsa } from "../../Infrastructure/Auth/crearIdentidadFalsa.js";
+export { recordarVolverA, tomarVolverA } from "@/Infrastructure/Auth/volverA.js";
+export { crearIdentidadFalsa } from "@/Infrastructure/Auth/crearIdentidadFalsa.js";
 
-function crearIdentidadSimuladaConAviso(tipo) {
-  console.warn(`Sesión simulada (${tipo}): no se usa Logto ni GET /auth/me.`);
-  return crearIdentidadSimulada(tipo);
-}
+export { PROVEEDOR_DE_IDENTIDAD };
 
-export const identidad =
-  import.meta.env.DEV &&
-  import.meta.env.MODE !== "test" &&
-  leerSesionSimulada(import.meta.env.VITE_SESION_SIMULADA)
-    ? crearIdentidadSimuladaConAviso(
-        leerSesionSimulada(import.meta.env.VITE_SESION_SIMULADA),
-      )
-    : crearIdentidad(import.meta.env);
+export const proveedorDeIdentidad = elegirProveedorDeIdentidad(import.meta.env);

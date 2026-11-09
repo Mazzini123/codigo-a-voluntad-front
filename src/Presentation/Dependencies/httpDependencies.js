@@ -1,1 +1,6 @@
-export { configurarAuth } from "../../Infrastructure/Http/configurarAuth.js";
+export {
+  cambiarSesionHttp,
+  configurarAuth,
+  desconfigurarAuth,
+  sesionHttpVigente,
+} from "@/Infrastructure/Http/configurarAuth.js";

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { aPagina } from "../../src/Application/Adaptadores/aPagina.js";
 import { COLABORACION_ESTADO } from "../../src/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { TIPO_NOTIFICACION } from "../../src/Application/Domain/Enums/TIPO_NOTIFICACION.js";
 import { crearHabilidadDependencies } from "../../src/Presentation/Dependencies/habilidadDependencies.js";
@@ -14,7 +15,6 @@ import { crearLogroDependencies } from "../../src/Presentation/Dependencies/logr
 import { crearAvanceDependencies } from "../../src/Presentation/Dependencies/avanceDependencies.js";
 import { crearEstadisticaDependencies } from "../../src/Presentation/Dependencies/estadisticaDependencies.js";
 import { crearTimelineDependencies } from "../../src/Presentation/Dependencies/timelineDependencies.js";
-import { crearHealthDependencies } from "../../src/Presentation/Dependencies/healthDependencies.js";
 import { crearAuthDependencies } from "../../src/Presentation/Dependencies/authDependencies.js";
 
 const factories = {
@@ -31,11 +31,19 @@ const factories = {
   Avance: crearAvanceDependencies,
   Estadistica: crearEstadisticaDependencies,
   Timeline: crearTimelineDependencies,
-  Health: crearHealthDependencies,
   Auth: crearAuthDependencies,
 };
 
-// Contratos públicos de la API: verbos, paths, queries y bodies por operación.
+const PAGINADAS = new Set([
+  "listarHabilidades",
+  "listarColectivos",
+  "listarColaboradores",
+  "listarProyectos",
+  "listarNotificaciones",
+  "buscarProyectosPotenciales",
+  "buscarColaboradorasPotenciales",
+]);
+
 const cases = [
   {
     module: "Habilidad",
@@ -852,14 +860,6 @@ const cases = [
     empty: false,
   },
   {
-    module: "Health",
-    operation: "consultarHealth",
-    method: "get",
-    url: "/health",
-    args: [],
-    empty: false,
-  },
-  {
     module: "Proyecto",
     operation: "obtenerContactoDeColaborador",
     method: "get",
@@ -909,7 +909,8 @@ test.each(cases)(
     expect(config.data === undefined ? undefined : JSON.parse(config.data)).toEqual(
       entry.body,
     );
-    expect(result).toBe(payload);
+    if (PAGINADAS.has(entry.operation)) expect(result).toEqual(aPagina(payload));
+    else expect(result).toBe(payload);
   },
 );
 
@@ -934,7 +935,7 @@ test("codifica todos los segmentos dinámicos, incluidos contacto, pronombre e i
   );
 });
 
-test("conserva el sobre paginado, habilidades embebidas y campos anónimos sin adaptación", async () => {
+test("adapta el sobre paginado y conserva habilidades embebidas y campos anónimos", async () => {
   const payload = {
     data: [
       {
@@ -958,8 +959,14 @@ test("conserva el sobre paginado, habilidades embebidas y campos anónimos sin a
   };
   const { http, adapter } = armarCliente(payload);
   const result = await crearProyectoDependencies(http).listarProyectos();
-  expect(result).toBe(payload);
-  expect(result.data[0].colaboraciones[0].colaborador).toBeNull();
+  expect(result).toEqual({
+    items: payload.data,
+    pagina: 1,
+    porPagina: 10,
+    total: 1,
+    totalPaginas: 1,
+  });
+  expect(result.items[0].colaboraciones[0].colaborador).toBeNull();
   expect(adapter.mock.lastCall[0].params).toEqual({});
 });
 

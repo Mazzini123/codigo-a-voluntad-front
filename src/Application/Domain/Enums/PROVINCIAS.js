@@ -1,4 +1,3 @@
-/** Provincias que acepta la ubicación de tipo PROVINCIA (CABA tiene su propio tipo). A confirmar con el back. */
 export const PROVINCIAS = Object.freeze([
   "Buenos Aires",
   "Catamarca",

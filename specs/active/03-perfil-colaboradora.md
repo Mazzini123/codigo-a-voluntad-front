@@ -105,7 +105,7 @@ Campos, en este orden:
 ## Estados
 
 - Cargando: skeleton del formulario o de la página. El catálogo de habilidades muestra un skeleton de la lista de casillas.
-- Error del catálogo: `ErrorState` dentro del selector, "No pudimos cargar las habilidades", con "Reintentar". El resto del formulario se puede seguir completando.
+- Error del catálogo: `EstadoDeError` dentro del selector, "No pudimos cargar las habilidades", con "Reintentar". El resto del formulario se puede seguir completando.
 - Catálogo vacío: "Todavía no hay habilidades cargadas.". El alta no se puede enviar y lo explica.
 - Enviando: "Creando…", "Guardando…", y "Agregando…" o "Quitando…" en la habilidad que se está guardando.
 - Error al enviar: errores por campo, o error general con lo cargado intacto. Si falla agregar o quitar una habilidad, el aviso de error dice cuál y la casilla vuelve a su estado anterior.

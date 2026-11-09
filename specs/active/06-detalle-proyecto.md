@@ -106,7 +106,7 @@ entonces el diálogo sigue abierto, muestra el mensaje con `role="alert"` y perm
 
 ### Diálogo de postulación
 
-- **`ConfirmDialog` con `children`:** suma la prop `children`, que se renderiza entre la descripción y las acciones. Lo demás no cambia.
+- **`DialogoDeConfirmacion` con `children`:** suma la prop `children`, que se renderiza entre la descripción y las acciones. Lo demás no cambia.
 - **Contenido:**
   - Título: "¿Te postulás a «Desarrolladora frontend»?".
   - Descripción: "Proyecto: Sistema de turnos del comedor.".
@@ -118,7 +118,7 @@ entonces el diálogo sigue abierto, muestra el mensaje con `role="alert"` y perm
 
 ### Rutas
 
-- `/proyectos/:id` en `AppRoutes`.
+- `/proyectos/:id` en `RutasDeLaApp`.
 - `MensajeDePantalla` suma `volverA` y `textoVolver` (por defecto `/` y "Volver al inicio"). El 404 del proyecto usa "Volver a la búsqueda".
 
 ## Estados
@@ -126,7 +126,7 @@ entonces el diálogo sigue abierto, muestra el mensaje con `role="alert"` y perm
 - **Cargando:** skeleton del encabezado y de dos perfiles.
 - **Con datos:** todo lo anterior. Un proyecto sin perfiles muestra "Este proyecto todavía no cargó perfiles.".
 - **No encontrado:** "No encontramos este proyecto", con "Volver a la búsqueda".
-- **Error:** `ErrorState` "No pudimos cargar el proyecto" con "Reintentar". Si solo fallan las postulaciones de la colaboradora, los botones se muestran igual y el back responde 409 si ya se postuló.
+- **Error:** `EstadoDeError` "No pudimos cargar el proyecto" con "Reintentar". Si solo fallan las postulaciones de la colaboradora, los botones se muestran igual y el back responde 409 si ya se postuló.
 - **Enviando:** "Enviando…", con "Cancelar" deshabilitado. Esc no cierra el diálogo mientras envía.
 - **Finalizado:** el sello "Finalizado" en cada perfil y ningún "Postularme".
 

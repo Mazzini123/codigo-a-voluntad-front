@@ -1,34 +1,29 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Boton } from "../App/Boton.jsx";
-import { Campo } from "../App/Campo.jsx";
-import { Casilla } from "../App/Casilla.jsx";
-import { ConfirmDialog } from "../App/ConfirmDialog.jsx";
-import { GrupoDeOpciones } from "../App/GrupoDeOpciones.jsx";
-import { Icono } from "../App/Icono.jsx";
+import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
+import { Casilla } from "@/Presentation/Components/App/ui/Casilla.jsx";
+import { GrupoDeOpciones } from "@/Presentation/Components/App/ui/GrupoDeOpciones.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import {
   ListaDeTextos,
   MediosDeContacto,
   RedesSociales,
-} from "../Formulario/EditoresDeListas.jsx";
-import { idDeCampo } from "../Formulario/formulario.js";
-import estilos from "../Formulario/Formulario.module.css";
-import { ResumenDeErrores } from "../Formulario/ResumenDeErrores.jsx";
-import { itemsDelResumen } from "../Formulario/resumenDeErrores.js";
-import { SelectorDeHabilidades } from "../Formulario/SelectorDeHabilidades.jsx";
-import { nombreVisible } from "../../Formatos/colaboradora.js";
-import { useAvisoCambiosSinGuardar } from "../../Hooks/useAvisoCambiosSinGuardar.js";
+} from "@/Presentation/Components/Formulario/EditoresDeListas.jsx";
+import estilos from "@/Presentation/Components/Formulario/Formulario.module.css";
+import { SelectorDeHabilidades } from "@/Presentation/Components/Formulario/SelectorDeHabilidades.jsx";
+import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
 import {
   aRequestAlta,
   cambios,
   erroresDesdeIssues,
   estadoInicial,
   IDENTIFICACION,
-} from "./formularioColaboradora.js";
+} from "@/Presentation/Formularios/colaboradora/formularioColaboradora.js";
 import {
   MAXIMO_PRONOMBRES,
   validarColaboradora,
   validarPronombre,
-} from "./validarColaboradora.js";
+} from "@/Presentation/Formularios/colaboradora/validarColaboradora.js";
+import { useFormularioDePerfil } from "@/Presentation/Hooks/perfil/useFormularioDePerfil.js";
+import { PieDeFormularioDePerfil } from "@/Presentation/Components/Formulario/PieDeFormularioDePerfil.jsx";
 
 const OPCIONES_DE_IDENTIFICACION = [
   { valor: IDENTIFICACION.FANTASIA, texto: "Con un nombre de fantasía" },
@@ -45,63 +40,28 @@ export function ColaboradoraForm({
   errorEnvio,
   alEnviar,
 }) {
-  const [original] = useState(() => estadoInicial(colaboradora));
-  const [estado, setEstado] = useState(original);
-  const [visibles, setVisibles] = useState(() => new Set());
-  const [pedidoDeFoco, setPedidoDeFoco] = useState(0);
-  const refFormulario = useRef(null);
-  const idBase = useId();
-  const idDe = (clave) => idDeCampo(idBase, clave);
-
-  const pendientes = useMemo(() => cambios(original, estado), [original, estado]);
-  const hayCambios = Object.keys(pendientes).length > 0;
-  const haySinGuardar = esAlta
-    ? JSON.stringify(original) !== JSON.stringify(estado)
-    : hayCambios;
-  const salida = useAvisoCambiosSinGuardar(haySinGuardar && !enviando);
-
-  const deServidor = useMemo(
-    () => erroresDesdeIssues(errorEnvio?.issues, estado).errores,
-    [errorEnvio, estado],
-  );
-  const errores = useMemo(() => {
-    const locales = Object.entries(validarColaboradora(estado, { esAlta })).filter(
-      ([clave]) => visibles.has(clave),
-    );
-    return { ...deServidor, ...Object.fromEntries(locales) };
-  }, [deServidor, estado, esAlta, visibles]);
-  const sinCampo =
-    errorEnvio && Object.keys(deServidor).length === 0 ? errorEnvio.mensaje : null;
-  const resumen = useMemo(
-    () => itemsDelResumen(errores, estado, idBase),
-    [errores, estado, idBase],
-  );
-
-  useEffect(() => {
-    if (pedidoDeFoco === 0 && !errorEnvio) return;
-    refFormulario.current?.querySelector('[aria-invalid="true"]')?.focus();
-  }, [pedidoDeFoco, errorEnvio]);
-
-  function actualizar(cambio) {
-    setEstado((previo) => ({ ...previo, ...cambio }));
-  }
-
-  function enviar(evento) {
-    evento.preventDefault();
-    if (enviando) return;
-    const encontrados = validarColaboradora(estado, { esAlta });
-    if (Object.keys(encontrados).length > 0) {
-      setVisibles(new Set(Object.keys(encontrados)));
-      setPedidoDeFoco((pedido) => pedido + 1);
-      return;
-    }
-    alEnviar(esAlta ? aRequestAlta(estado) : pendientes);
-  }
+  const formulario = useFormularioDePerfil({
+    crearEstadoInicial: () => estadoInicial(colaboradora),
+    validar: validarColaboradora,
+    cambios,
+    aRequest: aRequestAlta,
+    erroresDesdeIssues,
+    esAlta,
+    enviando,
+    errorEnvio,
+    alEnviar,
+  });
+  const { estado, actualizar, idBase, idDe, refFormulario, errores } = formulario;
 
   const sinCatalogo = esAlta && catalogo.habilidades?.length === 0;
 
   return (
-    <form ref={refFormulario} noValidate onSubmit={enviar} className={estilos.formulario}>
+    <form
+      ref={refFormulario}
+      noValidate
+      onSubmit={formulario.enviar}
+      className={estilos.formulario}
+    >
       <fieldset disabled={enviando} className={estilos.campos}>
         <fieldset className={estilos.seccion}>
           <legend>Cómo te presentás</legend>
@@ -248,46 +208,18 @@ export function ColaboradoraForm({
         </fieldset>
       </fieldset>
 
-      <ResumenDeErrores items={resumen} />
-
-      {sinCampo && (
-        <p role="alert" className={estilos.errorGeneral}>
-          <Icono nombre="alerta" />
-          {sinCampo}
-        </p>
-      )}
-
-      <div className={estilos.acciones}>
-        <Boton
-          variante="primario"
-          type="submit"
-          enviando={enviando}
-          textoEnviando={textoEnviando}
-          disabled={sinCatalogo || (!esAlta && !hayCambios)}
-          motivoDeshabilitado={
-            sinCatalogo
-              ? "No se puede crear el perfil hasta que haya habilidades en el catálogo."
-              : "No hay cambios para guardar."
-          }
-        >
-          {textoEnviar}
-        </Boton>
-      </div>
-
-      <ConfirmDialog
-        abierto={salida.preguntando}
-        permanente={false}
-        peligroso
-        titulo="¿Salir sin guardar?"
-        descripcion={
-          esAlta
-            ? "Los datos que cargaste se van a perder."
-            : "Los cambios que hiciste en el perfil se van a perder."
+      <PieDeFormularioDePerfil
+        formulario={formulario}
+        esAlta={esAlta}
+        enviando={enviando}
+        textoEnviar={textoEnviar}
+        textoEnviando={textoEnviando}
+        deshabilitado={sinCatalogo || (!esAlta && !formulario.hayCambios)}
+        motivoDeshabilitado={
+          sinCatalogo
+            ? "No se puede crear el perfil hasta que haya habilidades en el catálogo."
+            : "No hay cambios para guardar."
         }
-        textoConfirmar="Salir sin guardar"
-        textoCancelar="Seguir editando"
-        alConfirmar={salida.salir}
-        alCancelar={salida.quedarse}
       />
     </form>
   );

@@ -57,20 +57,22 @@ La estructura y las responsabilidades de cada capa están en `PLAN-ENTIDADES.md`
 ```
 src/
 ├── Presentation/
-│   ├── Pages/          una por pantalla (XxxPage.jsx)
-│   ├── Components/     App/ (compartidos) y una carpeta por módulo
-│   ├── Hooks/          estado de carga, error, cancelación y refresco
+│   ├── App.jsx         punto de entrada de la presentación
+│   ├── Pages/          una por pantalla (XxxPage.jsx), por área: publicas, ingreso, colectivo, colaboradora, sistema
+│   ├── Components/     App/ (compartidos, por función) y una carpeta por módulo
+│   ├── Hooks/          estado de carga, error, cancelación y refresco; comunes/ y por entidad
+│   ├── Formularios/    estado, validación y requests de cada formulario, por entidad
+│   ├── Styles/         tokens.css y base.css (globales); el resto, X.module.css junto a cada componente
 │   ├── Context/        contextos compartidos (avisos; después, sesión)
 │   ├── Dependencies/   composición de HttpClients y casos de uso
-│   └── Routes/         AppRoutes.jsx y rutas protegidas
+│   └── Routes/         RutasDeLaApp.jsx y rutas protegidas
 ├── Application/
 │   ├── UseCases/       una función por operación, agrupadas por módulo
-│   └── Domain/         DTOs, Requests, Enums y contratos I…HttpClient (JSDoc)
+│   └── Domain/         DTOs, Requests, Enums y contratos I…HttpClient (módulos vacíos)
 ├── Infrastructure/
 │   ├── Http/           axiosClient.js
 │   ├── HttpClients/    implementación de cada contrato
 │   └── Auth/           adaptador del proveedor de identidad
-└── Styles/           tokens.css y base.css (globales); el resto, X.module.css junto a cada componente
 ```
 
 - **Flujo:** `Page` → `Hook` → `Dependencies` → `UseCase` → `HttpClient` → `axiosClient`.
@@ -84,14 +86,14 @@ src/
 
 Son piezas que usan todas las pantallas. Se construyen una vez:
 
-| Pieza                                                       | Dónde                                                 | Para qué                                                                                                                        |
-| ----------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Interceptores de axios                                      | `Infrastructure/Http/axiosClient.js`                  | Token, errores normalizados y reintentos (ver 5.2).                                                                             |
-| `ApiError` y mensajes por status                            | `Infrastructure/Http/`                                | La presentación recibe un error propio, no el de axios.                                                                         |
-| `useAsync`                                                  | `Presentation/Hooks/useAsync.js`                      | Carga, error, cancelación y reintento en un solo lugar (ver 5.4).                                                               |
-| Skeleton, EmptyState, ErrorState, ConfirmDialog, Paginación | `Presentation/Components/App/`                        | Feedback visual y confirmación que exige la consigna.                                                                           |
-| Avisos (`AvisosProvider` + `useAvisos`)                     | `Presentation/Context/`, `Hooks/` y `Components/App/` | Mensaje de éxito o error después de cada acción. Se llaman "avisos" para no confundirlos con el módulo `Notificacion` del back. |
-| Sesión y rutas protegidas                                   | `Infrastructure/Auth/` + `Presentation`               | Ver 5.3.                                                                                                                        |
+| Pieza                                                                    | Dónde                                                 | Para qué                                                                                                                        |
+| ------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Interceptores de axios                                                   | `Infrastructure/Http/axiosClient.js`                  | Token, errores normalizados y reintentos (ver 5.2).                                                                             |
+| `ApiError` y mensajes por status                                         | `Infrastructure/Http/`                                | La presentación recibe un error propio, no el de axios.                                                                         |
+| `useConsulta`                                                            | `Presentation/Hooks/comunes/useConsulta.js`           | Carga, error, cancelación y reintento en un solo lugar (ver 5.4).                                                               |
+| Esqueleto, EstadoVacio, EstadoDeError, DialogoDeConfirmacion, Paginación | `Presentation/Components/App/`                        | Feedback visual y confirmación que exige la consigna.                                                                           |
+| Avisos (`ProveedorDeAvisos` + `useAvisos`)                               | `Presentation/Context/`, `Hooks/` y `Components/App/` | Mensaje de éxito o error después de cada acción. Se llaman "avisos" para no confundirlos con el módulo `Notificacion` del back. |
+| Sesión y rutas protegidas                                                | `Infrastructure/Auth/` + `Presentation`               | Ver 5.3.                                                                                                                        |
 
 ### 5.2 Cliente HTTP (`axiosClient.js`, §22.1.2)
 
@@ -108,12 +110,12 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 
 ### 5.3 Sesión y rutas (§22.4)
 
-- **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/SesionLogtoProvider.jsx`, consumido a través de Dependencies y del contrato propio de identidad (`estaAutenticado`, `iniciarSesion`, `completarIngreso`, `obtenerToken`, `cerrarSesion`, `olvidarSesion`). El callback real lo completa `useHandleSignInCallback`; `AuthProvider` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
+- **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx`, consumido a través de Dependencies y del contrato propio de identidad (`estaAutenticado`, `iniciarSesion`, `completarIngreso`, `obtenerToken`, `cerrarSesion`, `olvidarSesion`). El callback real lo completa `useHandleSignInCallback`; `ProveedorDeSesion` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
 - **El rol y el perfil vienen del back** (`GET /auth/me`, pendiente en el back), no del proveedor: el proveedor dice quién es la persona; el back, qué es en la plataforma.
-- **`AuthProvider` + `useAuth()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe el adaptador por parámetro para poder probarlo con uno falso.
+- **`ProveedorDeSesion` + `useSesion()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe el adaptador por parámetro para poder probarlo con uno falso.
 - **Almacenamiento a cargo del SDK de Logto en `localStorage`**, según la decisión aprobada del 05/11 que revisa la preferencia inicial por memoria (§22.4.3). El frontend no copia tokens a otro almacenamiento. Mantener la mitigación de vencimiento corto, rotación del refresh token y CSP en el despliegue.
 - **Contexto en vez de Zustand o Redux:** en una aplicación mediana el contexto alcanza (§21.4.12).
-- **`ProtectedRoute` recibe los roles permitidos** (`<ProtectedRoute roles={['COLECTIVO']} />`):
+- **`RutaProtegida` recibe los roles permitidos** (`<RutaProtegida roles={['COLECTIVO']} />`):
   - Con `cargando`, muestra "Verificando sesión…" (evita expulsar al login a alguien autenticado al recargar).
   - Sin sesión, `<Navigate to="/login" replace state={{ desde: location }} />`: `replace` evita quedar atrapado con el botón de atrás y `desde` permite volver después del login.
   - Con un rol no permitido, `SinPermisoPage`.
@@ -145,20 +147,20 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 
 _Pendiente: confirmar con el docente si se aceptan parámetros `:id` o va `?id=` por la restricción de rutas dinámicas._
 
-### 5.4 Carga de datos (`useAsync`, §22.2 y §21.4.13)
+### 5.4 Carga de datos (`useConsulta`, §22.2 y §21.4.13)
 
 - Devuelve `{ datos, error, cargando, ejecutar, reintentar }`; `cargando` arranca en `true`.
 - Recibe una función `(signal) => casoDeUso(…, { signal })` y aborta con `AbortController` al desmontar o cambiar los parámetros, para que una respuesta vieja no pise a una nueva.
 - Con `inmediato: false` sirve para acciones (postularse, aceptar); el botón se deshabilita mientras se envía.
 - No notifica por su cuenta: eso lo decide el hook de cada módulo.
-- Cada hook de módulo (por ejemplo `useProyectos`) queda en pocas líneas: arma la llamada al caso de uso y delega en `useAsync`.
+- Cada hook de módulo (por ejemplo `useProyectos`) queda en pocas líneas: arma la llamada al caso de uso y delega en `useConsulta`.
 - En desarrollo, StrictMode duplica los pedidos en la pestaña Network; no es un error.
 
 ### 5.5 Estilos (§21.4.3 y §19.6)
 
 - Sin librería de componentes.
 - **CSS Modules:** cada componente y cada página tiene su `X.module.css` al lado (`Boton.jsx` + `Boton.module.css`) y lo importa como `import estilos from "./Boton.module.css"`. Las clases no chocan entre módulos.
-- **Solo dos archivos globales en `Styles/`:** `tokens.css`, con los tokens de `DESIGN.md` como variables CSS en `:root`, y `base.css`, con el reset, las tipografías (`@font-face`) y los estilos de las etiquetas HTML. Se importan una vez en `main.jsx`.
+- **Solo dos archivos globales en `Presentation/Styles/`:** `tokens.css`, con los tokens de `DESIGN.md` como variables CSS en `:root`, y `base.css`, con el reset, las tipografías (`@font-face`) y los estilos de las etiquetas HTML. Se importan una vez en `main.jsx`.
 - Los componentes usan las variables de `tokens.css`; ningún color, tamaño o espaciado suelto.
 - Lo dinámico va en variables CSS o props; lo estático, en CSS.
 - Para el diálogo se usa `<dialog>` nativo. Si aparece un componente complejo (combobox, menú desplegable), se evalúa una librería headless accesible (Radix, React Aria) puntualmente.

@@ -1,4 +1,4 @@
-import { Icono } from "../App/Icono.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import estilos from "./Formulario.module.css";
 
 function unirConY(enlaces) {

@@ -6,8 +6,8 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import { Raiz } from "../Presentation/Components/App/Raiz.jsx";
-import { crearIdentidadFalsa } from "../Presentation/Dependencies/identidadDependencies.js";
+import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
+import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 
 export function montarRutas(
   hijos,

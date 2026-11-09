@@ -1,56 +1,46 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IProyectoHttpClient.js').IProyectoHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearProyectoHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async obtenerContactoDeColaborador(proyectoId, colaboradorId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboradores/${encodeURIComponent(colaboradorId)}/contacto`,
-        { signal },
+      return api.get(
+        ruta`/proyectos/${proyectoId}/colaboradores/${colaboradorId}/contacto`,
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async listar(query = {}, { signal } = {}) {
-      const response = await http.get("/proyectos", { params: query, signal });
-      return response.data;
+      return api.get("/proyectos", { params: query, signal });
     },
     async obtenerPorId(proyectoId, { signal } = {}) {
-      const response = await http.get(`/proyectos/${encodeURIComponent(proyectoId)}`, {
+      return api.get(ruta`/proyectos/${proyectoId}`, {
         signal,
       });
-      return response.data;
     },
-    async crear(colectivoId, request, { signal } = {}) {
-      const response = await http.post(
-        `/colectivos/${encodeURIComponent(colectivoId)}/proyectos`,
-        request,
-        { signal },
-      );
-      return response.data;
+    async crear(colectivoId, request, { signal, claveIdempotencia } = {}) {
+      return api.post(ruta`/colectivos/${colectivoId}/proyectos`, request, {
+        signal,
+        requiereSesion: true,
+        headers: claveIdempotencia ? { "Idempotency-Key": claveIdempotencia } : undefined,
+      });
     },
     async listarPorColectivo(colectivoId, { signal } = {}) {
-      const response = await http.get(
-        `/colectivos/${encodeURIComponent(colectivoId)}/proyectos`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/colectivos/${colectivoId}/proyectos`, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async actualizar(proyectoId, request, { signal } = {}) {
-      const response = await http.put(
-        `/proyectos/${encodeURIComponent(proyectoId)}`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.put(ruta`/proyectos/${proyectoId}`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async finalizar(proyectoId, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/finalizacion`,
-        undefined,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/proyectos/${proyectoId}/finalizacion`, undefined, {
+        signal,
+        requiereSesion: true,
+      });
     },
   };
 }

@@ -1,11 +1,17 @@
+import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
+
 const CLAVE = "codigo-a-voluntad:sesion-simulada";
 const CLAVE_PERFIL = "codigo-a-voluntad:sesion-simulada:perfil";
 
 const CUENTAS = {
-  COLECTIVO: { id: "cuenta-simulada", rol: "COLECTIVO", perfilId: "colectivo-simulado" },
+  COLECTIVO: {
+    id: "cuenta-simulada",
+    rol: ROL_CUENTA.COLECTIVO,
+    perfilId: "colectivo-simulado",
+  },
   COLABORADORA: {
     id: "cuenta-simulada",
-    rol: "COLABORADORA",
+    rol: ROL_CUENTA.COLABORADORA,
     perfilId: "colaboradora-simulada",
   },
   SIN_PERFIL: { id: "cuenta-simulada", rol: null, perfilId: null },
@@ -25,6 +31,11 @@ export function leerSesionSimulada(valor) {
     `VITE_SESION_SIMULADA="${valor}" no es válida (COLECTIVO, COLABORADORA o SIN_PERFIL). Se ignora.`,
   );
   return null;
+}
+
+export function sesionSimuladaActiva(entorno) {
+  if (!entorno.DEV || entorno.MODE === "test") return null;
+  return leerSesionSimulada(entorno.VITE_SESION_SIMULADA);
 }
 
 function tieneSesion() {
@@ -56,14 +67,9 @@ function perfilAsociado() {
 }
 
 function asociarPerfilSimulado(rol, perfilId) {
-  try {
-    sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify({ rol, perfilId }));
-  } catch {
-    return;
-  }
+  sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify({ rol, perfilId }));
 }
 
-/** @returns {import('./identidad.js').Identidad & { simulada: string }} */
 export function crearIdentidadSimulada(tipo, ubicacion = window.location) {
   return {
     simulada: ETIQUETAS[tipo],
@@ -89,7 +95,6 @@ export function crearIdentidadSimulada(tipo, ubicacion = window.location) {
   };
 }
 
-/** @returns {import('../../Application/Domain/HttpClients/IAuthHttpClient.js').IAuthHttpClient} */
 export function crearAuthHttpClientSimulado(tipo, perfilId) {
   return {
     async obtenerCuentaActual() {

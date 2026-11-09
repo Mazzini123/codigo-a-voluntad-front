@@ -1,7 +1,3 @@
-/**
- * @param {{ autenticado?: boolean, token?: string | null }} [estadoInicial]
- * @returns {import('./identidad.js').Identidad & { inicios: object[], salidas: number }}
- */
 export function crearIdentidadFalsa({
   autenticado = false,
   token = "token-de-prueba",

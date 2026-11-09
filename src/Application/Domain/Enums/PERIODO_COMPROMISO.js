@@ -1,4 +1,3 @@
-/** @typedef {"HS_TOTALES" | "HS_SEMANALES" | "HS_MENSUALES"} PeriodoCompromiso */
 export const PERIODO_COMPROMISO = Object.freeze({
   HS_TOTALES: "HS_TOTALES",
   HS_SEMANALES: "HS_SEMANALES",

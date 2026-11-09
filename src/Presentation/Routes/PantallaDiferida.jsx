@@ -1,6 +1,9 @@
 import { Component, lazy, Suspense, useState } from "react";
-import { ErrorState } from "../Components/App/ErrorState.jsx";
-import { Skeleton, BloqueSkeleton } from "../Components/App/Skeleton.jsx";
+import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
+import {
+  Esqueleto,
+  BloqueEsqueleto,
+} from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 
 class ErrorDePantalla extends Component {
   state = { fallo: false };
@@ -12,7 +15,7 @@ class ErrorDePantalla extends Component {
   render() {
     if (this.state.fallo) {
       return (
-        <ErrorState
+        <EstadoDeError
           nivel={1}
           titulo="No pudimos abrir la pantalla"
           alReintentar={this.props.alReintentar}
@@ -35,11 +38,11 @@ export function PantallaDiferida({ cargar }) {
     <ErrorDePantalla key={intento.numero} alReintentar={reintentar}>
       <Suspense
         fallback={
-          <Skeleton etiqueta="Cargando pantalla…">
-            <BloqueSkeleton alto="2rem" />
-            <BloqueSkeleton />
-            <BloqueSkeleton />
-          </Skeleton>
+          <Esqueleto etiqueta="Cargando pantalla…">
+            <BloqueEsqueleto alto="2rem" />
+            <BloqueEsqueleto />
+            <BloqueEsqueleto />
+          </Esqueleto>
         }
       >
         <Pagina />

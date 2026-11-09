@@ -17,7 +17,7 @@ Usar el mismo SDK de React que la integración de Facundo, conservando la consul
 ## Requisitos
 
 - Un solo `LogtoProvider`; `useLogto` y `useHandleSignInCallback` quedan en `Infrastructure/Auth`, accesibles a Presentation a través de Dependencies.
-- `AuthProvider` sigue resolviendo la cuenta de dominio y la expiración por 401; autenticación de Logto no implica perfil ni rol de la plataforma.
+- `ProveedorDeSesion` sigue resolviendo la cuenta de dominio y la expiración por 401; autenticación de Logto no implica perfil ni rol de la plataforma.
 - Se mantiene `/callback`, el retorno de salida a `/` y `VITE_LOGTO_RECURSO` como nombre de configuración del recurso. No se integra el router ni el cliente HTTP antiguo del ZIP.
 - El header conserva petróleo y crema de marca; ambos accesos a la derecha en escritorio y en una segunda fila en celular. Objetivos de al menos 44px y sin desborde a 320px.
 - `/login` y `/registro` conservan la cabecera con ambos accesos como enlaces y presentan las acciones de autenticación en el contenido.

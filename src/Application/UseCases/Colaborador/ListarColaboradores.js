@@ -1,11 +1,7 @@
-/** @param {import('../../Domain/HttpClients/IColaboradorHttpClient.js').IColaboradorHttpClient} httpClient */
+import { aPagina } from "@/Application/Adaptadores/aPagina.js";
+
 export function crearListarColaboradores(httpClient) {
-  /**
-   * @param {import('../../Domain/Requests/App/PaginacionRequest.js').PaginacionRequest} [query]
-   * @param {{signal?: AbortSignal}} [options]
-   * @returns {Promise<import('../../Domain/Entities/PaginaDto.js').PaginaDto<import('../../Domain/Entities/ColaboradorDto.js').ColaboradorDto>>}
-   */
-  return function listarColaboradores(query = {}, options = {}) {
-    return httpClient.listar(query, options);
+  return async function listarColaboradores(query = {}, options = {}) {
+    return aPagina(await httpClient.listar(query, options));
   };
 }

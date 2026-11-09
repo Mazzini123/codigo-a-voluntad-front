@@ -115,9 +115,9 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R8. El foco se pierde después de una postulación exitosa. — hecho** Severidad: **mayor**. Detectó: critique (en código; en navegador no se envió la postulación para no crear más datos).
 
-- **Dónde:** `Components/App/ConfirmDialog.jsx:31-34`, `Pages/ProyectoPage.jsx:112-115` y `Components/Proyecto/AccionDePerfil.jsx:38-39`.
+- **Dónde:** `Components/App/DialogoDeConfirmacion.jsx:31-34`, `Pages/ProyectoPage.jsx:112-115` y `Components/Proyecto/AccionDePerfil.jsx:38-39`.
 - **Qué pasa:** después de postularse, "Postularme" se reemplaza por el sello, y el diálogo devuelve el foco al botón que ya no existe: el foco cae en `body`.
-- **Corrección:** que `ConfirmDialog` acepte un destino de foco al cerrar, y llevarlo al sello "Tu postulación está pendiente" o al `h3` del perfil.
+- **Corrección:** que `DialogoDeConfirmacion` acepte un destino de foco al cerrar, y llevarlo al sello "Tu postulación está pendiente" o al `h3` del perfil.
 - **Verificación:** test que se postula con teclado y espera `document.activeElement` en el sello; prueba manual con Tab después del aviso.
 - **Respaldo:** criterios §9 Teclado y §13 "Llevá el foco con `useRef`"; spec 06, criterio de aceptación del diálogo.
 
@@ -349,7 +349,7 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 **R37. Al skeleton de la tarjeta le faltan las líneas de metadato. — hecho** Severidad: **menor**. Detectó: audit (en código).
 
 - **Dónde:** `Components/Proyecto/TarjetaProyecto.jsx:80-93`.
-- **Corrección:** las dos líneas al 40 % que pide `DESIGN.md` → Skeleton.
+- **Corrección:** las dos líneas al 40 % que pide `DESIGN.md` → Esqueleto.
 - **Verificación:** captura del skeleton contra la tarjeta real, sin salto al cargar.
 
 #### Chips y etiquetas
@@ -379,7 +379,7 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R41. Colores de hover sueltos, fuera de los tokens. — hecho** Severidad: **menor**. Detectó: audit (en código).
 
-- **Dónde:** `color-mix` en `AvisosProvider.module.css:89`, `Formulario/Editores.module.css:62` y `Formulario/SelectorDeHabilidades.module.css:57`.
+- **Dónde:** `color-mix` en `ProveedorDeAvisos.module.css:89`, `Formulario/Editores.module.css:62` y `Formulario/SelectorDeHabilidades.module.css:57`.
 - **Corrección:** usar `--color-peligro-tenue` o `--color-petroleo-tenue`, o crear el token y documentarlo en `DESIGN.md`.
 - **Verificación:** `grep color-mix src` vacío o solo dentro de `tokens.css`.
 
@@ -413,9 +413,9 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R44. Los diálogos aparecen pegados arriba a la izquierda. — hecho** Severidad: **mayor**. Detectó: audit (en navegador).
 
-- **Dónde:** todos los `ConfirmDialog` ("¿Te postulás…?", "¿Cerrar sesión?", "¿Salir sin guardar?"), escritorio (1280 px): el diálogo queda en `left: 0; top: 0`.
+- **Dónde:** todos los `DialogoDeConfirmacion` ("¿Te postulás…?", "¿Cerrar sesión?", "¿Salir sin guardar?"), escritorio (1280 px): el diálogo queda en `left: 0; top: 0`.
 - **Qué pasa:** el reset de `Styles/base.css:10-12` (`* { margin: 0 }`) le quita al `<dialog>` el `margin: auto` con que el navegador lo centra. En celular casi no se nota porque ocupa todo el ancho.
-- **Corrección:** `margin: auto` en `.dialogo` (`ConfirmDialog.module.css`), o excluir `dialog` del reset.
+- **Corrección:** `margin: auto` en `.dialogo` (`DialogoDeConfirmacion.module.css`), o excluir `dialog` del reset.
 - **Verificación:** a 1280 px y a 320 px el diálogo queda centrado en los dos ejes; test visual o de estilo calculado.
 - **Respaldo:** `DESIGN.md` → Diálogo de confirmación.
 
@@ -440,7 +440,7 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R47. En celular los avisos tapan una parte grande de la pantalla. — hecho** Severidad: **menor**. Detectó: audit (en navegador).
 
-- **Dónde:** `/login`, 320 × 700: el aviso de error ocupa abajo cerca de un cuarto de la pantalla, y en formularios largos tapa "Guardar cambios" o "Crear perfil" (`AvisosProvider.module.css:1-10`).
+- **Dónde:** `/login`, 320 × 700: el aviso de error ocupa abajo cerca de un cuarto de la pantalla, y en formularios largos tapa "Guardar cambios" o "Crear perfil" (`ProveedorDeAvisos.module.css:1-10`).
 - **Corrección:** a menos de 480 px, el aviso va arriba, debajo de la cabecera, con el texto en body small y alto máximo de tres líneas.
 - **Verificación:** a 320 px, con un aviso abierto, el botón de envío sigue visible.
 
@@ -448,14 +448,14 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R48. "Reintentando…" nunca se ve. — hecho** Severidad: **menor**. Detectó: audit y critique (en navegador).
 
-- **Dónde:** `/proyectos` con el back apagado: al tocar "Reintentar" no cambia nada en pantalla hasta que vuelve el error (`Hooks/useAsync.js:16`; la prop `reintentando` de `ErrorState` no se usa).
-- **Corrección:** mantener `ErrorState` montado mientras reintenta, con el botón en "Reintentando…" deshabilitado.
+- **Dónde:** `/proyectos` con el back apagado: al tocar "Reintentar" no cambia nada en pantalla hasta que vuelve el error (`Hooks/useConsulta.js:16`; la prop `reintentando` de `EstadoDeError` no se usa).
+- **Corrección:** mantener `EstadoDeError` montado mientras reintenta, con el botón en "Reintentando…" deshabilitado.
 - **Verificación:** test que toca "Reintentar" y ve "Reintentando…" antes de la respuesta.
 - **Respaldo:** `DESIGN.md` → Estado de error; criterios §2 "Mostrá siempre el estado del sistema".
 
-**R49. `ErrorState` roba el foco en la primera carga. — hecho** Severidad: **menor**. Detectó: audit (en navegador).
+**R49. `EstadoDeError` roba el foco en la primera carga. — hecho** Severidad: **menor**. Detectó: audit (en navegador).
 
-- **Dónde:** `/proyectos` con el back apagado: al cargar, el foco va al título del error (`Components/App/ErrorState.jsx:20-22`); si falla una búsqueda mientras la persona escribe, el foco salta del buscador al error.
+- **Dónde:** `/proyectos` con el back apagado: al cargar, el foco va al título del error (`Components/App/EstadoDeError.jsx:20-22`); si falla una búsqueda mientras la persona escribe, el foco salta del buscador al error.
 - **Corrección:** enfocar el título solo después de un reintento que vuelve a fallar, como dice `DESIGN.md`; en la primera carga alcanza con `role="alert"`.
 - **Verificación:** test de que la primera falla no mueve el foco y un reintento fallido sí.
 
@@ -467,7 +467,7 @@ Cada hallazgo indica dónde (URL, ancho y elemento), qué pasa, severidad, coman
 
 **R51. La región `aria-live` del skeleton nace con su texto. — hecho** Severidad: **menor**. Detectó: audit (en código; a verificar con NVDA).
 
-- **Dónde:** `Components/App/Skeleton.jsx:19`.
+- **Dónde:** `Components/App/Esqueleto.jsx:19`.
 - **Qué pasa:** si la región se monta junto con "Cargando proyectos…", algunos lectores no lo anuncian.
 - **Corrección:** región montada desde el inicio de la página y el texto agregado cuando aparece el skeleton.
 - **Verificación:** con NVDA, se oye "Cargando proyectos…" con la red lenta.
@@ -509,7 +509,7 @@ Estados que se revisaron y lo que tienen que cumplir después de las correccione
 - **Con datos:** cada estado de búsqueda y de postulación con su sello y su color (R10, R14), etiquetas distintas de las habilidades (R38) y el foco en el título al llegar (R52).
 - **Vacío:** una explicación y una sola acción (R3), con el borde que diga `DESIGN.md` (R50).
 - **Sin resultados:** anunciado (R1), con una sola forma clara de limpiar (R2).
-- **Error:** `ErrorState` con "Reintentar", que muestra "Reintentando…" (R48) y no roba el foco en la primera falla (R49); errores de formulario con resumen (R42); nunca el texto del back (R43).
+- **Error:** `EstadoDeError` con "Reintentar", que muestra "Reintentando…" (R48) y no roba el foco en la primera falla (R49); errores de formulario con resumen (R42); nunca el texto del back (R43).
 
 ## Fuera de alcance
 

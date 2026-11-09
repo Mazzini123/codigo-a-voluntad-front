@@ -265,7 +265,7 @@ Código a Voluntad se ve como la cartelera de un centro cultural bien cuidada: c
 
 Es una superficie para operar: buscar, comparar, postularse, aceptar. La densidad es media, con aire generoso entre bloques y grupos apretados adentro. El crema es el fondo de todo (60 %), el verde petróleo da estructura (cabecera, títulos, chips requeridos, botones secundarios; 30 %) y el coral marca la única acción principal de cada pantalla y poco más (10 %). Tema claro solamente: la escena real es una pantalla compartida en un espacio comunitario o un celular a la luz del día.
 
-Todo valor vive como variable CSS en `src/Styles/tokens.css` (`--color-*`, `--espacio-*`, `--radio-*`, `--texto-*`, `--sombra-*`, `--duracion-*`) y cada componente lo toma de ahí, con CSS Modules. Ningún módulo lleva colores ni medidas sueltas.
+Todo valor vive como variable CSS en `src/Presentation/Styles/tokens.css` (`--color-*`, `--espacio-*`, `--radio-*`, `--texto-*`, `--sombra-*`, `--duracion-*`) y cada componente lo toma de ahí, con CSS Modules. Ningún módulo lleva colores ni medidas sueltas.
 
 **Key Characteristics:**
 
@@ -333,7 +333,7 @@ Cada uno tiene su color de texto e ícono y un fondo tenue. Todos pasan 4.5:1 so
 
 **Character:** Bricolage Grotesque tiene una grotesca con rasgos humanos, algo irregular y cálida, que sostiene la voz comunitaria en los títulos. Source Sans 3 es una sans de trabajo, abierta y muy legible en pantallas chicas, con cifras tabulares para fechas, horas y contadores.
 
-Ambas son variables y se sirven desde el proyecto (`public/fonts/*.woff2`, con `@font-face` y `font-display: swap` en `src/Styles/base.css`), sin depender de un CDN ni sumar paquetes. Bricolage usa su eje de tamaño óptico (`opsz`) según el rol. Los títulos usan `text-wrap: balance` y los párrafos `text-wrap: pretty`. No hay monoespaciada: las cifras tabulares de Source Sans 3 cubren los números.
+Ambas son variables y se sirven desde el proyecto (`public/fonts/*.woff2`, con `@font-face` y `font-display: swap` en `src/Presentation/Styles/base.css`), sin depender de un CDN ni sumar paquetes. Bricolage usa su eje de tamaño óptico (`opsz`) según el rol. Los títulos usan `text-wrap: balance` y los párrafos `text-wrap: pretty`. No hay monoespaciada: las cifras tabulares de Source Sans 3 cubren los números.
 
 ### Hierarchy
 
@@ -355,7 +355,15 @@ Ambas son variables y se sirven desde el proyecto (`public/fonts/*.woff2`, con `
 
 - **Ritmo de 8px**, con 4px como medio paso solo dentro de componentes (chips, sellos, íconos con texto). Escala `spacing.1` a `spacing.8`.
 - **Contenedor** de hasta 1200px, con 16px de margen lateral en celular y 32px desde 768px. El contenido principal arranca a 48px de la cabecera y deja 64px abajo.
-- **Puntos de quiebre en uso:** 360px y 375px (cabecera compacta según la cantidad de enlaces), 480px (diálogos y avisos de celular, botón "Menú" de solo ícono), 640px y 768px (la cabecera despliega también la navegación del colectivo y los márgenes pasan a 32px). Sin scroll horizontal a 320px ni con zoom al 200 %.
+- **Puntos de quiebre:** se escriben con sintaxis de rango y en `rem` (`@media (width >= 48rem)`, `@media (width < 30rem)`), así acompañan a quien agranda la letra del navegador y no hace falta el "menos uno". Escala:
+  - `22.5rem` (360px): cabecera y menú de cuenta compactos.
+  - `30rem` (480px): diálogos y avisos de celular, botón "Menú" de solo ícono.
+  - `40rem` (640px): filas de los editores en una línea, indicador de pasos completo, preguntas de Inicio en dos columnas.
+  - `48rem` (768px): la cabecera despliega la navegación del colectivo y los márgenes pasan a 32px.
+  - `56.25rem` (900px): dos columnas en el detalle del proyecto, el perfil de la colaboradora y el resumen del panel.
+  - `75rem` (1200px): navegación lateral del panel del colectivo, indicadores en una fila y ajustes finales de Inicio.
+  - Única excepción: `23.4375rem` (375px) en la cabecera, para compactarla cuando además muestra los enlaces de cuenta.
+  - Sin scroll horizontal a 320px ni con zoom al 200 %.
 - **Búsqueda de proyectos:** buscador por etiqueta arriba, vistas "Para vos" y "Todos los proyectos" como pestañas subrayadas (colaboradora) y una grilla `repeat(auto-fill, minmax(min(100%, 320px), 1fr))` con 24px de separación. Al cambiar de página, las tarjetas viejas quedan atenuadas a 0.55 de opacidad (`--opacidad-atenuada`) e inertes (`inert` y `aria-hidden`): salen del recorrido por teclado y de las tecnologías de asistencia hasta que llegan las nuevas, con "Cargando página N…" visible arriba de la grilla. Junto al buscador, «Buscá por tema» ofrece las etiquetas únicas de los resultados vigentes; elegir una sincroniza campo y URL y vuelve a la página 1 de «Todos los proyectos». La columna lateral de filtros espera a que el back sume filtros (ver `docs/decisiones.md`).
 - **Detalle, perfiles y formularios:** una columna de lectura de hasta 720px. Los perfiles del proyecto van en lista, uno debajo del otro, cada uno con su sello, sus habilidades agrupadas, sus datos en una grilla de dos columnas y su acción al pie.
 - **Bienvenida:** opciones en una grilla `auto-fit` de tarjetas de al menos 260px.
@@ -478,7 +486,7 @@ Cada paso es un panel de superficie con borde de línea; el paso vive en `?paso=
 
 Solo con sesión de colaboradora: "Tenés 2 de 3 habilidades requeridas" en coral oscurecido, peso 600 y body small, sobre coral tenue, con esquinas de 8px y `padding` 8px 12px. Es el único coral de la tarjeta. Con 0 de N no se muestra.
 
-### Skeleton
+### Esqueleto
 
 Reproduce la forma real de lo que va a aparecer, para que no haya saltos al cargar.
 
@@ -579,7 +587,7 @@ Anterior y siguiente como botones secundarios, y hasta tres números alrededor d
 - **Do** mostrar el motivo debajo de todo botón deshabilitado, enlazado con `aria-describedby`.
 - **Do** separar las habilidades en "Requeridas" y "Opcionales" y diferenciar los chips con borde continuo o rayado y con el peso.
 - **Do** mostrar las etiquetas de tema con esquinas de 4px sobre hundido, nunca como píldora.
-- **Do** tomar todo valor de `src/Styles/tokens.css`; ningún color, medida ni duración suelta en un módulo.
+- **Do** tomar todo valor de `src/Presentation/Styles/tokens.css`; ningún color, medida ni duración suelta en un módulo.
 - **Do** mantener 44×44px en todo lo clickeable y verificar el contraste de todo par de color nuevo antes de usarlo.
 - **Do** dar los botones peligrosos con contorno en la página y con relleno solo dentro del diálogo.
 - **Do** escribir cada mensaje de error en el front, según el status y la operación.

@@ -1,19 +1,13 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IEstadisticaHttpClient.js').IEstadisticaHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearEstadisticaHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async obtenerGlobales({ signal } = {}) {
-      const response = await http.get("/estadisticas", { signal });
-      return response.data;
+      return api.get("/estadisticas", { signal });
     },
     async obtenerDeColectivo(colectivoId, { signal } = {}) {
-      const response = await http.get(
-        `/colectivos/${encodeURIComponent(colectivoId)}/estadisticas`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/colectivos/${colectivoId}/estadisticas`, { signal });
     },
   };
 }

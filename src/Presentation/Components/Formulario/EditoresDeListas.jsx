@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Boton } from "../App/Boton.jsx";
-import { Campo } from "../App/Campo.jsx";
-import { Icono } from "../App/Icono.jsx";
-import { Selector } from "../App/Selector.jsx";
-import { TEXTO_MEDIO_DE_CONTACTO } from "../../Formatos/colectivo.js";
-import { crearClave, idDeCampo, MAXIMO_POR_LISTA } from "./formulario.js";
+import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
+import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
+import { Selector } from "@/Presentation/Components/App/ui/Selector.jsx";
+import { TEXTO_MEDIO_DE_CONTACTO } from "@/Presentation/Formatos/colectivo.js";
+import {
+  crearClave,
+  idDeCampo,
+  MAXIMO_POR_LISTA,
+} from "@/Presentation/Formularios/comunes/formulario.js";
 import estilos from "./Editores.module.css";
+import { TIPOS_MEDIOS_CONTACTO } from "@/Application/Domain/Enums/TIPOS_MEDIOS_CONTACTO.js";
 
 const OPCIONES_DE_MEDIO = Object.entries(TEXTO_MEDIO_DE_CONTACTO).map(
   ([valor, texto]) => ({
@@ -37,7 +42,7 @@ export function MediosDeContacto({ items, errores, alCambiar, prefijoDeIds }) {
 
   function agregar() {
     const clave = crearClave();
-    alCambiar([...items, { clave, tipo: "EMAIL", valor: "" }]);
+    alCambiar([...items, { clave, tipo: TIPOS_MEDIOS_CONTACTO.EMAIL, valor: "" }]);
     enfocarFila(clave);
   }
 
@@ -63,9 +68,9 @@ export function MediosDeContacto({ items, errores, alCambiar, prefijoDeIds }) {
               prefijoDeIds &&
               idDeCampo(prefijoDeIds, `mediosDeContacto.${item.clave}.valor`)
             }
-            etiqueta={item.tipo === "EMAIL" ? "Email" : "Número"}
-            type={item.tipo === "EMAIL" ? "email" : "tel"}
-            autoComplete={item.tipo === "EMAIL" ? "email" : "tel"}
+            etiqueta={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "Email" : "Número"}
+            type={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "email" : "tel"}
+            autoComplete={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "email" : "tel"}
             value={item.valor}
             error={errores[`mediosDeContacto.${item.clave}.valor`]}
             onChange={(e) => cambiar(item.clave, { valor: e.target.value })}

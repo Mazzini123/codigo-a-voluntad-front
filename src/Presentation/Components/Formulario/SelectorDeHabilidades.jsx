@@ -1,10 +1,13 @@
 import { useId, useMemo, useState } from "react";
-import { AyudaYError, Campo } from "../App/Campo.jsx";
-import { describir } from "../App/campoAccesible.js";
-import { ErrorState } from "../App/ErrorState.jsx";
-import { Icono } from "../App/Icono.jsx";
-import { BloqueSkeleton, Skeleton } from "../App/Skeleton.jsx";
-import { TextoOculto } from "../App/TextoOculto.jsx";
+import { AyudaYError, Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
+import { describir } from "@/Presentation/Components/App/ui/campoAccesible.js";
+import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
+import {
+  BloqueEsqueleto,
+  Esqueleto,
+} from "@/Presentation/Components/App/estados/Esqueleto.jsx";
+import { TextoOculto } from "@/Presentation/Components/App/ui/TextoOculto.jsx";
 import estilos from "./SelectorDeHabilidades.module.css";
 
 function normalizar(texto) {
@@ -118,7 +121,7 @@ function Contenido({
 }) {
   if (catalogo.error) {
     return (
-      <ErrorState
+      <EstadoDeError
         nivel={3}
         enfocar={false}
         titulo="No pudimos cargar las habilidades"
@@ -129,14 +132,14 @@ function Contenido({
   }
   if (!catalogo.habilidades) {
     return (
-      <Skeleton etiqueta="Cargando habilidades…">
+      <Esqueleto etiqueta="Cargando habilidades…">
         <div className={estilos.selector}>
-          <BloqueSkeleton alto="2.75rem" />
-          <BloqueSkeleton ancho="50%" />
-          <BloqueSkeleton ancho="40%" />
-          <BloqueSkeleton ancho="60%" />
+          <BloqueEsqueleto alto="2.75rem" />
+          <BloqueEsqueleto ancho="50%" />
+          <BloqueEsqueleto ancho="40%" />
+          <BloqueEsqueleto ancho="60%" />
         </div>
-      </Skeleton>
+      </Esqueleto>
     );
   }
   if (catalogo.habilidades.length === 0) {

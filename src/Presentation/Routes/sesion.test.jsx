@@ -3,23 +3,23 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import { MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
-import { AppLayout } from "../Components/App/AppLayout.jsx";
-import { AuthProvider } from "../Components/App/AuthProvider.jsx";
-import { AvisosProvider } from "../Components/App/AvisosProvider.jsx";
-import { crearAuthDependencies } from "../Dependencies/authDependencies.js";
-import { crearIdentidadFalsa } from "../Dependencies/identidadDependencies.js";
+import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
+import { ProveedorDeSesion } from "@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx";
+import { ProveedorDeAvisos } from "@/Presentation/Components/App/avisos/ProveedorDeAvisos.jsx";
+import { crearAuthDependencies } from "@/Presentation/Dependencies/authDependencies.js";
+import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 import {
   crearAuthHttpClientSimulado,
   crearIdentidadSimulada,
-} from "../../Infrastructure/Auth/sesionSimulada.js";
-import { crearIdentidadSinConfigurar } from "../../Infrastructure/Auth/crearIdentidad.js";
-import { useAsync } from "../Hooks/useAsync.js";
-import { BienvenidaPage } from "../Pages/BienvenidaPage.jsx";
-import { CallbackPage } from "../Pages/CallbackPage.jsx";
-import { LoginPage } from "../Pages/LoginPage.jsx";
-import { SinPermisoPage } from "../Pages/SinPermisoPage.jsx";
-import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
-import { ProtectedRoute } from "./ProtectedRoute.jsx";
+} from "@/Infrastructure/Auth/sesionSimulada.js";
+import { crearIdentidadSinConfigurar } from "@/Infrastructure/Auth/elegirProveedorDeIdentidad.js";
+import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
+import { BienvenidaPage } from "@/Presentation/Pages/ingreso/BienvenidaPage.jsx";
+import { CallbackPage } from "@/Presentation/Pages/ingreso/CallbackPage.jsx";
+import { LoginPage } from "@/Presentation/Pages/ingreso/LoginPage.jsx";
+import { SinPermisoPage } from "@/Presentation/Pages/sistema/SinPermisoPage.jsx";
+import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
+import { RutaProtegida } from "./RutaProtegida.jsx";
 
 const COLECTIVO = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "colectivo-1" };
 const COLABORADORA = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "colaboradora-1" };
@@ -44,43 +44,41 @@ function falla(config, status, data = {}) {
   );
 }
 
-const cargarPrivado = (signal) => axiosClient.get("/privado", { signal });
+const cargarPrivado = (signal) =>
+  axiosClient.get("/privado", { signal, requiereSesion: true });
 
 function PaginaPrivada() {
-  useAsync(cargarPrivado);
+  useConsulta(cargarPrivado);
   return <h1 tabIndex={-1}>Panel del colectivo</h1>;
 }
 
 function Aplicacion({ ruta, identidad, dependencies }) {
   return (
     <MemoryRouter initialEntries={[ruta]}>
-      <AvisosProvider>
-        <AuthProvider
+      <ProveedorDeAvisos>
+        <ProveedorDeSesion
           identidad={identidad}
           dependencies={dependencies ?? dependenciasDelBack}
         >
           <Routes>
-            <Route element={<AppLayout />}>
+            <Route element={<MarcoDeLaApp />}>
               <Route path="/" element={<Navigate to="/habilidades" replace />} />
               <Route path="/habilidades" element={<h1 tabIndex={-1}>Inicio</h1>} />
-              <Route
-                path="/colectivo/proyectos"
-                element={<h1 tabIndex={-1}>Inicio</h1>}
-              />
+              <Route path="/colectivo/resumen" element={<h1 tabIndex={-1}>Inicio</h1>} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registro" element={<LoginPage registro />} />
               <Route path="/callback" element={<CallbackPage />} />
               <Route path="/sin-permiso" element={<SinPermisoPage />} />
-              <Route element={<ProtectedRoute permitirSinPerfil />}>
+              <Route element={<RutaProtegida permitirSinPerfil />}>
                 <Route path="/bienvenida" element={<BienvenidaPage />} />
               </Route>
-              <Route element={<ProtectedRoute roles={["COLECTIVO"]} />}>
+              <Route element={<RutaProtegida roles={["COLECTIVO"]} />}>
                 <Route path="/colectivo/privada" element={<PaginaPrivada />} />
               </Route>
             </Route>
           </Routes>
-        </AuthProvider>
-      </AvisosProvider>
+        </ProveedorDeSesion>
+      </ProveedorDeAvisos>
     </MemoryRouter>
   );
 }
@@ -210,6 +208,29 @@ test("ante un 401 avisa una sola vez, olvida la sesión y lleva a /login", async
   );
 });
 
+test("un 401 lleva al ingreso aunque falle la limpieza de la identidad", async () => {
+  transporte.mockImplementation(async (config) => {
+    if (config.url === "/auth/me") return respuesta(config, cuenta);
+    return falla(config, 401);
+  });
+  const informar = vi.spyOn(console, "error").mockImplementation(() => {});
+  const identidad = crearIdentidadFalsa({ autenticado: true });
+  const { promise, reject } = Promise.withResolvers();
+  const olvidar = vi.spyOn(identidad, "olvidarSesion").mockReturnValue(promise);
+  montar("/colectivo/privada", { identidad });
+
+  expect(await titulo("Iniciar sesión")).toBeInTheDocument();
+  expect(olvidar).toHaveBeenCalledTimes(1);
+  const causa = new Error("No se pudo limpiar la identidad");
+  reject(causa);
+  await waitFor(() =>
+    expect(informar).toHaveBeenCalledWith("No pudimos limpiar la sesión vencida:", causa),
+  );
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url === "/auth/me"),
+  ).toHaveLength(1);
+});
+
 test("con sesión, /login lleva al inicio", async () => {
   montar("/login");
   expect(await titulo("Inicio")).toBeInTheDocument();
@@ -257,6 +278,22 @@ describe("cabecera", () => {
     await user.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
     expect(identidad.salidas).toBe(1);
     expect(await screen.findByRole("button", { name: "Ingresar" })).toBeInTheDocument();
+  });
+
+  test("si falla el cierre de sesión lo avisa, conserva la sesión e informa la causa", async () => {
+    const informar = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { user, identidad } = montar("/habilidades");
+    const causa = new Error("Logto no respondió");
+    vi.spyOn(identidad, "cerrarSesion").mockRejectedValue(causa);
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+    const dialogo = screen.getByRole("dialog", { name: "¿Cerrar sesión?" });
+    await user.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
+    expect(
+      await screen.findByText("No pudimos cerrar tu sesión. Probá de nuevo."),
+    ).toBeInTheDocument();
+    expect(informar).toHaveBeenCalledWith("No pudimos cerrar la sesión:", causa);
+    expect(screen.getByRole("button", { name: "Mi cuenta" })).toBeInTheDocument();
   });
 
   test("Esc cierra el menú de cuenta y devuelve el foco", async () => {

@@ -28,7 +28,7 @@ Que la persona visitante pueda descubrir por qué temas buscar y reconocer qué 
 
 ### R2. Diferir el código de pantallas de alta y edición — hecho
 
-- **Origen y prioridad.** Audit, P2. Las páginas se importan al inicio en `src/Presentation/Routes/AppRoutes.jsx`. El build de referencia entrega un único JavaScript de 556,57 kB minificado (173,49 kB con gzip). El tiempo de descarga en un celular real queda sin medir.
+- **Origen y prioridad.** Audit, P2. Las páginas se importan al inicio en `src/Presentation/Routes/RutasDeLaApp.jsx`. El build de referencia entrega un único JavaScript de 556,57 kB minificado (173,49 kB con gzip). El tiempo de descarga en un celular real queda sin medir.
 - **Resultado esperado.** Al abrir el listado público, el navegador debe poder mostrarlo sin descargar las pantallas de alta y edición. Resolver su carga al navegar, incluso si la primera visita es un enlace directo a una ruta protegida. Conservar permisos, retorno tras el ingreso y foco al cargar el título de la pantalla.
 - **Verificación.** Comparar los pesos antes y después en un build de producción con la misma configuración. En la pestaña de red, con caché vacía, comprobar que el listado no descarga los módulos diferidos y que la ruta correspondiente sí los descarga al entrar. Registrar la diferencia del JavaScript inicial y verificar navegación, acceso directo y recarga.
 

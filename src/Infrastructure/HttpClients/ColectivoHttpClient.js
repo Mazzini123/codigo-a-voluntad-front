@@ -1,38 +1,33 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IColectivoHttpClient.js').IColectivoHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearColectivoHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(query = {}, { signal } = {}) {
-      const response = await http.get("/colectivos", { params: query, signal });
-      return response.data;
+      return api.get("/colectivos", { params: query, signal });
     },
     async obtenerPorId(colectivoId, { signal } = {}) {
-      const response = await http.get(`/colectivos/${encodeURIComponent(colectivoId)}`, {
+      return api.get(ruta`/colectivos/${colectivoId}`, {
         signal,
       });
-      return response.data;
     },
     async crear(request, { signal } = {}) {
-      const response = await http.post("/colectivos", request, { signal });
-      return response.data;
+      return api.post("/colectivos", request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async actualizar(colectivoId, request, { signal } = {}) {
-      const response = await http.put(
-        `/colectivos/${encodeURIComponent(colectivoId)}`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.put(ruta`/colectivos/${colectivoId}`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async darDeBaja(colectivoId, { signal } = {}) {
-      const response = await http.post(
-        `/colectivos/${encodeURIComponent(colectivoId)}/baja`,
-        undefined,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/colectivos/${colectivoId}/baja`, undefined, {
+        signal,
+        requiereSesion: true,
+      });
     },
   };
 }

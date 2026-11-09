@@ -1,0 +1,4 @@
+.contenedor {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+}

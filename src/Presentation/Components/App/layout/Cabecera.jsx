@@ -1,0 +1,116 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import {
+  enlacesPrincipalesPara,
+  estaActivo,
+  MINIMO_ENLACES_PARA_MENU,
+} from "@/Presentation/Routes/navegacion.js";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
+import { MenuDeCuenta } from "./MenuDeCuenta.jsx";
+import estilos from "./Cabecera.module.css";
+import marca from "./Marca.module.css";
+import { RUTA_INICIO } from "@/Presentation/Routes/rutas.js";
+import { clases } from "@/Presentation/Components/App/ui/clases.js";
+
+export function Cabecera() {
+  const { usuario } = useSesion();
+  const { pathname } = useLocation();
+  const enlaces = enlacesPrincipalesPara(usuario?.rol);
+  const usaMenu = enlaces.length >= MINIMO_ENLACES_PARA_MENU;
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const refBoton = useRef(null);
+  const refNavegacion = useRef(null);
+  const refCabecera = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!window.ResizeObserver) return undefined;
+    const raiz = document.documentElement;
+    const actualizarAltura = () =>
+      raiz.style.setProperty(
+        "--alto-cabecera",
+        `${refCabecera.current.getBoundingClientRect().height}px`,
+      );
+    actualizarAltura();
+    const observador = new ResizeObserver(actualizarAltura);
+    observador.observe(refCabecera.current);
+    return () => {
+      observador.disconnect();
+      raiz.style.removeProperty("--alto-cabecera");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!menuAbierto) return undefined;
+    function cerrarConEscape(evento) {
+      if (evento.key !== "Escape") return;
+      setMenuAbierto(false);
+      refBoton.current?.focus();
+    }
+    function cerrarAlTocarAfuera(evento) {
+      if (!refNavegacion.current?.contains(evento.target)) setMenuAbierto(false);
+    }
+    document.addEventListener("keydown", cerrarConEscape);
+    document.addEventListener("pointerdown", cerrarAlTocarAfuera);
+    return () => {
+      document.removeEventListener("keydown", cerrarConEscape);
+      document.removeEventListener("pointerdown", cerrarAlTocarAfuera);
+    };
+  }, [menuAbierto]);
+
+  function cerrarAlSalirElFoco(evento) {
+    const siguiente = evento.relatedTarget;
+    if (siguiente && !evento.currentTarget.contains(siguiente)) setMenuAbierto(false);
+  }
+
+  return (
+    <header ref={refCabecera} className={estilos.cabecera}>
+      <div className={clases(estilos.barra, !usuario && estilos.visitante)}>
+        <Link
+          to={RUTA_INICIO}
+          className={estilos.marca}
+          onClick={() => setMenuAbierto(false)}
+        >
+          <Icono nombre="codigo" tamano={32} className={marca.simbolo} />
+          Código a Voluntad
+        </Link>
+        <nav ref={refNavegacion} aria-label="Principal" onBlur={cerrarAlSalirElFoco}>
+          {usaMenu && (
+            <button
+              ref={refBoton}
+              type="button"
+              className={estilos.botonMenu}
+              aria-expanded={menuAbierto}
+              aria-controls="enlaces-principales"
+              onClick={() => setMenuAbierto((abierto) => !abierto)}
+            >
+              <Icono nombre={menuAbierto ? "cruz" : "menu"} />
+              <span className={estilos.textoMenu}>Menú</span>
+            </button>
+          )}
+          <ul
+            id="enlaces-principales"
+            className={clases(
+              estilos.enlaces,
+              !usaMenu ? estilos.visible : menuAbierto && estilos.abierto,
+            )}
+          >
+            {enlaces.map((enlace) => (
+              <li key={enlace.ruta}>
+                <Link
+                  to={enlace.ruta}
+                  className={estilos.enlace}
+                  aria-current={estaActivo(enlace, pathname) ? "page" : undefined}
+                  onClick={() => setMenuAbierto(false)}
+                >
+                  {enlace.texto}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <MenuDeCuenta />
+      </div>
+    </header>
+  );
+}

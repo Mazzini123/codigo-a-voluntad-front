@@ -1,13 +1,24 @@
+import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
+import { MODO_ACEPTACION } from "@/Application/Domain/Enums/MODO_ACEPTACION.js";
+import { PERIODO_COMPROMISO } from "@/Application/Domain/Enums/PERIODO_COMPROMISO.js";
+import { MODALIDAD_COLABORACION } from "@/Application/Domain/Enums/MODALIDAD_COLABORACION.js";
+import {
+  MOTIVO_DE_CIERRE,
+  motivoDeCierre,
+  perfilesAbiertos,
+} from "@/Application/Domain/Reglas/busquedaDePerfil.js";
+
 const TEXTO_PERIODO = Object.freeze({
-  HS_MENSUALES: "por mes",
-  HS_SEMANALES: "por semana",
-  HS_TOTALES: "en total",
+  [PERIODO_COMPROMISO.HS_MENSUALES]: "por mes",
+  [PERIODO_COMPROMISO.HS_SEMANALES]: "por semana",
+  [PERIODO_COMPROMISO.HS_TOTALES]: "en total",
 });
 
 const TEXTO_MODALIDAD = Object.freeze({
-  GRATUITA: "Colaboración sin remuneración",
-  OFRECE_INCENTIVO_ECONOMICO: "Con incentivo económico",
-  EXISTE_POSIBILIDAD_DE_CONTRATACION: "Con posibilidad de contratación",
+  [MODALIDAD_COLABORACION.GRATUITA]: "Colaboración sin remuneración",
+  [MODALIDAD_COLABORACION.OFRECE_INCENTIVO_ECONOMICO]: "Con incentivo económico",
+  [MODALIDAD_COLABORACION.EXISTE_POSIBILIDAD_DE_CONTRATACION]:
+    "Con posibilidad de contratación",
 });
 
 const FORMATO_FECHA_CORTA = new Intl.DateTimeFormat("es-AR", {
@@ -25,8 +36,9 @@ export const ESTADO_BUSQUEDA = Object.freeze({
 });
 
 export function selloDeProyecto(estado) {
-  if (estado === "ABIERTO") return { tipo: ESTADO_BUSQUEDA.ABIERTA, texto: "Abierto" };
-  if (estado === "FINALIZADO")
+  if (estado === PROYECTO_ESTADO.ABIERTO)
+    return { tipo: ESTADO_BUSQUEDA.ABIERTA, texto: "Abierto" };
+  if (estado === PROYECTO_ESTADO.FINALIZADO)
     return { tipo: ESTADO_BUSQUEDA.FINALIZADO, texto: "Finalizado" };
   return null;
 }
@@ -44,18 +56,28 @@ export function fechaCorta(fechaIso) {
   return FORMATO_FECHA_CORTA.format(new Date(fechaIso));
 }
 
+const SELLO_POR_MOTIVO = Object.freeze({
+  [MOTIVO_DE_CIERRE.PROYECTO_FINALIZADO]: Object.freeze({
+    tipo: ESTADO_BUSQUEDA.FINALIZADO,
+    texto: "Finalizado",
+  }),
+  [MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA]: Object.freeze({
+    tipo: ESTADO_BUSQUEDA.CERRADA,
+    texto: "Cerrada",
+  }),
+  [MOTIVO_DE_CIERRE.BUSQUEDA_VENCIDA]: Object.freeze({
+    tipo: ESTADO_BUSQUEDA.CERRADA,
+    texto: "Cerrada",
+  }),
+  [MOTIVO_DE_CIERRE.LIMITE_ALCANZADO]: Object.freeze({
+    tipo: ESTADO_BUSQUEDA.LIMITE,
+    texto: "Límite alcanzado",
+  }),
+});
+
 export function estadoDeBusqueda(perfil, proyecto, hoy = new Date()) {
-  if (proyecto.estado === "FINALIZADO")
-    return { tipo: ESTADO_BUSQUEDA.FINALIZADO, texto: "Finalizado" };
-  const vencida =
-    perfil.fechaCierreBusqueda && new Date(perfil.fechaCierreBusqueda) < hoy;
-  if (!perfil.busquedaAbierta || vencida)
-    return { tipo: ESTADO_BUSQUEDA.CERRADA, texto: "Cerrada" };
-  if (
-    perfil.limiteColaboraciones != null &&
-    colaboracionesAceptadasDe(proyecto, perfil).length >= perfil.limiteColaboraciones
-  )
-    return { tipo: ESTADO_BUSQUEDA.LIMITE, texto: "Límite alcanzado" };
+  const motivo = motivoDeCierre(perfil, proyecto, hoy);
+  if (motivo) return SELLO_POR_MOTIVO[motivo];
   return {
     tipo: ESTADO_BUSQUEDA.ABIERTA,
     texto: perfil.fechaCierreBusqueda
@@ -64,10 +86,18 @@ export function estadoDeBusqueda(perfil, proyecto, hoy = new Date()) {
   };
 }
 
-export function perfilesAbiertos(proyecto, hoy = new Date()) {
-  return (proyecto.perfiles ?? []).filter(
-    (perfil) => estadoDeBusqueda(perfil, proyecto, hoy).tipo === ESTADO_BUSQUEDA.ABIERTA,
-  );
+const TEXTO_NO_POSTULABLE = Object.freeze({
+  [MOTIVO_DE_CIERRE.PROYECTO_FINALIZADO]: () => "Este proyecto ya finalizó.",
+  [MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA]: () => "La búsqueda de este perfil está cerrada.",
+  [MOTIVO_DE_CIERRE.BUSQUEDA_VENCIDA]: (perfil) =>
+    `La búsqueda de este perfil cerró el ${fechaCorta(perfil.fechaCierreBusqueda)}.`,
+  [MOTIVO_DE_CIERRE.LIMITE_ALCANZADO]: () =>
+    "Este perfil ya completó su límite de colaboraciones.",
+});
+
+export function motivoNoPostulable(perfil, proyecto, hoy = new Date()) {
+  const motivo = motivoDeCierre(perfil, proyecto, hoy);
+  return motivo ? TEXTO_NO_POSTULABLE[motivo](perfil) : null;
 }
 
 function momentoDeCierre(perfil) {
@@ -131,9 +161,10 @@ export function textoEncaje({ tiene, total }) {
 }
 
 const TEXTO_MODO_ACEPTACION = Object.freeze({
-  REVISION_MANUAL: "El colectivo revisa cada postulación",
-  TODO_SUMA: "Se acepta a todas las personas que se postulan",
-  HASTA_LLENAR_VACANTES: "Se acepta automáticamente hasta completar el límite",
+  [MODO_ACEPTACION.REVISION_MANUAL]: "El colectivo revisa cada postulación",
+  [MODO_ACEPTACION.TODO_SUMA]: "Se acepta a todas las personas que se postulan",
+  [MODO_ACEPTACION.HASTA_LLENAR_VACANTES]:
+    "Se acepta automáticamente hasta completar el límite",
 });
 
 const FORMATO_FECHA_LARGA = new Intl.DateTimeFormat("es-AR", {
@@ -147,13 +178,9 @@ export function textoLimite(limite) {
 }
 
 export function textoPrivacidadDePostulacion(perfil) {
-  return perfil?.modoAceptacion === "REVISION_MANUAL"
+  return perfil?.modoAceptacion === MODO_ACEPTACION.REVISION_MANUAL
     ? "Tus datos de contacto se comparten solo si el colectivo acepta tu postulación."
     : "Este perfil acepta automáticamente: al enviar, el colectivo va a ver tus datos de contacto.";
-}
-
-export function esPostulacionActiva(estado) {
-  return estado === "PENDIENTE" || estado === "ACEPTADA";
 }
 
 export function textoModoAceptacion(modo) {
@@ -162,26 +189,6 @@ export function textoModoAceptacion(modo) {
 
 export function fechaLarga(fechaIso) {
   return FORMATO_FECHA_LARGA.format(new Date(fechaIso));
-}
-
-export function colaboracionesAceptadasDe(proyecto, perfil) {
-  return (proyecto.colaboraciones ?? []).filter(
-    (colaboracion) =>
-      colaboracion.perfil === perfil.id && colaboracion.estado === "ACEPTADA",
-  );
-}
-
-export function motivoNoPostulable(perfil, proyecto, hoy = new Date()) {
-  if (proyecto.estado === "FINALIZADO") return "Este proyecto ya finalizó.";
-  if (!perfil.busquedaAbierta) return "La búsqueda de este perfil está cerrada.";
-  if (perfil.fechaCierreBusqueda && new Date(perfil.fechaCierreBusqueda) < hoy)
-    return `La búsqueda de este perfil cerró el ${fechaCorta(perfil.fechaCierreBusqueda)}.`;
-  if (
-    perfil.limiteColaboraciones != null &&
-    colaboracionesAceptadasDe(proyecto, perfil).length >= perfil.limiteColaboraciones
-  )
-    return "Este perfil ya completó su límite de colaboraciones.";
-  return null;
 }
 
 export function textoPerfilesQueBuscan(cantidad) {
@@ -195,9 +202,8 @@ export function textoPostulacionesPendientes(cantidad) {
     : `${cantidad} postulaciones pendientes`;
 }
 
-export function postulacionesPendientes(proyecto) {
-  if (!Array.isArray(proyecto.colaboraciones)) return null;
-  return proyecto.colaboraciones.filter(
-    (colaboracion) => colaboracion.estado === "PENDIENTE",
-  ).length;
+export function textoPostulacionesPorRevisar(cantidad) {
+  return cantidad === 1
+    ? "Tenés 1 postulación por revisar."
+    : `Tenés ${cantidad} postulaciones por revisar.`;
 }

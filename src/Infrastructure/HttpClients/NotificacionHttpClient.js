@@ -1,23 +1,21 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/INotificacionHttpClient.js').INotificacionHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearNotificacionHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(colaboradorId, query = {}, { signal } = {}) {
-      const response = await http.get(
-        `/colaboradores/${encodeURIComponent(colaboradorId)}/notificaciones`,
-        { params: query, signal },
-      );
-      return response.data;
+      return api.get(ruta`/colaboradores/${colaboradorId}/notificaciones`, {
+        params: query,
+        signal,
+        requiereSesion: true,
+      });
     },
     async marcarComoLeida(colaboradorId, notificacionId, { signal } = {}) {
-      const response = await http.post(
-        `/colaboradores/${encodeURIComponent(colaboradorId)}/notificaciones/${encodeURIComponent(notificacionId)}/lectura`,
+      return api.post(
+        ruta`/colaboradores/${colaboradorId}/notificaciones/${notificacionId}/lectura`,
         undefined,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
   };
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Boton } from "../App/Boton.jsx";
-import { Icono } from "../App/Icono.jsx";
+import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import estilos from "./HabilidadForm.module.css";
 
 export function HabilidadForm({ onCrear, guardando, error }) {

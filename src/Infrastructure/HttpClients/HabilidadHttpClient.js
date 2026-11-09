@@ -1,16 +1,13 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IHabilidadHttpClient.js').IHabilidadHttpClient}
- */
+import { crearPedidos } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearHabilidadHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(query = {}, { signal } = {}) {
-      const response = await http.get("/habilidades", { params: query, signal });
-      return response.data;
+      return api.get("/habilidades", { params: query, signal });
     },
     async crear(request, { signal } = {}) {
-      const response = await http.post("/habilidades", request, { signal });
-      return response.data;
+      return api.post("/habilidades", request, { signal });
     },
   };
 }

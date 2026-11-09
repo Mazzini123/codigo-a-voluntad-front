@@ -1,15 +1,15 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import { Link, Route } from "react-router-dom";
-import { montarRutas } from "../../test/montarRutas.jsx";
-import { AppLayout } from "../Components/App/AppLayout.jsx";
-import { ProtectedRoute } from "./ProtectedRoute.jsx";
+import { montarRutas } from "@/test/montarRutas.jsx";
+import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
+import { RutaProtegida } from "./RutaProtegida.jsx";
 import { PantallaDiferida } from "./PantallaDiferida.jsx";
 
 const COLECTIVO = { id: "c", rol: "COLECTIVO", perfilId: "cl1" };
 
 function montar(cargar, { ruta = "/proyectos", cuenta = COLECTIVO } = {}) {
   return montarRutas(
-    <Route element={<AppLayout />}>
+    <Route element={<MarcoDeLaApp />}>
       <Route
         path="/proyectos"
         element={
@@ -21,7 +21,7 @@ function montar(cargar, { ruta = "/proyectos", cuenta = COLECTIVO } = {}) {
       />
       <Route path="/login" element={<h1>Ingresar</h1>} />
       <Route path="/sin-permiso" element={<h1>Sin permiso</h1>} />
-      <Route element={<ProtectedRoute roles={["COLECTIVO"]} />}>
+      <Route element={<RutaProtegida roles={["COLECTIVO"]} />}>
         <Route path="/colectivo/nuevo" element={<PantallaDiferida cargar={cargar} />} />
       </Route>
     </Route>,

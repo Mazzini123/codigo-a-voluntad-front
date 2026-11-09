@@ -1,0 +1,46 @@
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2) var(--espacio-3);
+  overflow-wrap: anywhere;
+}
+
+.fila > div {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.persona {
+  font-weight: var(--texto-button-peso);
+}
+
+.perfil {
+  color: var(--color-petroleo);
+  font-weight: var(--texto-button-peso);
+}
+
+.secundario {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.contexto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--espacio-3);
+}
+
+.revisar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  min-block-size: var(--toque-minimo);
+  color: var(--color-coral);
+  font-weight: var(--texto-button-peso);
+}
+
+.revisar:hover {
+  color: var(--color-coral-hover);
+}

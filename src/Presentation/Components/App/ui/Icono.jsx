@@ -1,0 +1,57 @@
+const TRAZOS = {
+  alerta: ["M12 3.5 2.5 20h19z", "M12 10v4.5", "M12 17.5h.01"],
+  aviso: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M12 7.5V13", "M12 16.5h.01"],
+  exito: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "m8 12.5 2.8 2.8L16 10"],
+  info: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M12 11v5.5", "M12 7.5h.01"],
+  menu: ["M4 7h16", "M4 12h16", "M4 17h16"],
+  reintentar: ["M20 12a8 8 0 1 1-2.35-5.65", "M20 4v5h-5"],
+  tilde: ["m5 12.5 4.5 4.5L19 7.5"],
+  cruz: ["M7 7l10 10", "M17 7 7 17"],
+  guion: ["M6 12h12"],
+  flechaIzquierda: ["m14.5 6-6 6 6 6"],
+  flechaDerecha: ["m9.5 6 6 6-6 6"],
+  flechaAbajo: ["m5 9 7 7 7-7"],
+  avanzar: ["M4 12h15", "m13 5 7 7-7 7"],
+  lista: ["M7 3h10l3 3v15H4V3h3Z", "M8 8h8", "M8 12h8", "M8 16h5"],
+  codigo: ["m7.5 5.5-6 6.5 6 6.5", "m16.5 5.5 6 6.5-6 6.5", "m14.5 3-5 18"],
+  personas: [
+    "M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
+    "M6 20v-2a6 6 0 0 1 12 0v2Z",
+    "M17.5 6a2.5 2.5 0 0 1 0 5",
+    "M6.5 6a2.5 2.5 0 0 0 0 5",
+    "M20.5 19H23v-1a4 4 0 0 0-3.5-4",
+    "M3.5 19H1v-1a4 4 0 0 1 3.5-4",
+  ],
+  inicio: ["M4 11.5 12 4l8 7.5", "M6 10v10h12V10", "M10 20v-5h4v5"],
+  carpeta: [
+    "M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5Z",
+  ],
+  vacio: ["M3 13h5l1.5 2.5h5L16 13h5", "M5.5 5h13L21 13v6H3v-6z"],
+};
+
+const TAMANOS = { 16: 16, 20: 20, 24: 24, 32: 32 };
+
+export function Icono({ nombre, tamano = 20, className, etiqueta }) {
+  const lado = TAMANOS[tamano] ?? 20;
+  const accesibilidad = etiqueta
+    ? { role: "img", "aria-label": etiqueta }
+    : { "aria-hidden": "true", focusable: "false" };
+  return (
+    <svg
+      width={lado}
+      height={lado}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...accesibilidad}
+    >
+      {TRAZOS[nombre].map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </svg>
+  );
+}

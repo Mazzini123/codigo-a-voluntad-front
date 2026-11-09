@@ -1,9 +1,8 @@
-import { crearListarHabilidades } from "../../Application/UseCases/Habilidad/ListarHabilidades.js";
-import { crearCrearHabilidad } from "../../Application/UseCases/Habilidad/CrearHabilidad.js";
-import { crearHabilidadHttpClient } from "../../Infrastructure/HttpClients/HabilidadHttpClient.js";
-import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
+import { crearListarHabilidades } from "@/Application/UseCases/Habilidad/ListarHabilidades.js";
+import { crearCrearHabilidad } from "@/Application/UseCases/Habilidad/CrearHabilidad.js";
+import { crearHabilidadHttpClient } from "@/Infrastructure/HttpClients/HabilidadHttpClient.js";
+import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 
-/** @param {import('axios').AxiosInstance} [http] */
 export function crearHabilidadDependencies(http = axiosClient) {
   const httpClient = crearHabilidadHttpClient(http);
   return {

@@ -98,7 +98,7 @@ entonces ve la misma búsqueda.
 - **Vacío** (sin etiqueta y sin proyectos): "Todavía no hay proyectos publicados.".
 - **"Para vos" vacío:** "Todavía no hay proyectos que encajen con tus habilidades.", con los enlaces "Ver todos los proyectos" y "Sumar habilidades" (a `/colaboradora/perfil`).
 - **Sin resultados** (con etiqueta): "No encontramos proyectos con la etiqueta «xyz»." y el botón "Limpiar búsqueda".
-- **Error:** `ErrorState` "No pudimos cargar los proyectos" con "Reintentar", en el lugar de la grilla, sin borrar el buscador. Si falla solo la carga de las habilidades de la colaboradora, las tarjetas se muestran sin encaje.
+- **Error:** `EstadoDeError` "No pudimos cargar los proyectos" con "Reintentar", en el lugar de la grilla, sin borrar el buscador. Si falla solo la carga de las habilidades de la colaboradora, las tarjetas se muestran sin encaje.
 
 ## A acordar con el back
 

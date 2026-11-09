@@ -1,30 +1,27 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IReclutamientoHttpClient.js').IReclutamientoHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearReclutamientoHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async buscarColaboradoras(proyectoId, perfilId, query = {}, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/colaboradoras-potenciales`,
-        { params: query, signal },
+      return api.get(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/colaboradoras-potenciales`,
+        { params: query, signal, requiereSesion: true },
       );
-      return response.data;
     },
     async buscarProyectos(colaboradorId, query = {}, { signal } = {}) {
-      const response = await http.get(
-        `/colaboradores/${encodeURIComponent(colaboradorId)}/proyectos-potenciales`,
-        { params: query, signal },
-      );
-      return response.data;
+      return api.get(ruta`/colaboradores/${colaboradorId}/proyectos-potenciales`, {
+        params: query,
+        signal,
+        requiereSesion: true,
+      });
     },
     async invitar(proyectoId, perfilId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/invitaciones`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/invitaciones`,
         request,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
   };
 }

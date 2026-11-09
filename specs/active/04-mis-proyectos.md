@@ -78,7 +78,7 @@ entonces no ve la franja y ve una sola vez, arriba de los perfiles, "Las postula
 
 - **Inicio del colectivo:** `/colectivo/proyectos` reemplaza a `/colectivo/perfil` en `INICIO_POR_ROL`.
 - **Cabecera:** "Mis proyectos" es el segundo enlace principal para el colectivo, después de "Proyectos". Con dos enlaces la barra de 320 px no alcanza (marca, dos enlaces y "Mi cuenta"), así que en celular siguen detrás del botón "Menú", como hoy. Solo con un enlace van a la vista (ver revisión 02, R3).
-- **Rutas nuevas:** `/colectivo/proyectos` y `/colectivo/proyectos/nuevo`, solo para COLECTIVO (`ProtectedRoute`); los demás roles van a `/sin-permiso`.
+- **Rutas nuevas:** `/colectivo/proyectos` y `/colectivo/proyectos/nuevo`, solo para COLECTIVO (`RutaProtegida`); los demás roles van a `/sin-permiso`.
 - **Volver:** desde el alta, "← Volver a Mis proyectos" (con el aviso de cambios sin guardar si corresponde).
 
 ### Listado (`/colectivo/proyectos`)
@@ -127,7 +127,7 @@ entonces no ve la franja y ve una sola vez, arriba de los perfiles, "Las postula
 
 ### Piezas que se reusan
 
-`TarjetaProyecto`, `SelloDeBusqueda`, `EmptyState`, `ErrorState`, `Skeleton`, `Paginacion`, `Campo`, `GrupoDeOpciones`, `SelectorDeHabilidades`, el editor de etiquetas, `ResumenDeErrores`, `Boton`, `ConfirmDialog`, `useAvisoCambiosSinGuardar` y los formatos de `Formatos/proyecto.js`. Lo nuevo es el indicador de pasos, que va a `Components/App/` porque lo van a usar otras altas largas.
+`TarjetaProyecto`, `SelloDeBusqueda`, `EstadoVacio`, `EstadoDeError`, `Esqueleto`, `Paginacion`, `Campo`, `GrupoDeOpciones`, `SelectorDeHabilidades`, el editor de etiquetas, `ResumenDeErrores`, `Boton`, `DialogoDeConfirmacion`, `useAvisoCambiosSinGuardar` y los formatos de `Formatos/proyecto.js`. Lo nuevo es el indicador de pasos, que va a `Components/App/` porque lo van a usar otras altas largas.
 
 ## Estados
 
@@ -135,7 +135,7 @@ entonces no ve la franja y ve una sola vez, arriba de los perfiles, "Las postula
 - **Con datos:** grilla de tarjetas y paginación.
 - **Vacío:** "Todavía no publicaste proyectos", la línea "Un proyecto cuenta qué necesitan y qué perfiles de personas buscan." y "Publicar el primero" (primario).
 - **Sin resultados:** no aplica (no hay filtros en esta spec).
-- **Error:** `ErrorState` "No pudimos cargar tus proyectos" con "Reintentar", en el lugar de la grilla, con el encabezado y "Publicar proyecto" visibles.
+- **Error:** `EstadoDeError` "No pudimos cargar tus proyectos" con "Reintentar", en el lugar de la grilla, con el encabezado y "Publicar proyecto" visibles.
 - **Enviando:** "Publicando…" deshabilitado, y "Volver a editar" también deshabilitado mientras envía.
 - **Estado final:** aviso "Publicaste el proyecto." y llegada al detalle, con la franja de dueño.
 

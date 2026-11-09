@@ -1,7 +1,11 @@
 import axios from "axios";
 import { ApiError } from "./ApiError.js";
 import { describirError, esDemora } from "./mensajesDeError.js";
-import { avisarSesionVencida, obtenerTokenActual } from "./configurarAuth.js";
+import {
+  avisarSesionVencida,
+  sesionHttpActual,
+  sesionHttpVigente,
+} from "./configurarAuth.js";
 
 function esperar(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -26,18 +30,65 @@ function debeReintentar(error, intentos, maximo) {
   return intentos < maximo;
 }
 
+function verificarSesionDelPedido(config) {
+  const generacion = config?.sesionHttpDelPedido;
+  if (generacion !== undefined && !sesionHttpVigente(generacion)) {
+    throw new axios.CanceledError("La sesión del pedido cambió", config);
+  }
+}
+
 async function agregarToken(config) {
-  const token = await obtenerTokenActual();
-  if (token) config.headers.set("Authorization", `Bearer ${token}`);
+  verificarSesionDelPedido(config);
+  const sesion = sesionHttpActual();
+  if (config.bearerDeSesion) config.headers.delete("Authorization");
+  config.bearerDeSesion = false;
+  if (config.intentosRealizados && config.sesionHttpDelPedido === undefined)
+    return config;
+
+  let token;
+  let permitidoSinToken = false;
+  let cause;
+  try {
+    if (sesion.habilitada) {
+      token = await sesion.obtenerToken();
+      if (!token && config.requiereSesion)
+        permitidoSinToken = await sesion.permiteSinToken();
+    }
+  } catch (error) {
+    cause = error;
+  }
+
+  verificarSesionDelPedido(config);
+  if (!sesionHttpVigente(sesion.generacion)) {
+    if (config.requiereSesion) {
+      throw new axios.CanceledError("La sesión del pedido cambió", config);
+    }
+    return config;
+  }
+  if (token) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+    config.bearerDeSesion = true;
+  } else if (config.requiereSesion && !permitidoSinToken) {
+    throw new ApiError({
+      mensaje:
+        "No pudimos verificar tu sesión para completar esta acción. Probá de nuevo.",
+      esReintentable: true,
+      cause,
+    });
+  }
+  if (token || config.requiereSesion) config.sesionHttpDelPedido = sesion.generacion;
   return config;
 }
 
 function aApiError(error) {
-  if (error.response?.status === 401) avisarSesionVencida();
+  const sesionVencida =
+    error.response?.status === 401 &&
+    error.config?.bearerDeSesion &&
+    avisarSesionVencida(error.config.sesionHttpDelPedido);
   const data = error.response?.data;
   return new ApiError({
     status: error.response?.status ?? null,
-    ...describirError(error),
+    ...describirError(error, { sesionVencida }),
     issues: Array.isArray(data?.issues) ? data.issues : [],
     cause: error,
   });
@@ -52,15 +103,22 @@ export function crearAxiosClient({ reintentos = 2, esperaBaseMs = 300 } = {}) {
 
   cliente.interceptors.request.use(agregarToken);
 
-  cliente.interceptors.response.use(undefined, async (error) => {
-    if (axios.isCancel(error)) throw error;
-    const intentos = error.config?.intentosRealizados ?? 0;
-    if (debeReintentar(error, intentos, reintentos)) {
-      await esperar(esperaBaseMs * 2 ** intentos, error.config.signal);
-      return cliente.request({ ...error.config, intentosRealizados: intentos + 1 });
-    }
-    throw aApiError(error);
-  });
+  cliente.interceptors.response.use(
+    (response) => {
+      if (response.config?.requiereSesion) verificarSesionDelPedido(response.config);
+      return response;
+    },
+    async (error) => {
+      if (axios.isCancel(error) || error instanceof ApiError) throw error;
+      verificarSesionDelPedido(error.config);
+      const intentos = error.config?.intentosRealizados ?? 0;
+      if (debeReintentar(error, intentos, reintentos)) {
+        await esperar(esperaBaseMs * 2 ** intentos, error.config.signal);
+        return cliente.request({ ...error.config, intentosRealizados: intentos + 1 });
+      }
+      throw aApiError(error);
+    },
+  );
 
   return cliente;
 }

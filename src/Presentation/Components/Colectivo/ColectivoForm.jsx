@@ -1,30 +1,32 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { PROVINCIAS } from "../../../Application/Domain/Enums/PROVINCIAS.js";
-import { Boton } from "../App/Boton.jsx";
-import { Campo } from "../App/Campo.jsx";
-import { ConfirmDialog } from "../App/ConfirmDialog.jsx";
-import { GrupoDeOpciones } from "../App/GrupoDeOpciones.jsx";
-import { Icono } from "../App/Icono.jsx";
-import { Selector } from "../App/Selector.jsx";
-import { TEXTO_TIPO_COLECTIVO, textoTipoColectivo } from "../../Formatos/colectivo.js";
-import { useAvisoCambiosSinGuardar } from "../../Hooks/useAvisoCambiosSinGuardar.js";
+import { PROVINCIAS } from "@/Application/Domain/Enums/PROVINCIAS.js";
+import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
+import { GrupoDeOpciones } from "@/Presentation/Components/App/ui/GrupoDeOpciones.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
+import { Selector } from "@/Presentation/Components/App/ui/Selector.jsx";
+import {
+  TEXTO_TIPO_COLECTIVO,
+  textoTipoColectivo,
+} from "@/Presentation/Formatos/colectivo.js";
 import {
   aRequest,
   cambios,
   erroresDesdeIssues,
   estadoInicial,
   OPCION_UBICACION,
-} from "./formularioColectivo.js";
+} from "@/Presentation/Formularios/colectivo/formularioColectivo.js";
 import {
   ListaDeTextos,
   MediosDeContacto,
   RedesSociales,
-} from "../Formulario/EditoresDeListas.jsx";
-import { idDeCampo } from "../Formulario/formulario.js";
-import estilos from "../Formulario/Formulario.module.css";
-import { ResumenDeErrores } from "../Formulario/ResumenDeErrores.jsx";
-import { itemsDelResumen } from "../Formulario/resumenDeErrores.js";
-import { validarColectivo, validarEtiqueta } from "./validarColectivo.js";
+} from "@/Presentation/Components/Formulario/EditoresDeListas.jsx";
+import estilos from "@/Presentation/Components/Formulario/Formulario.module.css";
+import {
+  validarColectivo,
+  validarEtiqueta,
+} from "@/Presentation/Formularios/colectivo/validarColectivo.js";
+import { useFormularioDePerfil } from "@/Presentation/Hooks/perfil/useFormularioDePerfil.js";
+import { PieDeFormularioDePerfil } from "@/Presentation/Components/Formulario/PieDeFormularioDePerfil.jsx";
+import { AYUDA_MARKDOWN } from "@/Presentation/Formatos/markdown.js";
 
 const OPCIONES_DE_TIPO = Object.entries(TEXTO_TIPO_COLECTIVO).map(([valor, texto]) => ({
   valor,
@@ -53,66 +55,31 @@ export function ColectivoForm({
   errorEnvio,
   alEnviar,
 }) {
-  const [original] = useState(() => estadoInicial(colectivo));
-  const [estado, setEstado] = useState(original);
-  const [visibles, setVisibles] = useState(() => new Set());
-  const [pedidoDeFoco, setPedidoDeFoco] = useState(0);
-  const refFormulario = useRef(null);
-  const idBase = useId();
-  const idDe = (clave) => idDeCampo(idBase, clave);
-
-  const pendientes = useMemo(() => cambios(original, estado), [original, estado]);
-  const hayCambios = Object.keys(pendientes).length > 0;
-  const haySinGuardar = esAlta
-    ? JSON.stringify(original) !== JSON.stringify(estado)
-    : hayCambios;
-  const salida = useAvisoCambiosSinGuardar(haySinGuardar && !enviando);
-
-  const deServidor = useMemo(
-    () => erroresDesdeIssues(errorEnvio?.issues, estado).errores,
-    [errorEnvio, estado],
-  );
-  const errores = useMemo(() => {
-    const locales = Object.entries(validarColectivo(estado, { esAlta })).filter(
-      ([clave]) => visibles.has(clave),
-    );
-    return { ...deServidor, ...Object.fromEntries(locales) };
-  }, [deServidor, estado, esAlta, visibles]);
-
-  const sinCampo =
-    errorEnvio && Object.keys(deServidor).length === 0 ? errorEnvio.mensaje : null;
-  const resumen = useMemo(
-    () => itemsDelResumen(errores, estado, idBase),
-    [errores, estado, idBase],
-  );
-
-  useEffect(() => {
-    if (pedidoDeFoco === 0 && !errorEnvio) return;
-    refFormulario.current?.querySelector('[aria-invalid="true"]')?.focus();
-  }, [pedidoDeFoco, errorEnvio]);
-
-  function actualizar(cambio) {
-    setEstado((previo) => ({ ...previo, ...cambio }));
-  }
+  const formulario = useFormularioDePerfil({
+    crearEstadoInicial: () => estadoInicial(colectivo),
+    validar: validarColectivo,
+    cambios,
+    aRequest,
+    erroresDesdeIssues,
+    esAlta,
+    enviando,
+    errorEnvio,
+    alEnviar,
+  });
+  const { estado, setEstado, actualizar, idBase, idDe, refFormulario, errores } =
+    formulario;
 
   function actualizarUbicacion(cambio) {
     setEstado((previo) => ({ ...previo, ubicacion: { ...previo.ubicacion, ...cambio } }));
   }
 
-  function enviar(evento) {
-    evento.preventDefault();
-    if (enviando) return;
-    const encontrados = validarColectivo(estado, { esAlta });
-    if (Object.keys(encontrados).length > 0) {
-      setVisibles(new Set(Object.keys(encontrados)));
-      setPedidoDeFoco((pedido) => pedido + 1);
-      return;
-    }
-    alEnviar(esAlta ? aRequest(estado) : pendientes);
-  }
-
   return (
-    <form ref={refFormulario} noValidate onSubmit={enviar} className={estilos.formulario}>
+    <form
+      ref={refFormulario}
+      noValidate
+      onSubmit={formulario.enviar}
+      className={estilos.formulario}
+    >
       <fieldset disabled={enviando} className={estilos.campos}>
         <fieldset className={estilos.seccion}>
           <legend>Datos del colectivo</legend>
@@ -148,7 +115,7 @@ export function ColectivoForm({
             obligatorio
             multilinea
             rows={4}
-            ayuda="Contá a qué se dedican y con quiénes trabajan."
+            ayuda={`Contá a qué se dedican y con quiénes trabajan. ${AYUDA_MARKDOWN}`}
             value={estado.descripcion}
             error={errores.descripcion}
             onChange={(e) => actualizar({ descripcion: e.target.value })}
@@ -194,14 +161,18 @@ export function ColectivoForm({
           <legend>Medios de contacto</legend>
           <p className={estilos.privacidad}>
             <Icono nombre="info" />
-            Los medios de contacto no se muestran en tu perfil público.
+            {esAlta
+              ? "Los medios de contacto no se muestran en tu perfil público."
+              : "Por ahora no podés editar los medios de contacto desde acá."}
           </p>
-          <MediosDeContacto
-            prefijoDeIds={idBase}
-            items={estado.mediosDeContacto}
-            errores={errores}
-            alCambiar={(mediosDeContacto) => actualizar({ mediosDeContacto })}
-          />
+          {esAlta && (
+            <MediosDeContacto
+              prefijoDeIds={idBase}
+              items={estado.mediosDeContacto}
+              errores={errores}
+              alCambiar={(mediosDeContacto) => actualizar({ mediosDeContacto })}
+            />
+          )}
         </fieldset>
 
         <fieldset className={estilos.seccion}>
@@ -228,42 +199,14 @@ export function ColectivoForm({
         </fieldset>
       </fieldset>
 
-      <ResumenDeErrores items={resumen} />
-
-      {sinCampo && (
-        <p role="alert" className={estilos.errorGeneral}>
-          <Icono nombre="alerta" />
-          {sinCampo}
-        </p>
-      )}
-
-      <div className={estilos.acciones}>
-        <Boton
-          variante="primario"
-          type="submit"
-          enviando={enviando}
-          textoEnviando={textoEnviando}
-          disabled={!esAlta && !hayCambios}
-          motivoDeshabilitado="No hay cambios para guardar."
-        >
-          {textoEnviar}
-        </Boton>
-      </div>
-
-      <ConfirmDialog
-        abierto={salida.preguntando}
-        permanente={false}
-        peligroso
-        titulo="¿Salir sin guardar?"
-        descripcion={
-          esAlta
-            ? "Los datos que cargaste se van a perder."
-            : "Los cambios que hiciste en el perfil se van a perder."
-        }
-        textoConfirmar="Salir sin guardar"
-        textoCancelar="Seguir editando"
-        alConfirmar={salida.salir}
-        alCancelar={salida.quedarse}
+      <PieDeFormularioDePerfil
+        formulario={formulario}
+        esAlta={esAlta}
+        enviando={enviando}
+        textoEnviar={textoEnviar}
+        textoEnviando={textoEnviando}
+        deshabilitado={!esAlta && !formulario.hayCambios}
+        motivoDeshabilitado="No hay cambios para guardar."
       />
     </form>
   );

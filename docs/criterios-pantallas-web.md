@@ -236,7 +236,7 @@
 
 ### Estructura
 
-- **`pages/`** con una pantalla por archivo y **`components/`** agrupado por funcionalidad (`search/`, `settings/`…), más `shared/` (Layout, Navbar, ProtectedRoute) y `common/` (piezas genéricas).
+- **`pages/`** con una pantalla por archivo y **`components/`** agrupado por funcionalidad (`search/`, `settings/`…), más `shared/` (Layout, Navbar, RutaProtegida) y `common/` (piezas genéricas).
 - **`services/`** con un archivo por recurso (`donacion.service.js`…): funciones cortas que devuelven `r.data`. Los componentes nunca llaman a axios directamente.
 - **`hooks/`** con la lógica de cada pantalla separada de la vista (`useBuscarDonaciones`, `usePerfilForm`).
 - **`enums/` con `Object.freeze`** para estados y roles, en vez de strings sueltos.
@@ -251,9 +251,9 @@
 
 ### Autenticación y rutas
 
-- **`AuthContext` + `useAuth()`**, que lanza un error si se usa fuera del provider. Al iniciar, verifica si la sesión sigue vigente.
-- **`ProtectedRoute` con `<Outlet />`**, con un estado de carga accesible (`role="status"`) mientras se verifica la sesión.
-- **Rutas anidadas:** `ProtectedRoute` → `Layout` (navbar una sola vez) → páginas.
+- **`ContextoDeSesion` + `useSesion()`**, que lanza un error si se usa fuera del provider. Al iniciar, verifica si la sesión sigue vigente.
+- **`RutaProtegida` con `<Outlet />`**, con un estado de carga accesible (`role="status"`) mientras se verifica la sesión.
+- **Rutas anidadas:** `RutaProtegida` → `Layout` (navbar una sola vez) → páginas.
 - **Las rutas de landing y login redirigen al inicio** si ya hay sesión; un `*` final redirige a la home o a una página 404.
 - **URLs legibles en castellano** (`/mis-donaciones`, `/buscar`).
 

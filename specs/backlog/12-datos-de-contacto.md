@@ -20,7 +20,7 @@ entonces ve "Esta persona no cargó medios de contacto; podés escribirle por me
 
 ## Requisitos
 
-- Operación: `ObtenerContactoDeColaborador` (`GET /proyectos/:proyectoId/colaboradores/:colaboradorId/contacto`). Responde 403 sin acceso y 404 si no existe.
+- Operación prevista: `ObtenerContactoDeColaborador` (`GET /proyectos/:proyectoId/colaboradores/:colaboradorId/contacto`). La ruta está suspendida y responde 404 hasta verificar la identidad y la pertenencia al colectivo dueño en el backend.
 - El botón solo aparece cuando hay acceso; el back igual valida y la pantalla maneja el 403 con el mensaje anterior.
 - Copiar al portapapeles cada dato con confirmación.
 

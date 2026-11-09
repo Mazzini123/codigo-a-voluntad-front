@@ -5,7 +5,6 @@ import {
   habilidadesBuscadas,
   motivoNoPostulable,
   perfilDestacado,
-  postulacionesPendientes,
   textoCompromiso,
   textoEncaje,
   textoLimite,
@@ -14,7 +13,9 @@ import {
   textoPrivacidadDePostulacion,
   textoPerfilesQueBuscan,
   textoPostulacionesPendientes,
+  textoPostulacionesPorRevisar,
 } from "./proyecto.js";
+import { postulacionesPendientes } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
 
 const HOY = new Date("2026-11-05T15:00:00Z");
 
@@ -197,4 +198,11 @@ test.each([
   ]),
 ])("privacidad para el modo %s", (modoAceptacion, esperado) => {
   expect(textoPrivacidadDePostulacion({ modoAceptacion })).toBe(esperado);
+});
+
+describe("textoPostulacionesPorRevisar", () => {
+  test("concuerda en singular y plural", () => {
+    expect(textoPostulacionesPorRevisar(1)).toBe("Tenés 1 postulación por revisar.");
+    expect(textoPostulacionesPorRevisar(5)).toBe("Tenés 5 postulaciones por revisar.");
+  });
 });

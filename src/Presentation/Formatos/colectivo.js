@@ -1,14 +1,18 @@
+import { TIPO_COLECTIVO } from "@/Application/Domain/Enums/TIPO_COLECTIVO.js";
+import { TIPOS_MEDIOS_CONTACTO } from "@/Application/Domain/Enums/TIPOS_MEDIOS_CONTACTO.js";
+import { TIPO_UBICACION } from "@/Application/Domain/Enums/TIPO_UBICACION.js";
+
 export const TEXTO_TIPO_COLECTIVO = Object.freeze({
-  FUNDACION: "Fundación",
-  ASOCIACION_BARRIAL: "Asociación barrial",
-  ONG: "ONG",
-  ASAMBLEA: "Asamblea",
+  [TIPO_COLECTIVO.FUNDACION]: "Fundación",
+  [TIPO_COLECTIVO.ASOCIACION_BARRIAL]: "Asociación barrial",
+  [TIPO_COLECTIVO.ONG]: "ONG",
+  [TIPO_COLECTIVO.ASAMBLEA]: "Asamblea",
 });
 
 export const TEXTO_MEDIO_DE_CONTACTO = Object.freeze({
-  EMAIL: "Email",
-  WHATSAPP: "WhatsApp",
-  SMS: "SMS",
+  [TIPOS_MEDIOS_CONTACTO.EMAIL]: "Email",
+  [TIPOS_MEDIOS_CONTACTO.WHATSAPP]: "WhatsApp",
+  [TIPOS_MEDIOS_CONTACTO.SMS]: "SMS",
 });
 
 export function textoTipoColectivo(tipo) {
@@ -18,9 +22,9 @@ export function textoTipoColectivo(tipo) {
 export function textoUbicacion(ubicacion) {
   if (!ubicacion) return "";
   switch (ubicacion.tipoUbicacion) {
-    case "ARGENTINA":
+    case TIPO_UBICACION.ARGENTINA:
       return "Todo el país";
-    case "CABA":
+    case TIPO_UBICACION.CABA:
       return "Ciudad de Buenos Aires";
     default:
       return ubicacion.nombre ?? "";

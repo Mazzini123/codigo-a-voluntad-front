@@ -1,5 +1,6 @@
-import { Icono } from "../App/Icono.jsx";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import estilos from "./HabilidadList.module.css";
+import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
 export function HabilidadList({ habilidades }) {
   return (
@@ -21,7 +22,7 @@ export function HabilidadList({ habilidades }) {
 
 function Sello({ activa }) {
   return (
-    <span className={`${estilos.sello} ${activa ? estilos.activa : estilos.inactiva}`}>
+    <span className={clases(estilos.sello, activa ? estilos.activa : estilos.inactiva)}>
       <Icono nombre={activa ? "tilde" : "guion"} tamano={16} />
       {activa ? "Activa" : "Inactiva"}
     </span>

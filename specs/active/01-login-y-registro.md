@@ -46,7 +46,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 
 ### Dependencia aprobada
 
-- **`@logto/react`**, aprobado por pedido explícito de la persona el 06/11/2026 para compartir SDK con la integración de Facundo. `LogtoProvider`, `useLogto` y `useHandleSignInCallback` se encapsulan en `Infrastructure/Auth/SesionLogtoProvider.jsx` y Presentation los consume a través de Dependencies. Se quita la dependencia directa de `@logto/browser`, que queda como dependencia interna del SDK de React.
+- **`@logto/react`**, aprobado por pedido explícito de la persona el 06/11/2026 para compartir SDK con la integración de Facundo. `LogtoProvider`, `useLogto` y `useHandleSignInCallback` se encapsulan en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx` y Presentation los consume a través de Dependencies. Se quita la dependencia directa de `@logto/browser`, que queda como dependencia interna del SDK de React.
 
 ### Configuración
 
@@ -62,7 +62,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 
 ### Infraestructura (`src/Infrastructure/Auth/`)
 
-- **`SesionLogtoProvider`** monta un único `LogtoProvider`, espera su inicialización y conecta `useLogto` con el contrato propio de §5.3. En `/callback`, `useHandleSignInCallback` termina la autenticación antes de habilitar la consulta de cuenta:
+- **`ProveedorDeSesionLogto`** monta un único `LogtoProvider`, espera su inicialización y conecta `useLogto` con el contrato propio de §5.3. En `/callback`, `useHandleSignInCallback` termina la autenticación antes de habilitar la consulta de cuenta:
 
 | Función                       | Qué hace                                                                                                          |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -83,15 +83,15 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 
 ### Sesión en Presentation
 
-- **`AuthProvider`** (en `Components/App/`, con el contexto en `Context/AuthContext.js`) recibe `identidad` y `dependencies` por props para poder probarlo con dobles.
+- **`ProveedorDeSesion`** (en `Components/App/`, con el contexto en `Context/ContextoDeSesion.js`) recibe `identidad` y `dependencies` por props para poder probarlo con dobles.
 - **Al montar:** `cargando` es `true`. Pregunta `estaAutenticado()`; si hay sesión, pide la cuenta (`ObtenerCuentaActual`) y la guarda en `usuario`.
 - **`configurarAuth`:** el provider lo llama con `obtenerToken` de la identidad, y con un `alExpirar` que olvida la sesión, muestra el aviso "Tu sesión venció. Iniciá sesión de nuevo." y navega a `/login` con `state.desde`. Ese aviso sale una sola vez aunque fallen varios pedidos juntos.
-- **`useAuth()`** devuelve `{ usuario, estaAutenticado, cargando, iniciarSesion, cerrarSesion, recargarCuenta }`. Fuera del provider lanza un error claro, como `useAvisos`.
-- **Si `GET /auth/me` falla** (no es un 401): en lugar de la app se ve un `ErrorState` "No pudimos verificar tu sesión" con "Reintentar". Nunca se muestra la app como si no hubiera sesión.
+- **`useSesion()`** devuelve `{ usuario, estaAutenticado, cargando, iniciarSesion, cerrarSesion, recargarCuenta }`. Fuera del provider lanza un error claro, como `useAvisos`.
+- **Si `GET /auth/me` falla** (no es un 401): en lugar de la app se ve un `EstadoDeError` "No pudimos verificar tu sesión" con "Reintentar". Nunca se muestra la app como si no hubiera sesión.
 
 ### Rutas
 
-- **`ProtectedRoute`** (`Presentation/Routes/`) con `roles`, como pide §5.3:
+- **`RutaProtegida`** (`Presentation/Routes/`) con `roles`, como pide §5.3:
   - Con `cargando`, muestra "Verificando sesión…" con `role="status"`.
   - Sin sesión, `<Navigate to="/login" replace state={{ desde: location }} />`.
   - Con sesión y sin perfil (`rol: null`), va a `/bienvenida`, salvo con `permitirSinPerfil`.
@@ -112,7 +112,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
   - Sin formularios propios: el usuario y la contraseña se cargan en Logto.
 - **`CallbackPage`:**
   - Muestra "Iniciando sesión…" (`role="status"`), completa el ingreso, recarga la cuenta y navega con `replace` a `volverA` o al inicio del rol.
-  - Si falla, muestra un `ErrorState` "No pudimos iniciar sesión" con un enlace a `/login`.
+  - Si falla, muestra un `EstadoDeError` "No pudimos iniciar sesión" con un enlace a `/login`.
   - En desarrollo, StrictMode monta dos veces: el ingreso se completa una sola vez (una ref lo evita).
 - **`BienvenidaPage`:**
   - Título "¿Cómo vas a usar Código a Voluntad?".
@@ -126,12 +126,12 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 
 - **Sin sesión:** a la derecha, botones "Ingresar" y "Crear una cuenta" que abren directamente Logto y conservan la ubicación de origen. En celular, segunda fila. Se ocultan en `/login` y `/registro`, donde están en el contenido.
 - **Con sesión:** el botón "Mi cuenta" con `aria-expanded`, que despliega una lista (patrón disclosure, no `role="menu"`) con "Cerrar sesión". Esc y hacer clic afuera la cierran.
-- **"Cerrar sesión"** abre el `ConfirmDialog`: "¿Cerrar sesión?", "Vas a tener que ingresar de nuevo para ver tus proyectos y postulaciones.", botón "Cerrar sesión". Lleva la confirmación que pide el backlog, aunque no sea una acción permanente. El texto "Esta acción no se puede deshacer." no corresponde acá: `ConfirmDialog` suma la prop `permanente` (por defecto `true`).
+- **"Cerrar sesión"** abre el `DialogoDeConfirmacion`: "¿Cerrar sesión?", "Vas a tener que ingresar de nuevo para ver tus proyectos y postulaciones.", botón "Cerrar sesión". Lleva la confirmación que pide el backlog, aunque no sea una acción permanente. El texto "Esta acción no se puede deshacer." no corresponde acá: `DialogoDeConfirmacion` suma la prop `permanente` (por defecto `true`).
 - **Enlaces por rol:** `navegacion.js` suma `roles` opcional a cada enlace, y la cabecera muestra solo los que corresponden al rol del usuario. "Habilidades" sigue visible para todos.
 
 ### Tests
 
-- **`AuthProvider` y `ProtectedRoute`** con identidad falsa y un adaptador de axios simulado:
+- **`ProveedorDeSesion` y `RutaProtegida`** con identidad falsa y un adaptador de axios simulado:
   - "Verificando sesión…" mientras carga.
   - Sin sesión → `/login` con `desde`.
   - Rol incorrecto → `/sin-permiso`.
@@ -147,14 +147,14 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
   - "Mi cuenta" con sesión.
   - "Cerrar sesión" pide confirmación y llama a `cerrarSesion`.
 - **SDK de React** con cliente simulado: `firstScreen`, `redirectUri`, recurso, inicialización, callback, token, expiración y salida. Las pruebas usan el provider y los hooks reales del SDK.
-- **El token llega al back:** con sesión, un pedido lleva `Authorization: Bearer <token>`. Es un test de integración que pasa por el `AuthProvider` real.
+- **El token llega al back:** con sesión, un pedido lleva `Authorization: Bearer <token>`. Es un test de integración que pasa por el `ProveedorDeSesion` real.
 
 ## Estados
 
 - Verificando sesión: "Verificando sesión…" (texto con `role="status"`, sin skeleton porque dura poco).
 - Volviendo de Logto: "Iniciando sesión…".
-- Error al verificar la sesión: `ErrorState` con "Reintentar".
-- Error al volver de Logto: `ErrorState` con "Volver a ingresar".
+- Error al verificar la sesión: `EstadoDeError` con "Reintentar".
+- Error al volver de Logto: `EstadoDeError` con "Volver a ingresar".
 - Sin permiso: `SinPermisoPage` (spec de navegación).
 
 ## A acordar con el back

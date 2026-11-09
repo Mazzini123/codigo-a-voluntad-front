@@ -1,0 +1,98 @@
+.columnas {
+  display: grid;
+  align-items: start;
+  gap: var(--espacio-5);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ancho-opcion)), 1fr));
+  gap: var(--espacio-3);
+  margin: 0;
+}
+
+.indicador {
+  position: relative;
+  padding: var(--espacio-3) var(--espacio-4);
+  padding-inline-start: calc(var(--espacio-4) + var(--espacio-7) + var(--espacio-3));
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-tarjeta);
+  color: var(--color-petroleo-hover);
+  font-weight: var(--texto-button-peso);
+}
+
+.indicador dd {
+  margin: 0;
+  font: var(--texto-headline-peso) var(--texto-headline-tamano) / 1.1
+    var(--fuente-titulos);
+  font-variant-numeric: tabular-nums;
+}
+
+.icono {
+  position: absolute;
+  inset-inline-start: var(--espacio-4);
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  inline-size: var(--espacio-7);
+  aspect-ratio: 1;
+  border-radius: var(--radio-pildora);
+  background: var(--color-petroleo-tenue);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-3);
+}
+
+@media (width < 48rem) {
+  .indicadores {
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    gap: var(--espacio-2);
+  }
+
+  .indicador {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    padding: var(--espacio-3) var(--espacio-2);
+    font-size: var(--texto-body-sm-tamano);
+    line-height: 1.25;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+
+  .icono {
+    display: none;
+  }
+
+  .acciones {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .acciones a {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (width >= 56.25rem) {
+  .columnas {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+
+@media (width >= 75rem) {
+  .indicadores {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+}

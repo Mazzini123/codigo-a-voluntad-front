@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../Presentation/Components/App/AuthProvider.jsx";
-import { AvisosProvider } from "../Presentation/Components/App/AvisosProvider.jsx";
-import { crearIdentidadFalsa } from "../Presentation/Dependencies/identidadDependencies.js";
+import { ProveedorDeSesion } from "@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx";
+import { ProveedorDeAvisos } from "@/Presentation/Components/App/avisos/ProveedorDeAvisos.jsx";
+import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 
 export function Proveedores({
   ruta = "/",
@@ -19,11 +19,14 @@ export function Proveedores({
   );
   return (
     <MemoryRouter initialEntries={[ruta]}>
-      <AvisosProvider>
-        <AuthProvider identidad={identidadDePrueba} dependencies={dependenciasDePrueba}>
+      <ProveedorDeAvisos>
+        <ProveedorDeSesion
+          identidad={identidadDePrueba}
+          dependencies={dependenciasDePrueba}
+        >
           {children}
-        </AuthProvider>
-      </AvisosProvider>
+        </ProveedorDeSesion>
+      </ProveedorDeAvisos>
     </MemoryRouter>
   );
 }

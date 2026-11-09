@@ -60,7 +60,7 @@ entonces ve "No encontramos este colectivo" y un enlace para volver.
 
 - **Casos de uso:** `ObtenerColectivo`, `CrearColectivo` y `ActualizarColectivo`, por medio de `colectivoDependencies`.
 - **Alta:** se manda `CrearColectivoRequest`.
-- **Edición:** se manda `ActualizarColectivoRequest` solo con los campos que cambiaron. Las listas (redes, etiquetas y medios de contacto) van completas si cambió algún ítem. `tipoColectivo` no se manda: no se puede modificar.
+- **Edición:** se manda `ActualizarColectivoRequest` solo con los campos que cambiaron. Las listas de redes y etiquetas van completas si cambió algún ítem. El contrato de edición excluye el tipo y los medios de contacto.
 - **`perfilId` de la cuenta:** es el `id` del colectivo (spec 01).
 
 ### Formulario (`Components/Colectivo/ColectivoForm.jsx`, compartido entre alta y edición)
@@ -80,7 +80,7 @@ Campos en este orden, agrupados con `fieldset` y `legend`:
 | "Una provincia"          | `PROVINCIA`       | selector de provincias, que sale de `Domain/Enums/PROVINCIAS.js`   |
 | "Una ciudad o barrio"    | `LOCALIDAD`       | texto, con la ayuda "Por ejemplo: Villa Fiorito, Lomas de Zamora." |
 
-5. **Medios de contacto (opcional, hasta 10):**
+5. **Medios de contacto (solo en el alta, opcional, hasta 10):**
    - Aviso de privacidad en `info`: "Los medios de contacto no se muestran en tu perfil público."
    - Cada fila: un selector de tipo ("Email", "WhatsApp", "SMS"), el valor y el botón "Quitar" con `aria-label` "Quitar medio de contacto 2".
    - Debajo, "Agregar medio de contacto", deshabilitado con su motivo al llegar a 10.
@@ -126,11 +126,11 @@ Los van a reusar las specs 03, 04 y 05.
 - **`/colectivo/perfil`** (privada, rol `COLECTIVO`), `PerfilColectivoPage`:
   - Título "Perfil del colectivo" y un enlace secundario "Ver perfil público".
   - El formulario cargado y el botón primario "Guardar cambios".
-  - Mientras carga, un skeleton con la forma del formulario. Si falla, `ErrorState` con "Reintentar".
+  - Mientras carga, un skeleton con la forma del formulario. Si falla, `EstadoDeError` con "Reintentar".
 - **`/colectivos/:id`** (pública), `ColectivoPage`:
   - Nombre como `h1`, tipo y ubicación en una línea de tinta suave, la descripción, las redes como enlaces externos y las etiquetas como chips.
   - Sección "Proyectos": título y estado de cada proyecto, en texto y sin enlace hasta que exista el detalle (spec 06). Sin proyectos: "Todavía no publicó proyectos.".
-  - Los medios de contacto no se renderizan, aunque vengan en el DTO.
+  - El DTO público excluye los medios de contacto.
   - 404 o colectivo dado de baja (`fechaBaja`): "No encontramos este colectivo", con `MensajeDePantalla`.
 - **Inicio por rol:** colectivo → `/colectivo/perfil`, hasta que exista `/colectivo/proyectos` (spec 04).
 - **Cabecera:** enlace "Mi colectivo" (`roles: ["COLECTIVO"]`) a `/colectivo/perfil`.
@@ -140,7 +140,7 @@ Los van a reusar las specs 03, 04 y 05.
 
 - **Migración a un data router:** el aviso necesita `useBlocker`, que solo funciona con un data router. Por eso `App.jsx` pasa de `BrowserRouter` a `createBrowserRouter` con las mismas rutas, y los tests que montan rutas usan `createMemoryRouter`.
 - **Hook `useAvisoCambiosSinGuardar(hayCambios)`:**
-  - Bloquea la navegación interna y abre un `ConfirmDialog` con `permanente={false}`: "¿Salir sin guardar?", "Los cambios que hiciste en el perfil se van a perder." y el botón "Salir sin guardar".
+  - Bloquea la navegación interna y abre un `DialogoDeConfirmacion` con `permanente={false}`: "¿Salir sin guardar?", "Los cambios que hiciste en el perfil se van a perder." y el botón "Salir sin guardar".
   - Para la recarga o el cierre de la pestaña usa `beforeunload` (el navegador muestra su propio mensaje).
   - Después de guardar con éxito, no bloquea.
 
@@ -154,7 +154,7 @@ Los van a reusar las specs 03, 04 y 05.
 - Cargando (edición y vista pública): skeleton con la forma del formulario o de la página.
 - Con datos: el formulario o el perfil.
 - Vacío: en la vista pública, "Todavía no publicó proyectos." dentro de su sección.
-- Error al cargar: `ErrorState` con "Reintentar". El 404 se muestra como "No encontramos este colectivo".
+- Error al cargar: `EstadoDeError` con "Reintentar". El 404 se muestra como "No encontramos este colectivo".
 - Enviando: "Creando…" o "Guardando…", con el formulario deshabilitado.
 - Error al enviar: errores por campo, o error general con lo cargado intacto.
 
@@ -162,7 +162,7 @@ Los van a reusar las specs 03, 04 y 05.
 
 - Los nombres exactos de las provincias que acepta `PROVINCIA` (propongo las 23, con tildes: "Buenos Aires", "Córdoba", "Entre Ríos", "Tierra del Fuego, Antártida e Islas del Atlántico Sur"…), o un endpoint de catálogo (`GET /catalogos/provincias`), como pide el plan para los filtros.
 - El largo máximo de `nombre` y `descripcion`, para validarlos también en el front.
-- **`GET /colectivos/:id` devuelve `mediosDeContacto` a cualquiera.** El front no los muestra, pero viajan en la respuesta pública. Propongo que el back solo los incluya para el dueño del perfil.
+- **Edición de medios de contacto.** Queda suspendida hasta contar con una consulta y una edición privadas para el dueño del perfil. Los medios se guardan durante el alta y se conservan al editar los datos públicos.
 - `POST /colectivos` asocia el perfil al `sub` del token y responde 409 si la cuenta ya tiene perfil (spec 01).
 
 ## A confirmar

@@ -1,11 +1,7 @@
-/** @param {import('../../Domain/HttpClients/IProyectoHttpClient.js').IProyectoHttpClient} httpClient */
+import { aPagina } from "@/Application/Adaptadores/aPagina.js";
+
 export function crearListarProyectos(httpClient) {
-  /**
-   * @param {import('../../Domain/Requests/App/ListadoConEtiquetaRequest.js').ListadoConEtiquetaRequest} [query]
-   * @param {{signal?: AbortSignal}} [options]
-   * @returns {Promise<import('../../Domain/Entities/PaginaDto.js').PaginaDto<import('../../Domain/Entities/ProyectoDto.js').ProyectoDto>>}
-   */
-  return function listarProyectos(query = {}, options = {}) {
-    return httpClient.listar(query, options);
+  return async function listarProyectos(query = {}, options = {}) {
+    return aPagina(await httpClient.listar(query, options));
   };
 }

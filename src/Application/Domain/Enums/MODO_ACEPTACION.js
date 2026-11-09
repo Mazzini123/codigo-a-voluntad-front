@@ -1,4 +1,3 @@
-/** @typedef {"REVISION_MANUAL" | "TODO_SUMA" | "HASTA_LLENAR_VACANTES"} ModoAceptacion */
 export const MODO_ACEPTACION = Object.freeze({
   REVISION_MANUAL: "REVISION_MANUAL",
   TODO_SUMA: "TODO_SUMA",

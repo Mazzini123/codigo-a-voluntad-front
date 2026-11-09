@@ -11,7 +11,7 @@ Estado del front al 06/11/2026, para seguir en otro chat. Se actualiza al cerrar
 
 - Una spec por tarea, con `specs/plantilla.md`. Se escribe, se aprueba y recién ahí se implementa.
 - No hacer commits ni tocar git (los hace el equipo). Para mover specs, usar `mv`, no `git mv`.
-- Verificar siempre sobre el repo completo: `npm run lint`, `npm run format:check`, `npm test` y `npm run build`.
+- Verificar siempre sobre el repo completo: `npm run lint`, `npm run format:check`, `npm test` y `npm run build`. Si el cambio toca un flujo principal, también `npm run test:e2e`.
 - Revisar en el navegador con sesión simulada (`VITE_SESION_SIMULADA` en `.env`, ver README) y a 320 px.
 - Decisiones nuevas, en `docs/decisiones.md`.
 
@@ -38,7 +38,7 @@ Estado del front al 06/11/2026, para seguir en otro chat. Se actualiza al cerrar
 
 - Pie de página compartido — hecho. `PieDePagina` se monta una sola vez en `Raiz`, fuera del proveedor de sesión, con el mismo contenido en todas las rutas y roles, incluidos login, 404 y error global de sesión. Nombre, descripción, referencia académica y «Cómo funciona». Compactado con la referencia horizontal aportada: una fila de tres bloques y 16px verticales, unos 85px de alto a 1280px; a 320px se apila sin desborde. Estilo unificado con el header por pedido de la persona: fondo petróleo, texto y foco crema de marca, misma tipografía y peso de marca y tratamiento de enlaces. Este enlace abre `/#como-empezar` también con sesión y enfoca la sección; `/` sin fragmento sigue llevando al inicio del rol. Pie en flujo normal, al borde inferior en páginas cortas; verificado a 1280 y 320 px. Lint, formato, 458 tests en 35 archivos con un worker y build en verde. Spec cerrada en `specs/completed/pie-de-pagina-compartido.md`; DESIGN y sidecar actualizados.
 
-- Integración con Logto React y accesos directos — hecho en frontend. Migración a `@logto/react` 4.1.3 aprobada expresamente; se eliminó la dependencia directa de `@logto/browser`. Un único provider y los hooks del SDK quedan en `Infrastructure/Auth/SesionLogtoProvider.jsx`, accesible por Dependencies. `AuthProvider` conserva `/auth/me`, cuenta, permisos, 401 y simulación. Header con «Ingresar» y «Crear una cuenta» directos, retorno con filtros y fragmento, espera y reintento; a 320px segunda fila de accesos sin desborde y avisos 8px debajo de la altura real del header. `/login` y `/registro` conservan sus acciones en el contenido. Spec `specs/active/integracion-logto-react.md`; permanece activa por la configuración y los acuerdos del back. Lint, formato y build en verde; 475 tests en 36 archivos con un worker; navegador Chromium a 1280 y 320px, foco visible, error sin tenant y flujo simulado SIN_PERFIL (callback, Bienvenida y cierre). No se crearon perfiles ni se modificó la base. Playbook `/impeccable document` aplicado a Navigation y Avisos de DESIGN y al ejemplo de cabecera del sidecar. Pendiente: tenant real, acordar con Facundo `/callback` (su ZIP usa `/logto/callback`) y `VITE_LOGTO_RECURSO` (su ZIP usa `VITE_LOGTO_API_RESOURCE`), contrato `/auth/me`, validación JWT y asociación de perfil por `sub`. No hay endpoint ni app ID configurados: la autenticación real no está verificada.
+- Integración con Logto React y accesos directos — hecho en frontend. Migración a `@logto/react` 4.1.3 aprobada expresamente; se eliminó la dependencia directa de `@logto/browser`. Un único provider y los hooks del SDK quedan en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx`, accesible por Dependencies. `ProveedorDeSesion` conserva `/auth/me`, cuenta, permisos, 401 y simulación. Header con «Ingresar» y «Crear una cuenta» directos, retorno con filtros y fragmento, espera y reintento; a 320px segunda fila de accesos sin desborde y avisos 8px debajo de la altura real del header. `/login` y `/registro` conservan sus acciones en el contenido. Spec `specs/active/integracion-logto-react.md`; permanece activa por la configuración y los acuerdos del back. Lint, formato y build en verde; 475 tests en 36 archivos con un worker; navegador Chromium a 1280 y 320px, foco visible, error sin tenant y flujo simulado SIN_PERFIL (callback, Bienvenida y cierre). No se crearon perfiles ni se modificó la base. Playbook `/impeccable document` aplicado a Navigation y Avisos de DESIGN y al ejemplo de cabecera del sidecar. Pendiente: tenant real, acordar con Facundo `/callback` (su ZIP usa `/logto/callback`) y `VITE_LOGTO_RECURSO` (su ZIP usa `VITE_LOGTO_API_RESOURCE`), contrato `/auth/me`, validación JWT y asociación de perfil por `sub`. No hay endpoint ni app ID configurados: la autenticación real no está verificada.
 
 ## Pantallas hechas
 
@@ -48,17 +48,17 @@ Estado del front al 06/11/2026, para seguir en otro chat. Se actualiza al cerrar
 
 ## Piezas para reusar
 
-- **Datos:** `useAsync` (la tarea siempre memorizada con `useCallback`, y nunca objetos literales como valor por defecto de un hook).
-- **Avisos y sesión:** `useAvisos` y `useAuth`.
-- **Rutas y navegación:** `ProtectedRoute` y `useAvisoCambiosSinGuardar`.
-- **Proyecto y postulación:** `useProyecto`, `usePostulacionesEnProyecto` y `usePostularse` (hooks); `PerfilDelProyecto`, `AccionDePerfil` y `DialogoDePostulacion` en `Components/Proyecto/`. `ConfirmDialog` acepta `children` y `MensajeDePantalla`, `volverA` y `textoVolver`.
-- **Componentes de `Components/App/`:**
+- **Datos:** `useConsulta` (la tarea siempre memorizada con `useCallback`, y nunca objetos literales como valor por defecto de un hook).
+- **Avisos y sesión:** `useAvisos` y `useSesion`.
+- **Rutas y navegación:** `RutaProtegida` y `useAvisoCambiosSinGuardar`.
+- **Proyecto y postulación:** `useProyecto`, `usePostulacionesEnProyecto` y `usePostularse` (hooks); `PerfilDelProyecto`, `AccionDePerfil` y `DialogoDePostulacion` en `Components/Proyecto/` (`alta/`, `detalle/`, `listado/`). `DialogoDeConfirmacion` acepta `children` y `MensajeDePantalla`, `volverA` y `textoVolver`.
+- **Componentes de `Components/App/`** (en subcarpetas `ui/`, `estados/`, `navegacion/`, `layout/`, `dialogos/`, `avisos/`, `sesion/` y `texto/`):
   - Estructura: `Raiz` y `PieDePagina` para el pie común; no duplicarlo en páginas o layouts internos.
-  - Estados: `Skeleton`, `EmptyState`, `ErrorState`, `MensajeDePantalla`.
-  - Diálogos y listas: `ConfirmDialog` (con `permanente`), `Paginacion`.
+  - Estados: `Esqueleto`, `EstadoVacio`, `EstadoDeError`, `MensajeDePantalla`.
+  - Diálogos y listas: `DialogoDeConfirmacion` (con `permanente`), `Paginacion`.
   - Formularios: `Boton`, `Chip`, `Campo`, `Selector`, `GrupoDeOpciones`, `Casilla`.
 - **Formularios compartidos:** editores de listas y `SelectorDeHabilidades` en `Components/Formulario/`.
-- **Alta de proyecto y listado propio:** `IndicadorDePasos`, `FranjaDeDueno`, `TarjetaProyecto` con `propia`, `useProyectosDelColectivo`, `useCrearProyecto`, `useEsDuenoDelProyecto`, y `validarProyecto`/`formularioProyecto` en `Components/Proyecto/`.
+- **Alta de proyecto y listado propio:** `IndicadorDePasos`, `FranjaDeDueno`, `TarjetaProyecto` con `propia`, `useProyectosDelColectivo`, `useCrearProyecto`, `useEsDuenoDelProyecto`, y `validarProyecto`/`formularioProyecto` en `Components/Proyecto/` (`alta/`, `detalle/`, `listado/`).
 - **Formatos:** en `Presentation/Formatos/` (colectivo, colaboradora, proyecto).
 - **Tests:** `src/test/montarRutas.jsx` monta rutas con data router, sesión y avisos.
 

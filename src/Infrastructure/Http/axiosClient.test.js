@@ -69,16 +69,61 @@ describe("token", () => {
     await crearCliente(transporte).get("/proyectos");
     expect(transporte.mock.calls[0][0].headers.Authorization).toBeUndefined();
   });
+
+  test.each([null, new Error("sin proveedor")])(
+    "un pedido privado sin token da un error reintentable antes del envío (%s)",
+    async (fallo) => {
+      configurarAuth({
+        obtenerToken: async () => {
+          if (fallo) throw fallo;
+          return null;
+        },
+      });
+      const transporte = vi.fn();
+      const error = await errorDe(
+        crearCliente(transporte).post("/colectivos", {}, { requiereSesion: true }),
+      );
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error).toMatchObject({
+        status: null,
+        mensaje:
+          "No pudimos verificar tu sesión para completar esta acción. Probá de nuevo.",
+        esReintentable: true,
+      });
+      expect(transporte).not.toHaveBeenCalled();
+    },
+  );
+
+  test("sólo una sesión simulada activa puede enviar un pedido privado sin token", async () => {
+    const transporte = vi.fn(async (config) => respuesta(config, 200));
+    const cliente = crearCliente(transporte);
+    const permiteSinToken = vi
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    configurarAuth({ permiteSinToken });
+
+    const error = await errorDe(cliente.get("/privado", { requiereSesion: true }));
+    expect(error).toBeInstanceOf(ApiError);
+    expect(transporte).not.toHaveBeenCalled();
+    await cliente.get("/privado", { requiereSesion: true });
+    expect(transporte.mock.calls[0][0].headers.Authorization).toBeUndefined();
+  });
 });
 
 describe("ApiError", () => {
   test.each([
     [400, { message: "El título es obligatorio" }, "Revisá los datos ingresados.", false],
     [400, {}, "Revisá los datos ingresados.", false],
-    [401, { message: "jwt expired" }, "Tu sesión venció. Iniciá sesión de nuevo.", false],
+    [401, { message: "jwt expired" }, "No pudimos autorizar este pedido.", false],
     [403, { message: "Forbidden" }, "No tenés permiso para hacer esto.", false],
     [404, {}, "No encontramos lo que buscabas.", false],
-    [409, { message: "Ya existe esa habilidad" }, "Esa habilidad ya existe.", false],
+    [
+      409,
+      { message: "Ya existe esa habilidad" },
+      "Esto ya no se puede hacer porque algo cambió. Actualizá la página y probá de nuevo.",
+      false,
+    ],
     [422, {}, "Revisá los datos ingresados.", false],
     [
       429,
@@ -105,32 +150,45 @@ describe("ApiError", () => {
   );
 
   test.each([
-    ["post", "/proyectos/p1/colaboraciones", 409, "Ya te postulaste a este proyecto."],
-    ["post", "/colectivos", 409, "Tu cuenta ya tiene un perfil."],
-    ["post", "/colaboradores", 409, "Tu cuenta ya tiene un perfil."],
-    [
-      "post",
-      "/proyectos/p1/colaboraciones",
-      400,
-      "No pudimos registrar tu postulación. Puede que la búsqueda de este perfil ya haya cerrado.",
-    ],
-    [
-      "put",
-      "/colectivos/c1",
-      409,
-      "Esto ya no se puede hacer porque algo cambió. Actualizá la página y probá de nuevo.",
-    ],
+    ["post", "/proyectos/p1/colaboraciones", 409],
+    ["post", "/colectivos", 409],
+    ["put", "/colectivos/c1", 409],
+    ["post", "/proyectos/p1/colaboraciones", 400],
   ])(
-    "%s %s con %i muestra un texto propio de la operación, nunca el del back",
-    async (metodo, ruta, status, mensaje) => {
+    "%s %s con %i usa el texto por status, nunca el del back",
+    async (metodo, ruta, status) => {
       const textoDelBack = 'No existe una habilidad con el código "diseno_ux_ui"';
       const error = await errorDe(
         crearCliente(fallaConStatus(status, { message: textoDelBack }))[metodo](ruta, {}),
       );
-      expect(error.mensaje).toBe(mensaje);
+      expect(error.mensaje).toBe(
+        status === 409
+          ? "Esto ya no se puede hacer porque algo cambió. Actualizá la página y probá de nuevo."
+          : "Revisá los datos ingresados.",
+      );
       expect(error.mensaje).not.toContain(textoDelBack);
     },
   );
+
+  test("conMensaje cambia solo el texto y conserva el resto", () => {
+    const causa = new Error("original");
+    const error = new ApiError({
+      status: 409,
+      mensaje: "Genérico",
+      issues: [{ path: ["x"] }],
+      cause: causa,
+    });
+    const propio = error.conMensaje("Ya te postulaste a este proyecto.");
+    expect(propio).toBeInstanceOf(ApiError);
+    expect(propio).toMatchObject({
+      status: 409,
+      mensaje: "Ya te postulaste a este proyecto.",
+      esReintentable: false,
+      issues: [{ path: ["x"] }],
+    });
+    expect(propio.cause).toBe(causa);
+    expect(error.mensaje).toBe("Genérico");
+  });
 
   test("sin respuesta → mensaje de conexión y reintentable", async () => {
     const error = await errorDe(crearCliente(sinRespuesta()).post("/habilidades", {}));
@@ -160,16 +218,86 @@ describe("ApiError", () => {
 });
 
 describe("sesión", () => {
-  test("401 avisa que la sesión venció", async () => {
+  test("un 401 sin Bearer no cierra la sesión", async () => {
     const alExpirar = vi.fn();
     configurarAuth({ alExpirar });
     await errorDe(crearCliente(fallaConStatus(401)).get("/mensajes"));
+    expect(alExpirar).not.toHaveBeenCalled();
+  });
+
+  test("dos 401 de la misma sesión avisan una sola vez", async () => {
+    const alExpirar = vi.fn();
+    configurarAuth({ alExpirar, obtenerToken: async () => "token" });
+    const { promise, resolve } = Promise.withResolvers();
+    const transporte = vi.fn(async (config) => {
+      await promise;
+      return fallaConStatus(401)(config);
+    });
+    const cliente = crearCliente(transporte);
+    const pedidos = [errorDe(cliente.get("/primero")), errorDe(cliente.get("/segundo"))];
+    await vi.waitFor(() => expect(transporte).toHaveBeenCalledTimes(2));
+    resolve();
+
+    const [primero, segundo] = await Promise.all(pedidos);
+    expect(primero).toMatchObject({
+      status: 401,
+      mensaje: "Tu sesión venció. Iniciá sesión de nuevo.",
+    });
+    expect(axios.isCancel(segundo)).toBe(true);
     expect(alExpirar).toHaveBeenCalledTimes(1);
+  });
+
+  test("un 401 tardío de otra cuenta se cancela y conserva la sesión actual", async () => {
+    const alExpirarAnterior = vi.fn();
+    const alExpirarActual = vi.fn();
+    configurarAuth({
+      alExpirar: alExpirarAnterior,
+      obtenerToken: async () => "anterior",
+    });
+    const { promise, resolve } = Promise.withResolvers();
+    const transporte = vi.fn(async (config) => {
+      if (config.url === "/anterior") {
+        await promise;
+        return fallaConStatus(401)(config);
+      }
+      return respuesta(config, 200);
+    });
+    const cliente = crearCliente(transporte);
+    const pedidoAnterior = errorDe(cliente.get("/anterior", { requiereSesion: true }));
+    await vi.waitFor(() => expect(transporte).toHaveBeenCalledTimes(1));
+    configurarAuth({ alExpirar: alExpirarActual, obtenerToken: async () => "actual" });
+    resolve();
+
+    expect(axios.isCancel(await pedidoAnterior)).toBe(true);
+    expect(alExpirarAnterior).not.toHaveBeenCalled();
+    expect(alExpirarActual).not.toHaveBeenCalled();
+    const { config } = await cliente.get("/actual", { requiereSesion: true });
+    expect(config.headers.Authorization).toBe("Bearer actual");
+  });
+
+  test("renovar el token mantiene vigentes los pedidos de la misma sesión", async () => {
+    const clave = Symbol();
+    configurarAuth({ clave, obtenerToken: async () => "original" });
+    const { promise, resolve } = Promise.withResolvers();
+    const transporte = vi.fn(async (config) => {
+      await promise;
+      return respuesta(config, 200);
+    });
+    const cliente = crearCliente(transporte);
+    const pedido = cliente.get("/privado", { requiereSesion: true });
+    await vi.waitFor(() => expect(transporte).toHaveBeenCalledTimes(1));
+    configurarAuth({ clave, obtenerToken: async () => "renovado" });
+    resolve();
+
+    expect((await pedido).config.headers.Authorization).toBe("Bearer original");
+    expect((await cliente.get("/privado")).config.headers.Authorization).toBe(
+      "Bearer renovado",
+    );
   });
 
   test("403 no cierra la sesión", async () => {
     const alExpirar = vi.fn();
-    configurarAuth({ alExpirar });
+    configurarAuth({ alExpirar, obtenerToken: async () => "token" });
     await errorDe(crearCliente(fallaConStatus(403)).get("/mensajes"));
     expect(alExpirar).not.toHaveBeenCalled();
   });
@@ -208,6 +336,38 @@ describe("reintentos", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(transporte).toHaveBeenCalledTimes(3);
     await resultado;
+  });
+
+  test("un GET con Bearer queda cancelado si cambia la sesión antes del reintento", async () => {
+    vi.useFakeTimers();
+    configurarAuth({ obtenerToken: async () => "anterior" });
+    const transporte = vi.fn(sinRespuesta());
+    const cliente = crearAxiosClient({ esperaBaseMs: 300 });
+    cliente.defaults.adapter = transporte;
+    const resultado = errorDe(cliente.get("/proyectos"));
+    await vi.advanceTimersByTimeAsync(100);
+    configurarAuth({ obtenerToken: async () => "actual" });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(axios.isCancel(await resultado)).toBe(true);
+    expect(transporte).toHaveBeenCalledTimes(1);
+  });
+
+  test("un GET anónimo conserva el reintento anónimo si se inicia sesión", async () => {
+    vi.useFakeTimers();
+    const transporte = vi
+      .fn(sinRespuesta())
+      .mockImplementationOnce(sinRespuesta())
+      .mockImplementationOnce(async (config) => respuesta(config, 200));
+    const cliente = crearAxiosClient({ esperaBaseMs: 300 });
+    cliente.defaults.adapter = transporte;
+    const resultado = cliente.get("/proyectos");
+    await vi.advanceTimersByTimeAsync(100);
+    configurarAuth({ obtenerToken: async () => "actual" });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect((await resultado).config.headers.Authorization).toBeUndefined();
+    expect(transporte).toHaveBeenCalledTimes(2);
   });
 
   test.each(["post", "put", "patch", "delete"])(

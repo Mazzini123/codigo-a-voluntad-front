@@ -80,7 +80,7 @@
   border-radius: var(--radio-md);
 }
 
-@media (min-width: 768px) {
+@media (width >= 48rem) {
   .lista {
     max-block-size: calc(var(--toque-minimo) * 6.5);
     overflow-y: auto;

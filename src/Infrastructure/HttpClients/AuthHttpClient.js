@@ -1,12 +1,10 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IAuthHttpClient.js').IAuthHttpClient}
- */
+import { crearPedidos } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearAuthHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async obtenerCuentaActual({ signal } = {}) {
-      const response = await http.get("/auth/me", { signal });
-      return response.data;
+      return api.get("/auth/me", { signal, requiereSesion: true });
     },
   };
 }

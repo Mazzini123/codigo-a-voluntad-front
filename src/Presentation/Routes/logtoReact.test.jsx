@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import axios from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
-import { Raiz } from "../Components/App/Raiz.jsx";
-import { rutas } from "./AppRoutes.jsx";
+import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
+import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
+import { rutas } from "./RutasDeLaApp.jsx";
 
 const sdk = vi.hoisted(() => ({
   isAuthenticated: vi.fn(),
@@ -40,15 +40,21 @@ vi.mock("@logto/react", async (importOriginal) => {
   };
 });
 
-vi.mock("../Dependencies/identidadDependencies.js", async (importOriginal) => ({
-  ...(await importOriginal()),
-  identidad: null,
-  configuracionLogto: {
-    endpoint: "https://tenant.logto.app",
-    appId: "app-123",
-    resources: ["https://api.codigo-a-voluntad"],
+vi.mock(
+  "@/Presentation/Dependencies/identidadDependencies.js",
+  async (importOriginal) => {
+    const original = await importOriginal();
+    return {
+      ...original,
+      proveedorDeIdentidad: { tipo: original.PROVEEDOR_DE_IDENTIDAD.LOGTO },
+      configuracionLogto: {
+        endpoint: "https://tenant.logto.app",
+        appId: "app-123",
+        resources: ["https://api.codigo-a-voluntad"],
+      },
+    };
   },
-}));
+);
 
 const adaptadorOriginal = axiosClient.defaults.adapter;
 let transporte;
@@ -159,6 +165,53 @@ test("el callback espera la autenticación antes de pedir la cuenta y conserva e
   expect(sessionStorage.getItem("codigo-a-voluntad:volver-a")).toBeNull();
 });
 
+test("si falla la cuenta durante el callback, reintenta la consulta y conserva el destino", async () => {
+  sdk.isAuthenticated.mockResolvedValue(true);
+  sessionStorage.setItem(
+    "codigo-a-voluntad:volver-a",
+    "/proyectos?vista=todos&etiqueta=web#resultados",
+  );
+  const responder = transporte.getMockImplementation();
+  let recuperarCuenta;
+  transporte
+    .mockRejectedValueOnce(
+      new axios.AxiosError("error", "ERR_BAD_RESPONSE", {}, null, {
+        status: 500,
+        data: {},
+      }),
+    )
+    .mockImplementationOnce(
+      (config) =>
+        new Promise((resolve) => {
+          recuperarCuenta = () => resolve(responder(config));
+        }),
+    );
+  const { user, router } = montar("/callback?code=abc&state=xyz");
+
+  expect(
+    await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(await screen.findByRole("button", { name: "Reintentando…" })).toBeDisabled();
+  expect(transporte.mock.calls.map(([config]) => config.url)).toEqual([
+    "/auth/me",
+    "/auth/me",
+  ]);
+  expect(sdk.handleSignInCallback).toHaveBeenCalledTimes(1);
+
+  await act(async () => recuperarCuenta());
+  expect(
+    await screen.findByRole("heading", { name: "Proyectos de colectivos sociales" }),
+  ).toBeVisible();
+  expect(router.state.location).toMatchObject({
+    pathname: "/proyectos",
+    search: "?vista=todos&etiqueta=web",
+    hash: "#resultados",
+  });
+  expect(sdk.handleSignInCallback).toHaveBeenCalledTimes(1);
+  expect(sdk.signIn).not.toHaveBeenCalled();
+});
+
 test("el error capturado por el SDK avisa y permite reintentar desde la cabecera", async () => {
   sdk.signIn.mockRejectedValueOnce(new Error("detalle del proveedor"));
   const { user } = montar();
@@ -224,10 +277,11 @@ test("si falla la cuenta del backend permite reintentar sin perder la identidad 
       data: {},
     }),
   );
-  const { user } = montar("/bienvenida");
+  const { user, router } = montar("/bienvenida");
   expect(
     await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
   ).toBeVisible();
+  expect(router.state.location.pathname).toBe("/bienvenida");
   await user.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(
     await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
@@ -237,12 +291,12 @@ test("si falla la cuenta del backend permite reintentar sin perder la identidad 
 
 test("un 401 del backend limpia la sesión del SDK y permite ingresar de nuevo", async () => {
   sdk.isAuthenticated.mockResolvedValue(true);
-  transporte.mockRejectedValueOnce(
-    new axios.AxiosError("error", "ERR_BAD_RESPONSE", {}, null, {
+  transporte.mockImplementationOnce(async (config) => {
+    throw new axios.AxiosError("error", "ERR_BAD_RESPONSE", config, null, {
       status: 401,
       data: {},
-    }),
-  );
+    });
+  });
   const { user, router } = montar("/bienvenida");
   expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeVisible();
   expect(
@@ -250,6 +304,23 @@ test("un 401 del backend limpia la sesión del SDK y permite ingresar de nuevo",
   ).toBeVisible();
   expect(sdk.clearAllTokens).toHaveBeenCalledTimes(1);
   expect(router.state.location.pathname).toBe("/login");
+  expect(router.state.location.state?.desde?.pathname).toBe("/bienvenida");
   await user.click(screen.getByRole("button", { name: "Ingresar" }));
   expect(sdk.signIn).toHaveBeenCalled();
+});
+
+test("un token que no está disponible permite reintentar la verificación de la cuenta", async () => {
+  sdk.isAuthenticated.mockResolvedValue(true);
+  sdk.getAccessToken.mockResolvedValueOnce(undefined);
+  const { user } = montar("/bienvenida");
+
+  expect(
+    await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
+  ).toBeVisible();
+  expect(transporte.mock.calls.some(([config]) => config.url === "/auth/me")).toBe(false);
+  expect(sdk.clearAllTokens).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(
+    await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
+  ).toBeVisible();
 });

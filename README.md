@@ -9,8 +9,10 @@ Arquitectura cliente pesado: este proyecto consume la API JSON del [backend](htt
 - React + Vite
 - React Router
 - Axios
-- ESLint (con `jsx-a11y`) + Prettier
+- ESLint (con `jsx-a11y` y `react`) + Prettier
 - Vitest + Testing Library
+- Playwright + axe para las pruebas de punta a punta
+- `react-markdown` para las descripciones con formato
 
 ## Cómo levantarlo
 
@@ -40,7 +42,7 @@ En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o
 
 ## Ingreso con Logto
 
-El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). Un único `LogtoProvider`, `useLogto` y `useHandleSignInCallback` quedan encapsulados en `Infrastructure/Auth/SesionLogtoProvider.jsx`; Presentation los consume a través de Dependencies y `useAuth`. La app nunca ve contraseñas: redirige a Logto, vuelve a `/callback` y le pide al back la cuenta con `GET /auth/me`. El rol de la plataforma sale del backend.
+El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). Un único `LogtoProvider`, `useLogto` y `useHandleSignInCallback` quedan encapsulados en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx`; Presentation los consume a través de Dependencies y `useSesion`. La app nunca ve contraseñas: redirige a Logto, vuelve a `/callback` y le pide al back la cuenta con `GET /auth/me`. El rol de la plataforma sale del backend.
 
 «Ingresar» y «Crear una cuenta» en el header abren directamente la pantalla correspondiente de Logto y conservan el destino de origen. `/login` y `/registro` siguen disponibles para enlaces existentes, rutas protegidas y recuperación de errores.
 
@@ -75,22 +77,28 @@ Para probar las pantallas con sesión sin Logto ni back, poner en `.env` `VITE_S
 | `npm run format:check` | Verifica el formato sin modificar        |
 | `npm test`             | Corre los tests una vez                  |
 | `npm run test:watch`   | Tests en modo observación                |
+| `npm run test:e2e`     | Pruebas de punta a punta con Playwright  |
+
+### Pruebas de punta a punta
+
+`tests/e2e/` recorre en un navegador real los flujos principales: crear el perfil de un colectivo, buscar un proyecto y postularse, publicar un proyecto y aceptar una postulación. En cada pantalla corre axe con las reglas WCAG 2.2 AA. No necesitan el back ni Logto: Playwright levanta cuatro `vite` (visitante, sin perfil, colaboradora y colectivo, en los puertos 5181 a 5184) con la sesión simulada y responde los pedidos a `/api` con un back en memoria (`tests/e2e/apoyo/backFalso.js`). Cada carpeta de `tests/e2e/` corre con la sesión de su nombre.
+
+La primera vez hay que bajar el navegador: `npx playwright install chromium`. Si no se puede bajar, `CHROME_PATH=/ruta/a/chrome npm run test:e2e` usa un Chrome ya instalado. En CI corren en un trabajo aparte y, si fallan, dejan el reporte como artefacto.
 
 ## Estructura
 
 ```text
 src/
-├── Presentation/    Pages, Components, Hooks, Dependencies y Routes
+├── Presentation/    App, Pages, Components, Hooks, Formularios, Formatos, Dependencies, Routes y Styles
 ├── Application/     UseCases y Domain (DTOs, requests y contratos HttpClient)
-├── Infrastructure/  Instancia de Axios, implementaciones HttpClient y Auth (adaptador de Logto)
-└── Styles/          Estilos globales y archivos de estilos por entidad
+└── Infrastructure/  Instancia de Axios, implementaciones HttpClient y Auth (adaptador de Logto)
 ```
 
 Flujo: `page/component` → `hook` → `useCase` → `httpClient` → `axios`. Se usan directamente los DTOs y requests del backend. Dependencies compone los clientes y casos de uso.
 
-Components, Requests y UseCases se agrupan por entidad; Entities, HttpClients, Dependencies, Hooks, Pages y Styles contienen archivos sueltos. La aplicación usa JavaScript/JSX; los DTOs, requests y contratos se documentan con anotaciones JSDoc en archivos `.js`.
+Components, Hooks, Pages, Formularios, Entities, Requests y UseCases se agrupan por entidad, área o función; HttpClients, Dependencies y Formatos contienen archivos sueltos, uno por módulo. Los estilos globales (`tokens.css` y `base.css`) están en `Presentation/Styles/`; el resto, `X.module.css` junto a cada componente. La aplicación usa JavaScript/JSX, sin comentarios ni JSDoc en el código.
 
-Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/useHabilidades.js`).
+Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/habilidad/useHabilidades.js`).
 
 El [plan de desarrollo de entidades](docs/PLAN-ENTIDADES.md) contiene el detalle de la arquitectura, los endpoints, el ejemplo de Habilidad y los pasos para incorporar cada entidad.
 
