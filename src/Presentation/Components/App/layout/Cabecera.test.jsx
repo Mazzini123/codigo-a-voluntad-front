@@ -7,9 +7,9 @@ const COLABORADORA = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "co1" };
 const COLECTIVO = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "cl1" };
 const SIN_PERFIL = { id: "cuenta-3", rol: null, perfilId: null };
 
-function montar(cuenta) {
+function montar(cuenta, ruta) {
   render(
-    <Proveedores cuenta={cuenta}>
+    <Proveedores cuenta={cuenta} ruta={ruta}>
       <Cabecera />
     </Proveedores>,
   );
@@ -19,7 +19,7 @@ function montar(cuenta) {
 describe("navegación principal por rol", () => {
   test.each([
     ["un visitante", null, ["Proyectos"]],
-    ["una colaboradora", COLABORADORA, ["Proyectos"]],
+    ["una colaboradora", COLABORADORA, ["Proyectos", "Mis postulaciones"]],
     ["un colectivo", COLECTIVO, ["Proyectos", "Panel del colectivo"]],
     ["una cuenta sin perfil", SIN_PERFIL, ["Proyectos"]],
   ])(
@@ -38,6 +38,26 @@ describe("navegación principal por rol", () => {
       expect(screen.queryByText("Habilidades")).not.toBeInTheDocument();
     },
   );
+});
+
+describe("enlace Mis postulaciones", () => {
+  test("la colaboradora lo ve marcado como página actual en su ruta", async () => {
+    montar(COLABORADORA, "/colaboradora/postulaciones");
+    await screen.findByRole("button", { name: "Mi cuenta" });
+    const navegacion = screen.getByRole("navigation", { name: "Principal" });
+    expect(
+      within(navegacion).getByRole("link", { name: "Mis postulaciones" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(navegacion).getByRole("link", { name: "Proyectos" }),
+    ).not.toHaveAttribute("aria-current");
+  });
+
+  test("con dos enlaces la colaboradora usa el menú desplegable en celular", async () => {
+    montar(COLABORADORA);
+    await screen.findByRole("button", { name: "Mi cuenta" });
+    expect(screen.getByRole("button", { name: "Menú" })).toBeInTheDocument();
+  });
 });
 
 describe("menú de cuenta", () => {

@@ -36,6 +36,7 @@ import {
   RUTA_NUEVO_PROYECTO,
   RUTA_PERFIL_COLABORADORA,
   RUTA_PERFIL_COLECTIVO,
+  RUTA_POSTULACIONES_COLABORADORA,
   RUTA_POSTULACIONES_COLECTIVO,
   RUTA_POSTULACIONES_RECIBIDAS,
   RUTA_PROYECTO,
@@ -69,6 +70,10 @@ const cargarPerfilColaboradoraPage = () =>
       default: modulo.PerfilColaboradoraPage,
     }),
   );
+const cargarMisPostulacionesPage = () =>
+  import("@/Presentation/Pages/colaboradora/MisPostulacionesPage.jsx").then((modulo) => ({
+    default: modulo.MisPostulacionesPage,
+  }));
 const cargarPerfilColectivoPage = () =>
   import("@/Presentation/Pages/colectivo/PerfilColectivoPage.jsx").then((modulo) => ({
     default: modulo.PerfilColectivoPage,
@@ -163,6 +168,10 @@ export const rutas = createRoutesFromElements(
           <Route
             path={RUTA_PERFIL_COLABORADORA}
             element={<PantallaDiferida cargar={cargarPerfilColaboradoraPage} />}
+          />
+          <Route
+            path={RUTA_POSTULACIONES_COLABORADORA}
+            element={<PantallaDiferida cargar={cargarMisPostulacionesPage} />}
           />
         </Route>
         <Route

@@ -1,0 +1,106 @@
+.pagina,
+.encabezado,
+.lista,
+.fila {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.encabezado {
+  gap: var(--espacio-2);
+}
+
+.nota {
+  color: var(--color-tinta-suave);
+}
+
+.filtro {
+  max-inline-size: var(--ancho-aviso);
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+}
+
+.fila {
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.titulo {
+  margin: 0;
+}
+
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+}
+
+.perfil {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.recortada {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.aviso {
+  color: var(--color-aviso);
+}
+
+.estados,
+.fechas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-4);
+}
+
+.fechas {
+  color: var(--color-tinta-suave);
+}
+
+.estado {
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-md);
+  background: var(--color-hundido);
+  color: var(--color-tinta);
+}
+
+.PENDIENTE {
+  background: var(--color-aviso-tenue);
+  color: var(--color-aviso);
+}
+
+.ACEPTADA {
+  background: var(--color-exito-tenue);
+  color: var(--color-exito);
+}
+
+.RECHAZADA {
+  background: var(--color-peligro-tenue);
+  color: var(--color-peligro);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  padding-block-start: var(--espacio-2);
+}

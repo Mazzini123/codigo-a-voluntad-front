@@ -3,6 +3,7 @@ import {
   RUTA_MIS_PROYECTOS,
   RUTA_PERFIL_COLABORADORA,
   RUTA_PERFIL_COLECTIVO,
+  RUTA_POSTULACIONES_COLABORADORA,
   RUTA_POSTULACIONES_COLECTIVO,
   RUTA_PROYECTOS,
   RUTA_RESUMEN_COLECTIVO,
@@ -13,6 +14,10 @@ export const MINIMO_ENLACES_PARA_MENU = 2;
 const ENLACE_PROYECTOS = Object.freeze({ ruta: RUTA_PROYECTOS, texto: "Proyectos" });
 
 const ENLACES_POR_ROL = Object.freeze({
+  [ROL_CUENTA.COLABORADORA]: Object.freeze([
+    ENLACE_PROYECTOS,
+    Object.freeze({ ruta: RUTA_POSTULACIONES_COLABORADORA, texto: "Mis postulaciones" }),
+  ]),
   [ROL_CUENTA.COLECTIVO]: Object.freeze([
     ENLACE_PROYECTOS,
     Object.freeze({

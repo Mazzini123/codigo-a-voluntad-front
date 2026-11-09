@@ -16,6 +16,7 @@ export const RUTA_ALTA_COLECTIVO = "/bienvenida/colectivo";
 export const RUTA_ALTA_COLABORADORA = "/bienvenida/colaboradora";
 export const RUTA_PERFIL_COLECTIVO = "/colectivo/perfil";
 export const RUTA_PERFIL_COLABORADORA = "/colaboradora/perfil";
+export const RUTA_POSTULACIONES_COLABORADORA = "/colaboradora/postulaciones";
 export const RUTA_RESUMEN_COLECTIVO = "/colectivo/resumen";
 export const RUTA_MIS_PROYECTOS = "/colectivo/proyectos";
 export const RUTA_POSTULACIONES_COLECTIVO = "/colectivo/postulaciones";

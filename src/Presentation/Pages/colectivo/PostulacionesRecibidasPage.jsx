@@ -11,6 +11,7 @@ import {
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
+import { ESTADOS } from "@/Presentation/Formatos/colaboracion.js";
 import { fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { usePostulacionesRecibidas } from "@/Presentation/Hooks/postulacion/usePostulacionesRecibidas.js";
@@ -21,15 +22,6 @@ import {
 } from "@/Presentation/Routes/rutas.js";
 import estilos from "./PostulacionesRecibidasPage.module.css";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
-
-const ESTADOS = [
-  { valor: "", texto: "Todas" },
-  { valor: ESTADO.PENDIENTE, texto: "Pendientes", singular: "Pendiente" },
-  { valor: ESTADO.ACEPTADA, texto: "Aceptadas", singular: "Aceptada" },
-  { valor: ESTADO.RECHAZADA, texto: "Rechazadas", singular: "Rechazada" },
-  { valor: ESTADO.FINALIZADA, texto: "Finalizadas", singular: "Finalizada" },
-  { valor: ESTADO.DESVINCULADA, texto: "Desvinculadas", singular: "Desvinculada" },
-];
 
 const ACCIONES = {
   aceptar: {
