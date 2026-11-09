@@ -1,0 +1,22 @@
+.pagina,
+.lista {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+}
+
+.atenuada {
+  opacity: var(--opacidad-atenuada);
+  pointer-events: none;
+}

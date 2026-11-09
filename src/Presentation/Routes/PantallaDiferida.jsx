@@ -27,11 +27,23 @@ class ErrorDePantalla extends Component {
 }
 
 export function PantallaDiferida({ cargar }) {
-  const [intento, setIntento] = useState(() => ({ numero: 0, Pagina: lazy(cargar) }));
+  const [intento, setIntento] = useState(() => ({
+    numero: 0,
+    cargar,
+    Pagina: lazy(cargar),
+  }));
   const { Pagina } = intento;
 
+  if (intento.cargar !== cargar) {
+    setIntento({ numero: intento.numero + 1, cargar, Pagina: lazy(cargar) });
+  }
+
   function reintentar() {
-    setIntento((actual) => ({ numero: actual.numero + 1, Pagina: lazy(cargar) }));
+    setIntento((actual) => ({
+      numero: actual.numero + 1,
+      cargar: actual.cargar,
+      Pagina: lazy(actual.cargar),
+    }));
   }
 
   return (

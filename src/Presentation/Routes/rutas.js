@@ -4,6 +4,7 @@ export const RUTA_INICIO = "/";
 export const RUTA_COMO_EMPEZAR = "/#como-empezar";
 export const RUTA_PROYECTOS = "/proyectos";
 export const RUTA_PROYECTO = "/proyectos/:id";
+export const RUTA_AVANCE_DEL_PROYECTO = "/proyectos/:id/avance";
 export const RUTA_COLECTIVO = "/colectivos/:id";
 export const RUTA_COLABORADORA = "/colaboradoras/:id";
 export const RUTA_LOGIN = "/login";
@@ -17,12 +18,17 @@ export const RUTA_ALTA_COLABORADORA = "/bienvenida/colaboradora";
 export const RUTA_PERFIL_COLECTIVO = "/colectivo/perfil";
 export const RUTA_PERFIL_COLABORADORA = "/colaboradora/perfil";
 export const RUTA_POSTULACIONES_COLABORADORA = "/colaboradora/postulaciones";
+export const RUTA_MENSAJES = "/mensajes";
 export const RUTA_RESUMEN_COLECTIVO = "/colectivo/resumen";
 export const RUTA_MIS_PROYECTOS = "/colectivo/proyectos";
 export const RUTA_POSTULACIONES_COLECTIVO = "/colectivo/postulaciones";
 export const RUTA_NUEVO_PROYECTO = "/colectivo/proyectos/nuevo";
 export const RUTA_ADMINISTRAR_PROYECTO = "/proyectos/:id/administrar";
 export const RUTA_POSTULACIONES_RECIBIDAS = "/proyectos/:id/postulaciones";
+export const RUTA_COLABORADORAS_POTENCIALES =
+  "/proyectos/:id/perfiles/:perfilId/colaboradoras";
+export const RUTA_CONTACTO_DE_COLABORADORA =
+  "/proyectos/:id/colaboradoras/:colaboradorId/contacto";
 
 function conId(ruta, id) {
   return ruta.replace(":id", encodeURIComponent(id));
@@ -30,6 +36,10 @@ function conId(ruta, id) {
 
 export function rutaProyecto(id) {
   return conId(RUTA_PROYECTO, id);
+}
+
+export function rutaAvanceDelProyecto(id) {
+  return conId(RUTA_AVANCE_DEL_PROYECTO, id);
 }
 
 export function rutaColectivo(id) {
@@ -42,6 +52,20 @@ export function rutaColaboradora(id) {
 
 export function rutaPostulacionesRecibidas(id) {
   return conId(RUTA_POSTULACIONES_RECIBIDAS, id);
+}
+
+export function rutaColaboradorasPotenciales(id, perfilId) {
+  return conId(RUTA_COLABORADORAS_POTENCIALES, id).replace(
+    ":perfilId",
+    encodeURIComponent(perfilId),
+  );
+}
+
+export function rutaContactoDeColaboradora(id, colaboradorId) {
+  return conId(RUTA_CONTACTO_DE_COLABORADORA, id).replace(
+    ":colaboradorId",
+    encodeURIComponent(colaboradorId),
+  );
 }
 
 export function rutaAdministrarProyecto(id) {

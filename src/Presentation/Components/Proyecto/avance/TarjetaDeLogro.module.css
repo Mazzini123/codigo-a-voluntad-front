@@ -1,0 +1,30 @@
+.tarjeta {
+  display: grid;
+  gap: var(--espacio-2);
+  min-inline-size: 0;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  overflow-wrap: anywhere;
+}
+
+.tarjeta h3 {
+  min-inline-size: 0;
+}
+
+.descripcion {
+  white-space: pre-line;
+}
+
+.fecha {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  padding-block-start: var(--espacio-2);
+}

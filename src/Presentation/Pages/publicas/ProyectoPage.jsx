@@ -14,6 +14,7 @@ import {
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { leerUrlExterna } from "@/Presentation/Components/App/ui/urlExterna.js";
+import { BarraDeAvance } from "@/Presentation/Components/Proyecto/avance/BarraDeAvance.jsx";
 import { AccionDePerfil } from "@/Presentation/Components/Proyecto/detalle/AccionDePerfil.jsx";
 import { FranjaDeDueno } from "@/Presentation/Components/Proyecto/detalle/FranjaDeDueno.jsx";
 import { DialogoDePostulacion } from "@/Presentation/Components/Proyecto/detalle/DialogoDePostulacion.jsx";
@@ -35,7 +36,12 @@ import { useHabilidadesPropias } from "@/Presentation/Hooks/colaboradora/useHabi
 import { usePostulacionesEnProyecto } from "@/Presentation/Hooks/postulacion/usePostulacionesEnProyecto.js";
 import { usePostulacionEnDetalle } from "@/Presentation/Hooks/postulacion/usePostulacionEnDetalle.js";
 import { useProyecto } from "@/Presentation/Hooks/proyecto/useProyecto.js";
-import { destinoDeVuelta, RUTA_PROYECTOS } from "@/Presentation/Routes/rutas.js";
+import {
+  destinoDeVuelta,
+  estadoParaVolver,
+  RUTA_PROYECTOS,
+  rutaAvanceDelProyecto,
+} from "@/Presentation/Routes/rutas.js";
 import estilosDePerfil from "@/Presentation/Components/Perfil/Perfil.module.css";
 import estilos from "./ProyectoPage.module.css";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
@@ -129,6 +135,7 @@ function DetalleDelProyecto({
     proyecto.estado !== PROYECTO_ESTADO.FINALIZADO;
   const esperandoAcciones =
     verificandoSesion ||
+    (dueno.esDueno === null && !dueno.error) ||
     (colaboradoraId && (postulaciones.cargando || postulacion.actualizando));
 
   return (
@@ -303,6 +310,7 @@ function DetalleDelProyecto({
             proyecto={proyecto}
             usuario={usuario}
             postulacion={propia}
+            esDueno={dueno.esDueno === true}
             alPostular={postulacion.abrirDialogo}
             hoy={hoy}
           />
@@ -322,6 +330,7 @@ function destinoDePostulacion(perfilId) {
 }
 
 function AvanceDelProyecto({ proyecto }) {
+  const location = useLocation();
   const porcentaje = proyecto.porcentajeConcrecion;
   const logros = proyecto.logros ?? [];
   const avances = proyecto.avances ?? [];
@@ -332,10 +341,7 @@ function AvanceDelProyecto({ proyecto }) {
     <section className={estilosDePerfil.panel} aria-labelledby="titulo-avance">
       <h2 id="titulo-avance">Avance del proyecto</h2>
       {Number.isFinite(porcentaje) ? (
-        <div className={estilos.avance}>
-          <label htmlFor="avance-proyecto">Avance: {porcentaje} %</label>
-          <progress id="avance-proyecto" value={porcentaje} max={100} />
-        </div>
+        <BarraDeAvance porcentaje={porcentaje} />
       ) : (
         avances.length === 0 && (
           <p className={estilosDePerfil.vacio}>Todavía no cargó avances.</p>
@@ -395,6 +401,13 @@ function AvanceDelProyecto({ proyecto }) {
           )}
         </ul>
       )}
+      <Link
+        to={rutaAvanceDelProyecto(proyecto.id)}
+        state={estadoParaVolver(location, "Volver al proyecto")}
+        className={estilosDePerfil.enlace}
+      >
+        Ver el avance completo <Icono nombre="avanzar" tamano={16} />
+      </Link>
     </section>
   );
 }

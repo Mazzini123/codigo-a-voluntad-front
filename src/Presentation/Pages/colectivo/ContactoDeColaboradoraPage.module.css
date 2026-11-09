@@ -1,0 +1,64 @@
+.pagina,
+.cabecera,
+.lista {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.cabecera {
+  gap: var(--espacio-2);
+}
+
+.privacidad {
+  color: var(--color-tinta-suave);
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+}
+
+.medio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  min-inline-size: 0;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.dato {
+  display: grid;
+  gap: var(--espacio-1);
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.etiqueta {
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  color: var(--color-tinta-suave);
+}
+
+.valor {
+  user-select: all;
+}
+
+.esqueletoDeMedio {
+  display: grid;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}

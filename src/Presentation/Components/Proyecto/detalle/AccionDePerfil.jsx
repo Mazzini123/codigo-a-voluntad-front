@@ -7,6 +7,7 @@ import { RUTA_BIENVENIDA, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { idDePostulacion } from "@/Presentation/Components/Proyecto/alta/idsDePerfil.js";
+import { BuscarColaboradoras } from "@/Presentation/Components/Reclutamiento/BuscarColaboradoras.jsx";
 import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
 import estilos from "./AccionDePerfil.module.css";
 
@@ -30,13 +31,17 @@ export function AccionDePerfil({
   proyecto,
   usuario,
   postulacion = null,
+  esDueno = false,
   alPostular,
   hoy = new Date(),
 }) {
   const { pathname, search, hash } = useLocation();
 
   if (proyecto.estado === PROYECTO_ESTADO.FINALIZADO) return null;
-  if (usuario?.rol === ROL_CUENTA.COLECTIVO) return null;
+  if (usuario?.rol === ROL_CUENTA.COLECTIVO)
+    return esDueno ? (
+      <BuscarColaboradoras perfil={perfil} proyecto={proyecto} hoy={hoy} />
+    ) : null;
   if (postulacion)
     return (
       <span id={idDePostulacion(perfil.id)} tabIndex={-1} className={estilos.sello}>

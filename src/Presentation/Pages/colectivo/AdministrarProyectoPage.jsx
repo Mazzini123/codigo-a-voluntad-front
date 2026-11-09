@@ -1,6 +1,7 @@
 import { useEffect, useId, useReducer, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
+import { BuscarColaboradoras } from "@/Presentation/Components/Reclutamiento/BuscarColaboradoras.jsx";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import {
@@ -335,6 +336,11 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
                         false,
                       );
                     }}
+                  />
+                  <BuscarColaboradoras
+                    perfil={perfil}
+                    proyecto={proyecto}
+                    disabled={acciones.guardando}
                   />
                 </div>
               )}

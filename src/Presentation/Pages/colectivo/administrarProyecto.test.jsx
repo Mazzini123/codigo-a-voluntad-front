@@ -273,3 +273,25 @@ test("un proyecto finalizado conserva sus datos en modo de consulta", async () =
     screen.queryByRole("button", { name: "Agregar perfil" }),
   ).not.toBeInTheDocument();
 });
+
+test("cada perfil abierto ofrece Buscar colaboradoras", async () => {
+  montar();
+  expect(
+    await screen.findByRole("link", { name: "Buscar colaboradoras" }),
+  ).toHaveAttribute("href", "/proyectos/p1/perfiles/pe1/colaboradoras");
+});
+
+test("al cerrar la búsqueda, Buscar colaboradoras queda deshabilitado con el motivo", async () => {
+  const { user } = montar();
+  await user.click(await screen.findByRole("button", { name: "Cerrar búsqueda" }));
+  const boton = await screen.findByRole("button", { name: "Buscar colaboradoras" });
+  expect(boton).toBeDisabled();
+  expect(boton).toHaveAccessibleDescription("La búsqueda de este perfil está cerrada.");
+});
+
+test("en un proyecto finalizado no se ofrece Buscar colaboradoras", async () => {
+  proyecto.estado = "FINALIZADO";
+  montar();
+  expect(await screen.findByText(/Este proyecto está finalizado/)).toBeVisible();
+  expect(screen.queryByText("Buscar colaboradoras")).not.toBeInTheDocument();
+});

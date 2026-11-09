@@ -1,0 +1,32 @@
+.tarjeta {
+  display: grid;
+  gap: var(--espacio-3);
+  min-inline-size: 0;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  overflow-wrap: anywhere;
+}
+
+.nombre {
+  min-inline-size: 0;
+}
+
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+}
+
+.accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.sello {
+  display: inline-flex;
+  border-radius: var(--radio-sm);
+}

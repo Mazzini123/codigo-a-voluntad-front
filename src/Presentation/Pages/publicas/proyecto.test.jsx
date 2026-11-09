@@ -168,6 +168,7 @@ function montar(ruta, cuenta = null) {
       <Route path="/" element={<Navigate to="/proyectos" replace />} />
       <Route path="/proyectos" element={<ProyectosPage />} />
       <Route path="/proyectos/:id" element={<ProyectoPage />} />
+      <Route path="/proyectos/:id/avance" element={<h1>Avance</h1>} />
       <Route path="/login" element={<h1>Ingresar</h1>} />
       <Route path="/bienvenida" element={<h1>Bienvenida</h1>} />
     </Route>,
@@ -331,6 +332,17 @@ describe("ver el proyecto", () => {
       within(tester).getByText("Todavía nadie ocupa este perfil."),
     ).toBeInTheDocument();
     expect(within(tester).queryByRole("list", { name: "Opcionales" })).toBeNull();
+  });
+
+  test("enlaza al avance completo y deja cómo volver", async () => {
+    const { user, router } = montar("/proyectos/p1");
+    await user.click(await screen.findByRole("link", { name: /Ver el avance completo/ }));
+    expect(await screen.findByRole("heading", { name: "Avance" })).toBeVisible();
+    expect(router.state.location.pathname).toBe("/proyectos/p1/avance");
+    expect(router.state.location.state).toMatchObject({
+      volverA: "/proyectos/p1",
+      textoVolver: "Volver al proyecto",
+    });
   });
 
   test("muestra los logros y el historial sin inventar un porcentaje general", async () => {
@@ -919,6 +931,52 @@ describe("acción de cada perfil según quién mira", () => {
     expect(
       within(frontend).queryByRole("button", { name: "Postularme" }),
     ).not.toBeInTheDocument();
+  });
+
+  test("el colectivo dueño ve Buscar colaboradoras en cada perfil y el ajeno no", async () => {
+    proyectosDelColectivo = [{ id: "p1", titulo: "Sistema", estado: "ABIERTO" }];
+    montar("/proyectos/p1", COLECTIVO);
+    const frontend = await perfil("Desarrolladora frontend");
+    expect(
+      await within(frontend).findByRole("link", { name: "Buscar colaboradoras" }),
+    ).toHaveAttribute("href", "/proyectos/p1/perfiles/pe1/colaboradoras");
+    const analista = await perfil("Analista de datos");
+    expect(
+      within(analista).getByRole("link", { name: "Buscar colaboradoras" }),
+    ).toHaveAttribute("href", "/proyectos/p1/perfiles/pe3/colaboradoras");
+  });
+
+  test("un colectivo que no es dueño no ve Buscar colaboradoras", async () => {
+    montar("/proyectos/p1", COLECTIVO);
+    await screen.findByText("Las postulaciones son para colaboradoras.");
+    expect(screen.queryByText("Buscar colaboradoras")).not.toBeInTheDocument();
+  });
+
+  test("un perfil cerrado deshabilita Buscar colaboradoras y explica el motivo", async () => {
+    proyectosDelColectivo = [{ id: "p1", titulo: "Sistema", estado: "ABIERTO" }];
+    montar("/proyectos/p1", COLECTIVO);
+    const tester = await perfil("Tester");
+    const boton = await within(tester).findByRole("button", {
+      name: "Buscar colaboradoras",
+    });
+    expect(boton).toBeDisabled();
+    expect(boton).toHaveAccessibleDescription("La búsqueda de este perfil está cerrada.");
+  });
+
+  test("un proyecto finalizado no ofrece Buscar colaboradoras", async () => {
+    proyecto.estado = "FINALIZADO";
+    proyectosDelColectivo = [{ id: "p1", titulo: "Sistema", estado: "FINALIZADO" }];
+    montar("/proyectos/p1", COLECTIVO);
+    await perfil("Desarrolladora frontend");
+    await screen.findByText("Este proyecto es de tu colectivo");
+    expect(screen.queryByText("Buscar colaboradoras")).not.toBeInTheDocument();
+  });
+
+  test("las colaboradoras y los visitantes no ven Buscar colaboradoras", async () => {
+    montar("/proyectos/p1", COLABORADORA);
+    await perfil("Desarrolladora frontend");
+    await within(await perfil("Tester")).findByRole("button", { name: "Postularme" });
+    expect(screen.queryByText("Buscar colaboradoras")).not.toBeInTheDocument();
   });
 
   test("un colectivo en su propio proyecto ve la franja de dueño y ninguna nota repetida", async () => {

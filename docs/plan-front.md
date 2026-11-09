@@ -124,26 +124,26 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 - **`lazy()` y `Suspense`** para las pantallas privadas, no para `/proyectos`, que es la entrada (§21.5.5).
 - **Rutas:**
 
-| Ruta                                                             | Acceso       | Spec                    |
-| ---------------------------------------------------------------- | ------------ | ----------------------- |
-| `/`                                                              | pública      | redirige a `/proyectos` |
-| `/login`, `/callback`, `/registro`                               | pública      | 01                      |
-| `/proyectos`                                                     | pública      | 05                      |
-| `/proyectos/:id`                                                 | pública      | 06                      |
-| `/proyectos/:id/avance`                                          | pública      | 07                      |
-| `/colectivo/perfil`                                              | COLECTIVO    | 02                      |
-| `/bienvenida/colectivo`                                          | sin perfil   | 02                      |
-| `/colectivos/:id`                                                | pública      | 02                      |
-| `/bienvenida/colaboradora`                                       | sin perfil   | 03                      |
-| `/colaboradoras/:id`                                             | pública      | 03                      |
-| `/colectivo/proyectos`                                           | COLECTIVO    | 04                      |
-| `/colectivo/proyectos/:id/perfiles/:perfilId/colaboradoras`      | COLECTIVO    | 08                      |
-| `/colectivo/postulaciones`                                       | COLECTIVO    | 09                      |
-| `/colectivo/proyectos/:id/colaboradoras/:colaboradorId/contacto` | COLECTIVO    | 12                      |
-| `/colaboradora/perfil`                                           | COLABORADORA | 03                      |
-| `/colaboradora/postulaciones`                                    | COLABORADORA | 10                      |
-| `/mensajes`                                                      | ambos roles  | 11                      |
-| `/sin-permiso`, `*`                                              | pública      | —                       |
+| Ruta                                                   | Acceso       | Spec                    |
+| ------------------------------------------------------ | ------------ | ----------------------- |
+| `/`                                                    | pública      | redirige a `/proyectos` |
+| `/login`, `/callback`, `/registro`                     | pública      | 01                      |
+| `/proyectos`                                           | pública      | 05                      |
+| `/proyectos/:id`                                       | pública      | 06                      |
+| `/proyectos/:id/avance`                                | pública      | 07                      |
+| `/colectivo/perfil`                                    | COLECTIVO    | 02                      |
+| `/bienvenida/colectivo`                                | sin perfil   | 02                      |
+| `/colectivos/:id`                                      | pública      | 02                      |
+| `/bienvenida/colaboradora`                             | sin perfil   | 03                      |
+| `/colaboradoras/:id`                                   | pública      | 03                      |
+| `/colectivo/proyectos`                                 | COLECTIVO    | 04                      |
+| `/proyectos/:id/perfiles/:perfilId/colaboradoras`      | COLECTIVO    | 08                      |
+| `/colectivo/postulaciones`                             | COLECTIVO    | 09                      |
+| `/proyectos/:id/colaboradoras/:colaboradorId/contacto` | COLECTIVO    | 12                      |
+| `/colaboradora/perfil`                                 | COLABORADORA | 03                      |
+| `/colaboradora/postulaciones`                          | COLABORADORA | 10                      |
+| `/mensajes`                                            | ambos roles  | 11                      |
+| `/sin-permiso`, `*`                                    | pública      | —                       |
 
 _Pendiente: confirmar con el docente si se aceptan parámetros `:id` o va `?id=` por la restricción de rutas dinámicas._
 

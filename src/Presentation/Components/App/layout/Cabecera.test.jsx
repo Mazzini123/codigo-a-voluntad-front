@@ -19,7 +19,7 @@ function montar(cuenta, ruta) {
 describe("navegación principal por rol", () => {
   test.each([
     ["un visitante", null, ["Proyectos"]],
-    ["una colaboradora", COLABORADORA, ["Proyectos", "Mis postulaciones"]],
+    ["una colaboradora", COLABORADORA, ["Proyectos", "Mis postulaciones", "Mensajes"]],
     ["un colectivo", COLECTIVO, ["Proyectos", "Panel del colectivo"]],
     ["una cuenta sin perfil", SIN_PERFIL, ["Proyectos"]],
   ])(

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { COLABORACION_ESTADO as ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
+import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { Selector } from "@/Presentation/Components/App/ui/Selector.jsx";
@@ -12,12 +13,18 @@ import {
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
 import { ESTADOS } from "@/Presentation/Formatos/colaboracion.js";
+import {
+  esContribucionAnonimaAceptada,
+  MENSAJE_CONTRIBUCION_ANONIMA,
+  puedeVerContacto,
+} from "@/Presentation/Formatos/contacto.js";
 import { fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { usePostulacionesRecibidas } from "@/Presentation/Hooks/postulacion/usePostulacionesRecibidas.js";
 import {
   estadoParaVolver,
   rutaColaboradora,
+  rutaContactoDeColaboradora,
   rutaProyecto,
 } from "@/Presentation/Routes/rutas.js";
 import estilos from "./PostulacionesRecibidasPage.module.css";
@@ -150,6 +157,7 @@ function Postulaciones({ id }) {
           {grupos.map((grupo) => (
             <Grupo
               key={grupo.perfil?.id ?? "eliminados"}
+              proyectoId={id}
               grupo={grupo}
               editable={proyecto.estado === PROYECTO_ESTADO.ABIERTO}
               ocupado={procesando || cargando}
@@ -174,7 +182,7 @@ function Postulaciones({ id }) {
   );
 }
 
-function Grupo({ grupo, editable, ocupado, alElegir }) {
+function Grupo({ proyectoId, grupo, editable, ocupado, alElegir }) {
   const { perfil, aceptadas } = grupo;
   const sinCupo =
     perfil?.limiteColaboraciones != null && aceptadas >= perfil.limiteColaboraciones;
@@ -191,6 +199,7 @@ function Grupo({ grupo, editable, ocupado, alElegir }) {
         {grupo.filas.map((fila) => (
           <Fila
             key={fila.id}
+            proyectoId={proyectoId}
             fila={fila}
             motivo={motivo}
             editable={editable}
@@ -203,7 +212,7 @@ function Grupo({ grupo, editable, ocupado, alElegir }) {
   );
 }
 
-function Fila({ fila, motivo, editable, ocupado, alElegir }) {
+function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir }) {
   const location = useLocation();
   const persona = fila.esPublica === false ? null : fila.colaborador;
   const nombre =
@@ -240,6 +249,17 @@ function Fila({ fila, motivo, editable, ocupado, alElegir }) {
         )}
       </p>
       {habilidades?.length > 0 && <p>Habilidades: {habilidades.join(", ")}</p>}
+      {puedeVerContacto(fila) && (
+        <div className={estilos.acciones}>
+          <EnlaceBoton
+            to={rutaContactoDeColaboradora(proyectoId, persona.id)}
+            state={estadoParaVolver(location, "Volver a las postulaciones")}
+          >
+            Ver datos de contacto
+          </EnlaceBoton>
+        </div>
+      )}
+      {esContribucionAnonimaAceptada(fila) && <p>{MENSAJE_CONTRIBUCION_ANONIMA}</p>}
       {editable && fila.estado === ESTADO.PENDIENTE && (
         <div className={estilos.acciones}>
           <Boton

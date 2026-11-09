@@ -199,3 +199,31 @@ test("un proyecto finalizado muestra el historial en modo de consulta", async ()
   expect(await screen.findByText("Aceptada")).toBeVisible();
   expect(screen.queryByRole("button", { name: "Desvincular" })).not.toBeInTheDocument();
 });
+
+test("«Ver datos de contacto» aparece solo en aceptadas públicas con id y vuelve a las postulaciones", async () => {
+  filas = [
+    fila("Ada", "ACEPTADA"),
+    fila("Grace", "PENDIENTE"),
+    fila("Linus", "ACEPTADA", { colaborador: { nombre: "Linus" } }),
+    fila("Anónima", "ACEPTADA", {
+      esPublica: false,
+      colaborador: { id: "privada", nombre: "Privada" },
+    }),
+  ];
+  const { user, router } = montar("?estado=ACEPTADA");
+  expect(await screen.findByRole("heading", { name: "Ada" })).toBeVisible();
+  const enlaces = screen.getAllByRole("link", { name: "Ver datos de contacto" });
+  expect(enlaces).toHaveLength(1);
+  expect(enlaces[0]).toHaveAttribute("href", "/proyectos/p1/colaboradoras/Ada/contacto");
+  expect(
+    screen.getByText("Contribución anónima: no se comparten datos de contacto"),
+  ).toBeVisible();
+  expect(document.body).not.toHaveTextContent(/Privada/);
+  await user.click(enlaces[0]);
+  expect(router.state.location.pathname).toBe("/proyectos/p1/colaboradoras/Ada/contacto");
+  expect(router.state.location.state).toEqual({
+    volverA: "/proyectos/p1/postulaciones?estado=ACEPTADA",
+    estadoDeVuelta: null,
+    textoVolver: "Volver a las postulaciones",
+  });
+});

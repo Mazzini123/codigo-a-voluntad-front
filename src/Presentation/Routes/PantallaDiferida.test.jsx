@@ -1,5 +1,5 @@
 import { act, screen, waitFor } from "@testing-library/react";
-import { Link, Route } from "react-router-dom";
+import { Link, Outlet, Route } from "react-router-dom";
 import { montarRutas } from "@/test/montarRutas.jsx";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
 import { RutaProtegida } from "./RutaProtegida.jsx";
@@ -93,3 +93,30 @@ test.each([null, { id: "a", rol: "COLABORADORA", perfilId: "a1" }])(
       });
   },
 );
+
+test("al pasar a otra pantalla diferida en el mismo lugar de la ruta se muestra la nueva", async () => {
+  const PaginaA = () => <h1 tabIndex={-1}>Pantalla A</h1>;
+  const PaginaB = () => <h1 tabIndex={-1}>Pantalla B</h1>;
+  const cargarA = vi.fn().mockResolvedValue({ default: PaginaA });
+  const cargarB = vi.fn().mockResolvedValue({ default: PaginaB });
+  const { user } = montarRutas(
+    <Route element={<RutaProtegida roles={["COLECTIVO"]} />}>
+      <Route
+        element={
+          <>
+            <Outlet />
+            <Link to="/b">Ir a B</Link>
+          </>
+        }
+      >
+        <Route path="/a" element={<PantallaDiferida cargar={cargarA} />} />
+        <Route path="/b" element={<PantallaDiferida cargar={cargarB} />} />
+      </Route>
+    </Route>,
+    { ruta: "/a", cuenta: COLECTIVO },
+  );
+  expect(await screen.findByRole("heading", { name: "Pantalla A" })).toBeInTheDocument();
+  await user.click(screen.getByRole("link", { name: "Ir a B" }));
+  expect(await screen.findByRole("heading", { name: "Pantalla B" })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Pantalla A" })).not.toBeInTheDocument();
+});

@@ -1,0 +1,11 @@
+.seccion,
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.formulario > button {
+  align-self: flex-start;
+}

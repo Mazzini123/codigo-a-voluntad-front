@@ -25,13 +25,17 @@ import {
   RUTA_ADMINISTRAR_PROYECTO,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
+  RUTA_AVANCE_DEL_PROYECTO,
   RUTA_BIENVENIDA,
   RUTA_CALLBACK,
   RUTA_COLABORADORA,
+  RUTA_COLABORADORAS_POTENCIALES,
+  RUTA_CONTACTO_DE_COLABORADORA,
   RUTA_COLECTIVO,
   RUTA_HABILIDADES,
   RUTA_INICIO,
   RUTA_LOGIN,
+  RUTA_MENSAJES,
   RUTA_MIS_PROYECTOS,
   RUTA_NUEVO_PROYECTO,
   RUTA_PERFIL_COLABORADORA,
@@ -47,10 +51,16 @@ import {
   TIPO_DE_PANTALLA,
 } from "./rutas.js";
 
+const cargarAvanceDelProyecto = () =>
+  import("@/Presentation/Pages/publicas/AvancePage.jsx");
 const cargarAdministrarProyecto = () =>
   import("@/Presentation/Pages/colectivo/AdministrarProyectoPage.jsx");
 const cargarPostulacionesRecibidas = () =>
   import("@/Presentation/Pages/colectivo/PostulacionesRecibidasPage.jsx");
+const cargarColaboradorasPotenciales = () =>
+  import("@/Presentation/Pages/colectivo/ColaboradorasPotencialesPage.jsx");
+const cargarContactoDeColaboradora = () =>
+  import("@/Presentation/Pages/colectivo/ContactoDeColaboradoraPage.jsx");
 
 const cargarAltaColaboradoraPage = () =>
   import("@/Presentation/Pages/ingreso/AltaColaboradoraPage.jsx").then((modulo) => ({
@@ -74,6 +84,10 @@ const cargarMisPostulacionesPage = () =>
   import("@/Presentation/Pages/colaboradora/MisPostulacionesPage.jsx").then((modulo) => ({
     default: modulo.MisPostulacionesPage,
   }));
+const cargarMensajesPage = () =>
+  import("@/Presentation/Pages/colaboradora/MensajesPage.jsx").then((modulo) => ({
+    default: modulo.MensajesPage,
+  }));
 const cargarPerfilColectivoPage = () =>
   import("@/Presentation/Pages/colectivo/PerfilColectivoPage.jsx").then((modulo) => ({
     default: modulo.PerfilColectivoPage,
@@ -96,6 +110,11 @@ export const rutas = createRoutesFromElements(
         <Route
           path={RUTA_PROYECTO}
           element={<ProyectoPage />}
+          handle={{ tipoDePantalla: TIPO_DE_PANTALLA.EXPLORACION }}
+        />
+        <Route
+          path={RUTA_AVANCE_DEL_PROYECTO}
+          element={<PantallaDiferida cargar={cargarAvanceDelProyecto} />}
           handle={{ tipoDePantalla: TIPO_DE_PANTALLA.EXPLORACION }}
         />
         {import.meta.env.DEV && (
@@ -160,6 +179,26 @@ export const rutas = createRoutesFromElements(
             />
           </Route>
           <Route
+            element={
+              <RutaDelDueno sinPermiso="Solo el colectivo dueño puede buscar colaboradoras para este proyecto." />
+            }
+          >
+            <Route
+              path={RUTA_COLABORADORAS_POTENCIALES}
+              element={<PantallaDiferida cargar={cargarColaboradorasPotenciales} />}
+            />
+          </Route>
+          <Route
+            element={
+              <RutaDelDueno sinPermiso="Solo el colectivo dueño puede ver los datos de contacto de quienes colaboran en este proyecto." />
+            }
+          >
+            <Route
+              path={RUTA_CONTACTO_DE_COLABORADORA}
+              element={<PantallaDiferida cargar={cargarContactoDeColaboradora} />}
+            />
+          </Route>
+          <Route
             path={RUTA_NUEVO_PROYECTO}
             element={<PantallaDiferida cargar={cargarNuevoProyectoPage} />}
           />
@@ -172,6 +211,10 @@ export const rutas = createRoutesFromElements(
           <Route
             path={RUTA_POSTULACIONES_COLABORADORA}
             element={<PantallaDiferida cargar={cargarMisPostulacionesPage} />}
+          />
+          <Route
+            path={RUTA_MENSAJES}
+            element={<PantallaDiferida cargar={cargarMensajesPage} />}
           />
         </Route>
         <Route

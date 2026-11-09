@@ -1,5 +1,6 @@
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import {
+  RUTA_MENSAJES,
   RUTA_MIS_PROYECTOS,
   RUTA_PERFIL_COLABORADORA,
   RUTA_PERFIL_COLECTIVO,
@@ -17,6 +18,7 @@ const ENLACES_POR_ROL = Object.freeze({
   [ROL_CUENTA.COLABORADORA]: Object.freeze([
     ENLACE_PROYECTOS,
     Object.freeze({ ruta: RUTA_POSTULACIONES_COLABORADORA, texto: "Mis postulaciones" }),
+    Object.freeze({ ruta: RUTA_MENSAJES, texto: "Mensajes" }),
   ]),
   [ROL_CUENTA.COLECTIVO]: Object.freeze([
     ENLACE_PROYECTOS,
