@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { AccionesDeColaboracion } from "@/Presentation/Components/Valoracion/AccionesDeColaboracion.jsx";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { COLABORACION_ESTADO as ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
@@ -166,6 +167,7 @@ function Postulaciones({ id }) {
               grupo={grupo}
               editable={proyecto.estado === PROYECTO_ESTADO.ABIERTO}
               ocupado={procesando || cargando}
+              alActualizar={reintentar}
               alElegir={(tipo, id) => setConfirmacion({ tipo, id })}
             />
           ))}
@@ -187,7 +189,7 @@ function Postulaciones({ id }) {
   );
 }
 
-function Grupo({ proyectoId, grupo, editable, ocupado, alElegir }) {
+function Grupo({ proyectoId, grupo, editable, ocupado, alElegir, alActualizar }) {
   const { perfil, aceptadas } = grupo;
   const sinCupo =
     perfil?.limiteColaboraciones != null && aceptadas >= perfil.limiteColaboraciones;
@@ -210,6 +212,7 @@ function Grupo({ proyectoId, grupo, editable, ocupado, alElegir }) {
             editable={editable}
             ocupado={ocupado}
             alElegir={alElegir}
+            alActualizar={alActualizar}
           />
         ))}
       </ul>
@@ -217,7 +220,7 @@ function Grupo({ proyectoId, grupo, editable, ocupado, alElegir }) {
   );
 }
 
-function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir }) {
+function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActualizar }) {
   const location = useLocation();
   const persona = fila.esPublica === false ? null : fila.colaborador;
   const nombre =
@@ -265,6 +268,12 @@ function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir }) {
         </div>
       )}
       {esContribucionAnonimaAceptada(fila) && <p>{MENSAJE_CONTRIBUCION_ANONIMA}</p>}
+      <AccionesDeColaboracion
+        proyectoId={proyectoId}
+        colaboracion={fila}
+        ocupado={ocupado}
+        alActualizar={alActualizar}
+      />
       {editable && fila.estado === ESTADO.PENDIENTE && (
         <div className={estilos.acciones}>
           <Boton

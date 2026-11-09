@@ -1,4 +1,6 @@
 import { useLocation, useParams } from "react-router-dom";
+import { HistoriaDelColectivo } from "@/Presentation/Components/Colectivo/HistoriaDelColectivo.jsx";
+import { ValoracionesRecibidas } from "@/Presentation/Components/Valoracion/ValoracionesRecibidas.jsx";
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
 import { EnlaceExterno } from "@/Presentation/Components/App/ui/EnlaceExterno.jsx";
 import { EnlaceVolver } from "@/Presentation/Components/App/navegacion/EnlaceVolver.jsx";
@@ -62,7 +64,7 @@ export function ColectivoPage() {
       </section>
     );
   }
-  return <PerfilPublico colectivo={colectivo} />;
+  return <PerfilPublico key={id} colectivo={colectivo} />;
 }
 
 function PerfilPublico({ colectivo }) {
@@ -152,6 +154,8 @@ function PerfilPublico({ colectivo }) {
           />
         )}
       </section>
+      <HistoriaDelColectivo id={colectivo.id} />
+      <ValoracionesRecibidas id={colectivo.id} esColectivo />
     </article>
   );
 }

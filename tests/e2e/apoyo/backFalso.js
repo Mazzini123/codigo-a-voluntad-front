@@ -55,11 +55,172 @@ const ACCIONES = {
   aceptacion: "ACEPTADA",
   rechazo: "RECHAZADA",
   desvinculacion: "DESVINCULADA",
+  finalizacion: "FINALIZADA",
 };
+
+function estadisticas(estado, colectivoId) {
+  const proyectos = [...estado.proyectos.values()].filter(
+    (p) => !colectivoId || p.colectivoId === colectivoId,
+  );
+  const colaboraciones = proyectos.flatMap((p) => p.colaboraciones);
+  const cantidad = (valor) => colaboraciones.filter((c) => c.estado === valor).length;
+  return {
+    colectivos: {
+      total: estado.colectivos.size,
+      activos: [...estado.colectivos.values()].filter((c) => !c.fechaBaja).length,
+    },
+    proyectos: {
+      total: proyectos.length,
+      abiertos: proyectos.filter((p) => p.estado === "ABIERTO").length,
+      finalizados: proyectos.filter((p) => p.estado === "FINALIZADO").length,
+    },
+    colaboradores: { total: estado.colaboradores.size },
+    colaboraciones: {
+      total: colaboraciones.length,
+      pendientes: cantidad("PENDIENTE"),
+      aceptadas: cantidad("ACEPTADA"),
+      finalizadas: cantidad("FINALIZADA"),
+    },
+    visualizaciones: proyectos.reduce((total, p) => total + p.visualizaciones, 0),
+    avancePromedio: proyectos.length
+      ? proyectos.reduce((total, p) => total + p.porcentajeConcrecion, 0) /
+        proyectos.length
+      : 0,
+    logros: proyectos.reduce((total, p) => total + p.logros.length, 0),
+    porProyecto: proyectos.map((p) => ({
+      ...p,
+      logros: p.logros.length,
+      colaboraciones: p.colaboraciones.length,
+    })),
+    habilidadesMasRequeridas: [{ codigo: "react", cantidad: proyectos.length }],
+    habilidadesMasOfrecidas: [],
+    generadoEn: "2026-11-09T12:00:00Z",
+  };
+}
+
+function valoraciones(estado, id, esColectivo) {
+  const filas = [...estado.proyectos.values()]
+    .filter((p) => !esColectivo || p.colectivoId === id)
+    .flatMap((p) =>
+      p.colaboraciones
+        .filter((c) => esColectivo || (c.esPublica && c.colaborador?.id === id))
+        .map((c) => ({
+          ...(esColectivo ? c.valoracionDelColaborador : c.valoracionDelColectivo),
+          proyecto: { id: p.id, titulo: p.titulo },
+          ...(esColectivo
+            ? { autor: c.esPublica ? c.colaborador : null }
+            : {
+                colectivo: {
+                  id: p.colectivoId,
+                  nombre: estado.colectivos.get(p.colectivoId)?.nombre,
+                },
+              }),
+        }))
+        .filter((v) => v.puntaje),
+    );
+  return {
+    cantidad: filas.length,
+    promedio: filas.length
+      ? filas.reduce((n, v) => n + v.puntaje, 0) / filas.length
+      : null,
+    valoraciones: filas,
+  };
+}
 
 function rutas(estado) {
   const nuevoId = (prefijo) => `${prefijo}-${++estado.secuencia}`;
   return [
+    ["GET", /^\/catalogos\/provincias$/, () => ["Buenos Aires"]],
+    ["GET", /^\/estadisticas$/, () => estadisticas(estado)],
+    ["GET", /^\/colectivos\/([^/]+)\/estadisticas$/, ([id]) => estadisticas(estado, id)],
+    [
+      "GET",
+      /^\/colectivos\/([^/]+)\/medios-de-contacto$/,
+      ([id]) => estado.colectivos.get(id)?.mediosDeContacto ?? [],
+    ],
+    [
+      "GET",
+      /^\/colectivos\/([^/]+)\/timeline$/,
+      ([id]) => {
+        const c = estado.colectivos.get(id);
+        if (!c) return null;
+        return [
+          { tipo: "ALTA_DEL_COLECTIVO", fecha: c.fechaAlta },
+          ...proyectosDe(estado, id).map((p) => ({
+            tipo: "PROYECTO_CREADO",
+            fecha: p.fechaCreacion,
+            proyecto: { id: p.id, titulo: p.titulo },
+          })),
+          ...(c.fechaBaja ? [{ tipo: "BAJA_DEL_COLECTIVO", fecha: c.fechaBaja }] : []),
+        ].sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
+      },
+    ],
+    [
+      "GET",
+      /^\/colectivos\/([^/]+)\/valoraciones$/,
+      ([id]) => valoraciones(estado, id, true),
+    ],
+    [
+      "GET",
+      /^\/colaboradores\/([^/]+)\/valoraciones$/,
+      ([id]) => valoraciones(estado, id, false),
+    ],
+    [
+      "POST",
+      /^\/colectivos\/([^/]+)\/baja$/,
+      ([id]) => {
+        const c = estado.colectivos.get(id);
+        if (!c) return null;
+        if (c.fechaBaja)
+          return new Respuesta(409, { message: "Ya estaba dado de baja." });
+        c.fechaBaja = new Date().toISOString();
+        c.cuentaId = null;
+        c.mediosDeContacto = [];
+        c.redesSociales = [];
+        for (const p of estado.proyectos.values())
+          if (p.colectivoId === id && p.estado === "ABIERTO") {
+            p.estado = "FINALIZADO";
+            p.fechaFinalizacion = c.fechaBaja;
+            for (const colaboracion of p.colaboraciones) {
+              if (colaboracion.estado === "PENDIENTE") colaboracion.estado = "RECHAZADA";
+              else if (colaboracion.estado === "ACEPTADA") {
+                colaboracion.estado = "FINALIZADA";
+                colaboracion.fechaFin = c.fechaBaja;
+              }
+            }
+          }
+        return c;
+      },
+    ],
+    [
+      "POST",
+      /^\/proyectos\/([^/]+)\/colaboraciones\/([^/]+)\/valoraciones$/,
+      ([id, colaboracionId], cuerpo) => {
+        const c = estado.proyectos
+          .get(id)
+          ?.colaboraciones.find((c) => c.id === colaboracionId);
+        if (!c) return null;
+        const campo =
+          cuerpo.autor === "COLECTIVO"
+            ? "valoracionDelColectivo"
+            : "valoracionDelColaborador";
+        if (c.estado !== "FINALIZADA" || c[campo])
+          return new Respuesta(409, { message: "No se puede valorar." });
+        if (
+          !Number.isInteger(cuerpo.puntaje) ||
+          cuerpo.puntaje < 1 ||
+          cuerpo.puntaje > 5 ||
+          (cuerpo.comentario?.length ?? 0) > 280
+        )
+          return new Respuesta(400, { message: "Valoración inválida." });
+        c[campo] = {
+          puntaje: cuerpo.puntaje,
+          comentario: cuerpo.comentario,
+          fecha: new Date().toISOString(),
+        };
+        return creado(c[campo]);
+      },
+    ],
     ["GET", /^\/habilidades$/, () => pagina(CATALOGO)],
     [
       "GET",
@@ -105,13 +266,16 @@ function rutas(estado) {
     ],
     [
       "POST",
-      /^\/proyectos\/([^/]+)\/colaboraciones\/([^/]+)\/(aceptacion|rechazo|desvinculacion)$/,
+      /^\/proyectos\/([^/]+)\/colaboraciones\/([^/]+)\/(aceptacion|rechazo|desvinculacion|finalizacion)$/,
       ([id, colaboracionId, accion]) => {
         const colaboracion = estado.proyectos
           .get(id)
           ?.colaboraciones.find((candidata) => candidata.id === colaboracionId);
         if (!colaboracion) return null;
+        if (accion === "finalizacion" && colaboracion.estado !== "ACEPTADA")
+          return new Respuesta(409, { message: "No está aceptada." });
         colaboracion.estado = ACCIONES[accion];
+        if (accion === "finalizacion") colaboracion.fechaFin = new Date().toISOString();
         colaboracion.fechaResolucion = new Date().toISOString();
         return colaboracion;
       },

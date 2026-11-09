@@ -170,22 +170,21 @@ describe("resumen del colectivo", () => {
     ).toBeVisible();
     expect(await screen.findByText("Fundación Verde")).toBeVisible();
     const indicadores = within(screen.getByLabelText("Resumen del colectivo"));
-    expect(indicadores.getByText("Proyectos activos").closest("div")).toHaveTextContent(
-      "2",
-    );
+    expect(indicadores.queryByText("Proyectos activos")).not.toBeInTheDocument();
     expect(indicadores.getByText("Perfiles abiertos").closest("div")).toHaveTextContent(
       "2",
     );
     expect(indicadores.queryByText("Postulaciones pendientes")).not.toBeInTheDocument();
   });
 
-  test("con todas las postulaciones conocidas suma los pendientes", async () => {
+  test("los pendientes se consultan en la seccion de estadisticas", async () => {
     listado[2].colaboraciones = [];
     montar();
     const indicadores = within(await screen.findByLabelText("Resumen del colectivo"));
+    expect(indicadores.queryByText("Postulaciones pendientes")).not.toBeInTheDocument();
     expect(
-      indicadores.getByText("Postulaciones pendientes").closest("div"),
-    ).toHaveTextContent("2");
+      await screen.findByRole("region", { name: "Tus proyectos en n\u00fameros" }),
+    ).toBeVisible();
   });
 
   test("Tus proyectos es un resumen compacto que lleva a Mis proyectos", async () => {

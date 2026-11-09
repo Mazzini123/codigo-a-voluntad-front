@@ -35,6 +35,7 @@ export function leerSesionSimulada(valor) {
 
 export function sesionSimuladaActiva(entorno) {
   if (!entorno.DEV || entorno.MODE === "test") return null;
+  if (entorno.MODE === "demo") return "COLECTIVO";
   return leerSesionSimulada(entorno.VITE_SESION_SIMULADA);
 }
 

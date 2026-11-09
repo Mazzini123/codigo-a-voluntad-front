@@ -1,4 +1,5 @@
 import { Link, useLocation, useParams } from "react-router-dom";
+import { ValoracionesRecibidas } from "@/Presentation/Components/Valoracion/ValoracionesRecibidas.jsx";
 import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { Chip } from "@/Presentation/Components/App/ui/Chip.jsx";
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
@@ -160,6 +161,7 @@ function PerfilPublico({ colaboradora, volver }) {
         </section>
       </div>
       <Historial colaboradoraId={colaboradora.id} />
+      <ValoracionesRecibidas id={colaboradora.id} />
     </article>
   );
 }

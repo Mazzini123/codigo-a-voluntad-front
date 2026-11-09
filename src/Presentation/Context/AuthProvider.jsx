@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { informarFalla } from "@/Presentation/Components/App/sesion/informarFalla.js";
 import { ContextoDeSesion } from "@/Presentation/Context/ContextoDeSesion.js";
@@ -33,6 +33,7 @@ export function AuthProvider({
   children,
 }) {
   const sesion = usarSesion();
+  const [perfilDadoDeBaja, setPerfilDadoDeBaja] = useState(false);
   const {
     autenticado,
     cargando: esperandoIdentidad = false,
@@ -105,8 +106,15 @@ export function AuthProvider({
   const falloDeRecargaDelAlta = error instanceof ErrorAlRecargarCuentaDelAlta;
   const falloDeCuenta = falloDeRecargaDelAlta ? error.cause : error;
   const conservarCuentaDelAlta = falloDeRecargaDelAlta && Boolean(cuentaVerificada);
-  const errorDeCuenta = conservarCuentaDelAlta ? null : falloDeCuenta;
-  const usuario = errorDeCuenta ? null : cuentaVerificada;
+  const errorDeCuenta = conservarCuentaDelAlta || perfilDadoDeBaja ? null : falloDeCuenta;
+  const usuarioSinBaja = errorDeCuenta ? null : cuentaVerificada;
+  const usuario = useMemo(
+    () =>
+      perfilDadoDeBaja && usuarioSinBaja
+        ? { ...usuarioSinBaja, rol: null, perfilId: null }
+        : usuarioSinBaja,
+    [perfilDadoDeBaja, usuarioSinBaja],
+  );
   const verificandoCuenta = cargando || (!datos && !error);
 
   useLayoutEffect(() => {
@@ -140,6 +148,7 @@ export function AuthProvider({
   );
 
   const completarIngreso = useCallback(async () => {
+    setPerfilDadoDeBaja(false);
     vencimientoAvisado.current = false;
     descartada.current = false;
     cambiarSesionHttp(claveSesionHttp, true);
@@ -172,6 +181,11 @@ export function AuthProvider({
     navigate(RUTA_INICIO, { replace: true, flushSync: true });
   }, [avisar, claveSesionHttp, cerrar, ejecutar, navigate]);
 
+  const invalidarPerfil = useCallback(async () => {
+    setPerfilDadoDeBaja(true);
+    await ejecutar();
+  }, [ejecutar]);
+
   const valor = useMemo(
     () => ({
       usuario,
@@ -185,6 +199,8 @@ export function AuthProvider({
       iniciarSesion,
       completarIngreso,
       cerrarSesion,
+      invalidarPerfil,
+      perfilDadoDeBaja,
       asociarPerfil,
       recargarCuenta: ejecutar,
       reintentarCuenta: reintentar,
@@ -201,6 +217,8 @@ export function AuthProvider({
       iniciarSesion,
       completarIngreso,
       cerrarSesion,
+      invalidarPerfil,
+      perfilDadoDeBaja,
       asociarPerfil,
       ejecutar,
       reintentar,

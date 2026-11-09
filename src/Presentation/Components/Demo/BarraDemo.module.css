@@ -1,0 +1,31 @@
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-4);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-bottom: 2px solid var(--color-petroleo);
+  background: var(--color-petroleo-tenue);
+  color: var(--color-tinta);
+}
+.barra div {
+  flex: 1 1 240px;
+}
+.barra p {
+  font-size: var(--texto-body-sm-tamano);
+}
+.barra label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+.barra select,
+.barra button {
+  min-height: var(--toque-minimo);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--color-petroleo);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  color: var(--color-petroleo);
+}

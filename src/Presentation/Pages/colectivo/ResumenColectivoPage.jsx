@@ -1,4 +1,5 @@
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
+import { EstadisticasDelColectivo } from "@/Presentation/Components/Estadistica/EstadisticasDelColectivo.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import { TextoOculto } from "@/Presentation/Components/App/ui/TextoOculto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
@@ -6,7 +7,6 @@ import { CuerpoDelPanel } from "@/Presentation/Components/Colectivo/CuerpoDelPan
 import {
   filasParaElResumen,
   postulacionesPorRevisar,
-  proyectosActivos,
   totalSiCompleto,
 } from "@/Presentation/Formatos/datosDelPanel.js";
 import { FilaDeProyecto } from "@/Presentation/Components/Colectivo/FilaDeProyecto.jsx";
@@ -40,6 +40,7 @@ export function ResumenColectivoPage() {
           Gestioná los proyectos, perfiles y postulaciones de tu colectivo.
         </p>
       </header>
+      <EstadisticasDelColectivo id={usuario.perfilId} />
       <CuerpoDelPanel etiquetaDeCarga="Cargando tus proyectos…">
         {(filas) => (
           <>
@@ -75,16 +76,10 @@ export function ResumenColectivoPage() {
 
 function Indicadores({ filas }) {
   const indicadores = [
-    { titulo: "Proyectos activos", valor: proyectosActivos(filas), icono: "carpeta" },
     {
       titulo: "Perfiles abiertos",
       valor: totalSiCompleto(filas, "abiertos"),
       icono: "personas",
-    },
-    {
-      titulo: "Postulaciones pendientes",
-      valor: totalSiCompleto(filas, "pendientes"),
-      icono: "lista",
     },
   ];
   return (

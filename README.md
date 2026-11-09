@@ -61,9 +61,22 @@ La sesión se adaptó a la estructura de esa rama (`authFactory`, `Provider`, `u
 
 Conservar el router, el cliente HTTP y la consulta de cuenta actuales. No agregar un segundo provider ni considerar que `isAuthenticated` ya define el rol o el perfil. El contrato pendiente con el back es `GET /auth/me` → `{ id, rol, perfilId }`, valores nulos de rol y perfil para cuentas nuevas, y 401 para tokens inválidos. Las altas asocian el perfil al `sub` de Logto y responden 409 si ya existe uno. Scopes y roles en Logto se configuran cuando el backend acuerde qué permisos requiere. Ver `specs/active/integracion-logto-react.md`.
 
+### Modo demo sin backend
+
+```bash
+npm run demo
+```
+
+Abrir <http://localhost:5174>. No necesita backend, Logto ni cambios en `.env`.
+La barra **Modo demo** permite elegir visitante, colectivo, colaboradora o cuenta sin perfil.
+Arranca como colectivo, con proyectos, postulaciones, estad?sticas, avances, historia y valoraciones de ejemplo.
+Como colaboradora pod?s ver las postulaciones, valorar al colectivo y recorrer Mensajes.
+Los cambios son ficticios y se conservan en esa pesta?a, incluso al cambiar de rol o recargar.
+**Reiniciar ejemplos** restaura los datos iniciales. La demo solo funciona en desarrollo y no se incluye en producci?n.
+
 ### Sesión simulada (solo desarrollo)
 
-Para probar las pantallas con sesión sin Logto ni back, poner en `.env` `VITE_SESION_SIMULADA=COLECTIVO`, `COLABORADORA` o `SIN_PERFIL` y reiniciar `npm run dev`. "Ingresar" deja la sesión del rol elegido (pasando por `/callback`, como con Logto) y el menú "Mi cuenta" lo indica. No manda token al back y no existe en el build de producción. Con `VITE_SESION_SIMULADA_PERFIL_ID` la cuenta simulada usa el `id` de un colectivo o una colaboradora real del back (según el rol) como su perfil; con `SIN_PERFIL`, al completar un alta adopta el perfil creado. Para cambiar de rol, editar `.env`, reiniciar y cerrar sesión.
+Para simular solamente el ingreso y el rol sin Logto (los datos siguen requiriendo backend), poner en `.env` `VITE_SESION_SIMULADA=COLECTIVO`, `COLABORADORA` o `SIN_PERFIL` y reiniciar `npm run dev`. "Ingresar" deja la sesión del rol elegido (pasando por `/callback`, como con Logto) y el menú "Mi cuenta" lo indica. No manda token al back y no existe en el build de producción. Con `VITE_SESION_SIMULADA_PERFIL_ID` la cuenta simulada usa el `id` de un colectivo o una colaboradora real del back (según el rol) como su perfil; con `SIN_PERFIL`, al completar un alta adopta el perfil creado. Para cambiar de rol, editar `.env`, reiniciar y cerrar sesión.
 
 ## Scripts
 

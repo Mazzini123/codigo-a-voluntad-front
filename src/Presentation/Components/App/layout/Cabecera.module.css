@@ -74,6 +74,7 @@
 
 @media (width < 22.5rem) {
   .barra {
+    flex-wrap: wrap;
     gap: var(--espacio-2);
     padding-inline: var(--espacio-3);
   }

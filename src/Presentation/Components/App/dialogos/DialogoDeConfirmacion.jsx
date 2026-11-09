@@ -11,6 +11,7 @@ export function DialogoDeConfirmacion({
   textoEnviando,
   textoCancelar = "Cancelar",
   enviando = false,
+  confirmarDeshabilitado = false,
   permanente = true,
   peligroso = permanente,
   alConfirmar,
@@ -68,6 +69,7 @@ export function DialogoDeConfirmacion({
           <Boton
             variante={peligroso ? "peligrosoConfirmar" : "primario"}
             onClick={alConfirmar}
+            disabled={confirmarDeshabilitado}
             enviando={enviando}
             textoEnviando={textoEnviando}
           >

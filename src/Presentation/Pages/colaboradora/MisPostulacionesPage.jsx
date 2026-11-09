@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { AccionesDeColaboracion } from "@/Presentation/Components/Valoracion/AccionesDeColaboracion.jsx";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { COLABORACION_ESTADO as ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
@@ -142,6 +143,7 @@ export function MisPostulacionesPage() {
                   registro={registro}
                   ocupado={procesando}
                   alPedirAccion={pedirAccion}
+                  alActualizar={reintentar}
                 />
               ))}
             </ul>
@@ -177,7 +179,7 @@ function descripcionDeLaAccion({ tipo, registro }) {
   return descripcionDeLaBaja({ proyecto, perfil, esPublica: colaboracion.esPublica });
 }
 
-function Fila({ registro, ocupado, alPedirAccion }) {
+function Fila({ registro, ocupado, alPedirAccion, alActualizar }) {
   const location = useLocation();
   const { proyectoId, colaboracion, proyecto } = registro;
   const perfil = datosDelPerfil(proyecto, colaboracion.perfil, registro.perfil);
@@ -224,6 +226,12 @@ function Fila({ registro, ocupado, alPedirAccion }) {
           </span>
         )}
       </p>
+      <AccionesDeColaboracion
+        proyectoId={proyectoId}
+        colaboracion={colaboracion}
+        ocupado={ocupado}
+        alActualizar={alActualizar}
+      />
       {colaboracion.estado === ESTADO.ACEPTADA && (
         <div className={estilos.acciones}>
           <Boton

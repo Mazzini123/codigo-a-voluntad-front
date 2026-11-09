@@ -36,19 +36,26 @@ beforeEach(() => {
     statusText: "OK",
     headers: {},
     data:
-      config.url === "/proyectos"
-        ? pagina([PROYECTO])
-        : config.url === "/colectivos/c1/proyectos"
-          ? []
-          : config.url === "/colectivos/c1"
-            ? { id: "c1", nombre: "Colectivo de prueba", proyectos: [] }
-            : config.url === "/proyectos/p1"
-              ? PROYECTO
-              : config.url.endsWith("/colaboraciones")
-                ? []
-                : config.url === "/colaboradores/co1"
-                  ? { id: "co1", habilidades: [] }
-                  : pagina([]),
+      config.url === "/estadisticas"
+        ? {
+            colectivos: { total: 0 },
+            proyectos: { total: 0 },
+            colaboradores: { total: 0 },
+            colaboraciones: { total: 0 },
+          }
+        : config.url === "/proyectos"
+          ? pagina([PROYECTO])
+          : config.url === "/colectivos/c1/proyectos"
+            ? []
+            : config.url === "/colectivos/c1"
+              ? { id: "c1", nombre: "Colectivo de prueba", proyectos: [] }
+              : config.url === "/proyectos/p1"
+                ? PROYECTO
+                : config.url.endsWith("/colaboraciones")
+                  ? []
+                  : config.url === "/colaboradores/co1"
+                    ? { id: "co1", habilidades: [] }
+                    : pagina([]),
   }));
   axiosClient.defaults.adapter = transporte;
 });
@@ -88,6 +95,11 @@ test("el visitante ve la portada con contenido completo sin consultar proyectos"
   expect(router.state.location.pathname).toBe("/");
   expect(document.title).toBe("Inicio · Código a Voluntad");
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("heading", { name: "La plataforma en n?meros" }),
+    ).not.toBeInTheDocument(),
+  );
   expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(2);
   expect(screen.getByText("¿Necesito una cuenta para explorar?")).toBeVisible();
   expect(
@@ -105,7 +117,9 @@ test("el visitante ve la portada con contenido completo sin consultar proyectos"
     1,
   );
   await act(async () => {});
-  expect(transporte).not.toHaveBeenCalled();
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+  ).toHaveLength(0);
 });
 
 test("el contenido público permanece disponible mientras se verifica la sesión", async () => {
@@ -153,7 +167,9 @@ test("Publicar un proyecto lleva al registro con la aclaración del paso previo"
   await user.click(publicar);
   await screen.findByRole("heading", { name: "Crear una cuenta" });
   expect(router.state.location.pathname).toBe("/registro");
-  expect(transporte).not.toHaveBeenCalled();
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+  ).toHaveLength(0);
 });
 
 test("las respuestas se pueden desplegar individualmente o todas juntas", async () => {
@@ -251,7 +267,9 @@ test("Cómo funciona también enfoca la sección desde la propia landing", async
     within(screen.getByRole("contentinfo")).getByRole("link", { name: "Cómo funciona" }),
   );
   expect(screen.getByRole("heading", { name: "Dos formas de empezar" })).toHaveFocus();
-  expect(transporte).not.toHaveBeenCalled();
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+  ).toHaveLength(0);
 });
 
 test("la portada y el pie permanecen visibles si falla la verificación de sesión", async () => {
@@ -323,7 +341,9 @@ test("el panel privado espera una cuenta verificada en la misma ruta", async () 
   expect(
     screen.queryByRole("heading", { name: "Resumen del colectivo" }),
   ).not.toBeInTheDocument();
-  expect(transporte).not.toHaveBeenCalled();
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+  ).toHaveLength(0);
 
   await user.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(

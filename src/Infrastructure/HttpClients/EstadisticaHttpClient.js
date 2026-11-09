@@ -7,7 +7,10 @@ export function crearEstadisticaHttpClient(http) {
       return api.get("/estadisticas", { signal });
     },
     async obtenerDeColectivo(colectivoId, { signal } = {}) {
-      return api.get(ruta`/colectivos/${colectivoId}/estadisticas`, { signal });
+      return api.get(ruta`/colectivos/${colectivoId}/estadisticas`, {
+        signal,
+        requiereSesion: true,
+      });
     },
   };
 }

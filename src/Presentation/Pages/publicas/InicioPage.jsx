@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { EstadisticasGlobales } from "@/Presentation/Components/Estadistica/EstadisticasGlobales.jsx";
 import { Navigate, useLocation } from "react-router-dom";
 import ilustracionColaboracion from "@/assets/inicio-colaboracion.webp";
 import ilustracionPreguntas from "@/assets/inicio-preguntas.webp";
@@ -143,6 +144,7 @@ export function InicioPage() {
         </div>
       </section>
 
+      <EstadisticasGlobales />
       <section className={estilos.preguntas} aria-labelledby="preguntas-inicio">
         <img src={ilustracionPreguntas} alt="" width="720" height="310" loading="lazy" />
         <div>

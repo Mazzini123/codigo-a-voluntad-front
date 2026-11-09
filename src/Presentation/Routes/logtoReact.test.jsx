@@ -133,7 +133,9 @@ test.each([
       },
       false,
     );
-    expect(transporte).not.toHaveBeenCalled();
+    expect(
+      transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+    ).toHaveLength(0);
   },
 );
 

@@ -11,6 +11,14 @@ function resumir(violaciones) {
 }
 
 export async function esperarSinViolaciones(page) {
+  await page.evaluate(async () => {
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter((animacion) => animacion.effect?.getTiming().iterations !== Infinity)
+        .map((animacion) => animacion.finished.catch(() => {})),
+    );
+  });
   const { violations } = await new AxeBuilder({ page }).withTags(NORMAS).analyze();
   expect(resumir(violations)).toEqual([]);
 }

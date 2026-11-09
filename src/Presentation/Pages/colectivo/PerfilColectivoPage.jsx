@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { BajaDelColectivo } from "@/Presentation/Components/Colectivo/BajaDelColectivo.jsx";
 import { ColectivoForm } from "@/Presentation/Components/Colectivo/ColectivoForm.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import {
@@ -36,6 +37,7 @@ export function PerfilColectivoPage() {
         </Link>
       </div>
       <Contenido consulta={consulta} edicion={edicion} colectivo={colectivo} />
+      {colectivo && !consulta.error && <BajaDelColectivo colectivo={colectivo} />}
     </section>
   );
 }
