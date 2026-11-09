@@ -1,12 +1,12 @@
 import { useCallback, useRef } from "react";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useMutacion } from "@/Presentation/Hooks/comunes/useMutacion.js";
 
 const MENSAJES = Object.freeze({ 409: "Tu cuenta ya tiene un perfil." });
 
 export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
-  const { usuario, asociarPerfil, recargarCuenta } = useSesion();
+  const { usuario, asociarPerfil, recargarCuenta } = useAuth();
   const avisar = useAvisos();
   const registro = useRef(null);
 

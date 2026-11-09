@@ -12,7 +12,7 @@ import { clases } from "@/Presentation/Components/App/ui/clases.js";
 import { MensajeDeLaBandeja } from "@/Presentation/Components/Mensaje/MensajeDeLaBandeja.jsx";
 import { TITULO_SIN_MENSAJES } from "@/Presentation/Formatos/mensaje.js";
 import { useMensajes } from "@/Presentation/Hooks/mensaje/useMensajes.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import estilos from "./MensajesPage.module.css";
 
 function leerPagina(valor) {
@@ -33,7 +33,7 @@ function Cargando() {
 }
 
 export function MensajesPage() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const [parametros, setParametros] = useSearchParams();
   const pagina = leerPagina(parametros.get("pagina"));
   const { resultado, error, cargando, cargandoPagina, reintentar } = useMensajes(

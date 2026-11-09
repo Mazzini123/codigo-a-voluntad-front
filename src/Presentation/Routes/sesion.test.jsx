@@ -4,15 +4,14 @@ import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import { MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
-import { ProveedorDeSesion } from "@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx";
+import { AuthProvider } from "@/Presentation/Context/AuthProvider.jsx";
 import { ProveedorDeAvisos } from "@/Presentation/Components/App/avisos/ProveedorDeAvisos.jsx";
 import { crearAuthDependencies } from "@/Presentation/Dependencies/authDependencies.js";
-import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
-import {
-  crearAuthHttpClientSimulado,
-  crearIdentidadSimulada,
-} from "@/Infrastructure/Auth/sesionSimulada.js";
-import { crearIdentidadSinConfigurar } from "@/Infrastructure/Auth/elegirProveedorDeIdentidad.js";
+import { crearSesionFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
+import { crearAuthHttpClientSimulado } from "@/Infrastructure/Auth/sesionSimulada.js";
+import { crearSesionSimulada } from "@/Infrastructure/Auth/simulada/crearSesionSimulada.js";
+import { SinConfigurarCallback } from "@/Infrastructure/Auth/SinConfigurarCallback.jsx";
+import { useSesionSinConfigurar } from "@/Infrastructure/Auth/sinConfigurar.js";
 import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
 import { BienvenidaPage } from "@/Presentation/Pages/ingreso/BienvenidaPage.jsx";
 import { CallbackPage } from "@/Presentation/Pages/ingreso/CallbackPage.jsx";
@@ -52,12 +51,13 @@ function PaginaPrivada() {
   return <h1 tabIndex={-1}>Panel del colectivo</h1>;
 }
 
-function Aplicacion({ ruta, identidad, dependencies }) {
+function Aplicacion({ ruta, sesion, dependencies }) {
   return (
     <MemoryRouter initialEntries={[ruta]}>
       <ProveedorDeAvisos>
-        <ProveedorDeSesion
-          identidad={identidad}
+        <AuthProvider
+          usarSesion={sesion.usarSesion}
+          CallbackComponent={sesion.CallbackComponent}
           dependencies={dependencies ?? dependenciasDelBack}
         >
           <Routes>
@@ -67,7 +67,7 @@ function Aplicacion({ ruta, identidad, dependencies }) {
               <Route path="/colectivo/resumen" element={<h1 tabIndex={-1}>Inicio</h1>} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registro" element={<LoginPage registro />} />
-              <Route path="/callback" element={<CallbackPage />} />
+              <Route path="/auth/callback" element={<CallbackPage />} />
               <Route path="/sin-permiso" element={<SinPermisoPage />} />
               <Route element={<RutaProtegida permitirSinPerfil />}>
                 <Route path="/bienvenida" element={<BienvenidaPage />} />
@@ -77,7 +77,7 @@ function Aplicacion({ ruta, identidad, dependencies }) {
               </Route>
             </Route>
           </Routes>
-        </ProveedorDeSesion>
+        </AuthProvider>
       </ProveedorDeAvisos>
     </MemoryRouter>
   );
@@ -85,14 +85,14 @@ function Aplicacion({ ruta, identidad, dependencies }) {
 
 function montar(
   ruta,
-  { autenticado = Boolean(cuenta), identidad, dependencies, estricto = false } = {},
+  { autenticado = Boolean(cuenta), sesion, dependencies, estricto = false } = {},
 ) {
-  const identidadUsada = identidad ?? crearIdentidadFalsa({ autenticado });
+  const sesionUsada = sesion ?? crearSesionFalsa({ autenticado });
   const arbol = (
-    <Aplicacion ruta={ruta} identidad={identidadUsada} dependencies={dependencies} />
+    <Aplicacion ruta={ruta} sesion={sesionUsada} dependencies={dependencies} />
   );
   const vista = render(estricto ? <StrictMode>{arbol}</StrictMode> : arbol);
-  return { user: userEvent.setup(), identidad: identidadUsada, ...vista };
+  return { user: userEvent.setup(), sesion: sesionUsada, ...vista };
 }
 
 beforeEach(() => {
@@ -141,23 +141,23 @@ test("el pedido de la cuenta lleva el token de la sesión", async () => {
 
 test("sin sesión lleva a /login y, después de ingresar, vuelve a la ruta pedida", async () => {
   cuenta = null;
-  const { user, identidad, unmount } = montar("/colectivo/privada");
+  const { user, sesion, unmount } = montar("/colectivo/privada");
   await titulo("Iniciar sesión");
   expect(transporte).not.toHaveBeenCalled();
   await user.click(screen.getByRole("button", { name: "Ingresar" }));
-  expect(identidad.inicios).toEqual([{ registro: false }]);
+  expect(sesion.inicios).toEqual([{ registro: false }]);
   unmount();
 
   cuenta = COLECTIVO;
-  montar("/callback", { identidad });
+  montar("/auth/callback", { sesion });
   expect(await titulo("Panel del colectivo")).toBeInTheDocument();
 });
 
 test("Crear una cuenta abre el registro de Logto", async () => {
   cuenta = null;
-  const { user, identidad } = montar("/login");
+  const { user, sesion } = montar("/login");
   await user.click(await screen.findByRole("button", { name: "Crear una cuenta" }));
-  expect(identidad.inicios).toEqual([{ registro: true }]);
+  expect(sesion.inicios).toEqual([{ registro: true }]);
 });
 
 test("con un rol no permitido muestra Sin permiso sin cerrar la sesión", async () => {
@@ -197,12 +197,12 @@ test("ante un 401 avisa una sola vez, olvida la sesión y lleva a /login", async
     if (config.url === "/auth/me") return respuesta(config, cuenta);
     return falla(config, 401);
   });
-  const { identidad } = montar("/colectivo/privada");
+  const { sesion } = montar("/colectivo/privada");
   expect(await titulo("Iniciar sesión")).toBeInTheDocument();
   expect(screen.getAllByText("Tu sesión venció. Iniciá sesión de nuevo.")).toHaveLength(
     1,
   );
-  expect(await identidad.estaAutenticado()).toBe(false);
+  await waitFor(() => expect(sesion.autenticado).toBe(false));
   await waitFor(() =>
     expect(screen.getAllByRole("button", { name: "Ingresar" })).toHaveLength(1),
   );
@@ -214,10 +214,10 @@ test("un 401 lleva al ingreso aunque falle la limpieza de la identidad", async (
     return falla(config, 401);
   });
   const informar = vi.spyOn(console, "error").mockImplementation(() => {});
-  const identidad = crearIdentidadFalsa({ autenticado: true });
+  const sesion = crearSesionFalsa({ autenticado: true });
   const { promise, reject } = Promise.withResolvers();
-  const olvidar = vi.spyOn(identidad, "olvidarSesion").mockReturnValue(promise);
-  montar("/colectivo/privada", { identidad });
+  const olvidar = vi.spyOn(sesion, "limpiar").mockReturnValue(promise);
+  montar("/colectivo/privada", { sesion });
 
   expect(await titulo("Iniciar sesión")).toBeInTheDocument();
   expect(olvidar).toHaveBeenCalledTimes(1);
@@ -237,19 +237,19 @@ test("con sesión, /login lleva al inicio", async () => {
 });
 
 test("la vuelta de Logto se completa una sola vez aunque StrictMode monte dos veces", async () => {
-  const identidad = crearIdentidadFalsa();
-  const completar = vi.spyOn(identidad, "completarIngreso");
-  montar("/callback", { identidad, estricto: true });
+  const sesion = crearSesionFalsa();
+  const completar = vi.spyOn(sesion, "completarIngreso");
+  montar("/auth/callback", { sesion, estricto: true });
   expect(await titulo("Inicio")).toBeInTheDocument();
   expect(completar).toHaveBeenCalledTimes(1);
 });
 
 test("si la vuelta de Logto falla, explica y ofrece volver a ingresar", async () => {
-  const identidad = crearIdentidadFalsa();
-  identidad.completarIngreso = async () => {
+  const sesion = crearSesionFalsa();
+  sesion.completarIngreso = async () => {
     throw new Error("state inválido");
   };
-  montar("/callback", { identidad });
+  montar("/auth/callback", { sesion });
   expect(await titulo("No pudimos iniciar sesión")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Volver a ingresar" })).toHaveAttribute(
     "href",
@@ -268,7 +268,7 @@ describe("cabecera", () => {
   });
 
   test("Cerrar sesión pide confirmación y vuelve a mostrar Ingresar", async () => {
-    const { user, identidad } = montar("/habilidades");
+    const { user, sesion } = montar("/habilidades");
     const miCuenta = await screen.findByRole("button", { name: "Mi cuenta" });
     await user.click(miCuenta);
     expect(miCuenta).toHaveAttribute("aria-expanded", "true");
@@ -276,15 +276,15 @@ describe("cabecera", () => {
     const dialogo = screen.getByRole("dialog", { name: "¿Cerrar sesión?" });
     expect(dialogo).not.toHaveTextContent("Esta acción no se puede deshacer.");
     await user.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
-    expect(identidad.salidas).toBe(1);
+    expect(sesion.salidas).toBe(1);
     expect(await screen.findByRole("button", { name: "Ingresar" })).toBeInTheDocument();
   });
 
   test("si falla el cierre de sesión lo avisa, conserva la sesión e informa la causa", async () => {
     const informar = vi.spyOn(console, "error").mockImplementation(() => {});
-    const { user, identidad } = montar("/habilidades");
+    const { user, sesion } = montar("/habilidades");
     const causa = new Error("Logto no respondió");
-    vi.spyOn(identidad, "cerrarSesion").mockRejectedValue(causa);
+    vi.spyOn(sesion, "cerrar").mockRejectedValue(causa);
     await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
     await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
     const dialogo = screen.getByRole("dialog", { name: "¿Cerrar sesión?" });
@@ -311,19 +311,19 @@ describe("sesión simulada", () => {
     const ubicacion = { assign: vi.fn() };
     return {
       ubicacion,
-      identidad: crearIdentidadSimulada(tipo, ubicacion),
+      sesion: crearSesionSimulada(tipo, ubicacion),
       dependencies: crearAuthDependencies(axiosClient, crearAuthHttpClientSimulado(tipo)),
     };
   }
 
   async function ingresarDesde(ruta, tipo) {
-    const { ubicacion, identidad, dependencies } = simulada(tipo);
-    const { user, unmount } = montar(ruta, { identidad, dependencies });
+    const { ubicacion, sesion, dependencies } = simulada(tipo);
+    const { user, unmount } = montar(ruta, { sesion, dependencies });
     await titulo("Iniciar sesión");
     await user.click(await screen.findByRole("button", { name: "Ingresar" }));
-    expect(ubicacion.assign).toHaveBeenCalledWith("/callback");
+    expect(ubicacion.assign).toHaveBeenCalledWith("/auth/callback");
     unmount();
-    return montar("/callback", { identidad, dependencies });
+    return montar("/auth/callback", { sesion, dependencies });
   }
 
   test("SIN_PERFIL termina eligiendo el tipo de cuenta", async () => {
@@ -352,9 +352,12 @@ test.each([
   "sin Logto, %s abre la pantalla local sin pedir credenciales",
   async (accion, encabezado) => {
     cuenta = null;
-    const identidad = crearIdentidadSinConfigurar();
-    const iniciar = vi.spyOn(identidad, "iniciarSesion");
-    const { user } = montar("/habilidades", { identidad });
+    const sinConfigurar = {
+      usarSesion: useSesionSinConfigurar,
+      CallbackComponent: SinConfigurarCallback,
+    };
+    const iniciar = vi.spyOn(useSesionSinConfigurar(), "iniciar");
+    const { user } = montar("/habilidades", { sesion: sinConfigurar });
     await user.click(
       await within(screen.getByRole("banner")).findByRole("link", { name: accion }),
     );

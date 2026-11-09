@@ -251,7 +251,7 @@
 
 ### Autenticación y rutas
 
-- **`ContextoDeSesion` + `useSesion()`**, que lanza un error si se usa fuera del provider. Al iniciar, verifica si la sesión sigue vigente.
+- **`AuthProvider` + `useAuth()`**, que lanza un error si se usa fuera del provider. Al iniciar, verifica si la sesión sigue vigente.
 - **`RutaProtegida` con `<Outlet />`**, con un estado de carga accesible (`role="status"`) mientras se verifica la sesión.
 - **Rutas anidadas:** `RutaProtegida` → `Layout` (navbar una sola vez) → páginas.
 - **Las rutas de landing y login redirigen al inicio** si ya hay sesión; un `*` final redirige a la home o a una página 404.

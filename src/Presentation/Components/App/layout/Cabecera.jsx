@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   enlacesPrincipalesPara,
   estaActivo,
@@ -14,7 +14,7 @@ import { RUTA_INICIO } from "@/Presentation/Routes/rutas.js";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
 export function Cabecera() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const { pathname } = useLocation();
   const enlaces = enlacesPrincipalesPara(usuario?.rol);
   const usaMenu = enlaces.length >= MINIMO_ENLACES_PARA_MENU;

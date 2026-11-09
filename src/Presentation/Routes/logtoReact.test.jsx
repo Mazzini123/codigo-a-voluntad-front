@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import axios from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
+import { LogtoSesionProvider } from "@/Infrastructure/Auth/logto/LogtoSesionProvider.jsx";
 import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
 import { rutas } from "./RutasDeLaApp.jsx";
 
@@ -40,17 +41,27 @@ vi.mock("@logto/react", async (importOriginal) => {
   };
 });
 
+vi.mock("@/Infrastructure/Auth/logto/logtoConfig.js", () => ({
+  logtoConfig: {
+    endpoint: "https://tenant.logto.app",
+    appId: "app-123",
+    resources: ["https://api.codigo-a-voluntad"],
+  },
+}));
+
 vi.mock(
   "@/Presentation/Dependencies/identidadDependencies.js",
   async (importOriginal) => {
     const original = await importOriginal();
+    const { LogtoCallback } =
+      await import("@/Infrastructure/Auth/logto/LogtoCallback.jsx");
+    const { useSesionLogto } =
+      await import("@/Infrastructure/Auth/logto/useSesionLogto.js");
     return {
       ...original,
-      proveedorDeIdentidad: { tipo: original.PROVEEDOR_DE_IDENTIDAD.LOGTO },
-      configuracionLogto: {
-        endpoint: "https://tenant.logto.app",
-        appId: "app-123",
-        resources: ["https://api.codigo-a-voluntad"],
+      configuracionAuth: {
+        usarSesion: useSesionLogto,
+        CallbackComponent: LogtoCallback,
       },
     };
   },
@@ -93,7 +104,11 @@ function montar(ruta = "/", estricto = false) {
   const router = createMemoryRouter([{ ...rutas[0], element: <Raiz /> }], {
     initialEntries: [ruta],
   });
-  const app = <RouterProvider router={router} />;
+  const app = (
+    <LogtoSesionProvider>
+      <RouterProvider router={router} />
+    </LogtoSesionProvider>
+  );
   render(estricto ? <StrictMode>{app}</StrictMode> : app);
   return { router, user: userEvent.setup() };
 }
@@ -107,7 +122,7 @@ test.each([
     const { user } = montar();
     await user.click(await screen.findByRole("button", { name: nombre }));
     expect(sdk.signIn).toHaveBeenCalledWith({
-      redirectUri: `${window.location.origin}/callback`,
+      redirectUri: `${window.location.origin}/auth/callback`,
       firstScreen,
     });
     expect(cliente).toHaveBeenCalledWith(
@@ -153,7 +168,7 @@ test("el callback espera la autenticación antes de pedir la cuenta y conserva e
     }),
   );
   sessionStorage.setItem("codigo-a-voluntad:volver-a", "/bienvenida");
-  const { router } = montar("/callback?code=abc&state=xyz");
+  const { router } = montar("/auth/callback?code=abc&state=xyz");
   expect(await screen.findByText("Iniciando sesión…")).toBeVisible();
   await waitFor(() => expect(sdk.handleSignInCallback).toHaveBeenCalled());
   expect(transporte).not.toHaveBeenCalled();
@@ -186,7 +201,7 @@ test("si falla la cuenta durante el callback, reintenta la consulta y conserva e
           recuperarCuenta = () => resolve(responder(config));
         }),
     );
-  const { user, router } = montar("/callback?code=abc&state=xyz");
+  const { user, router } = montar("/auth/callback?code=abc&state=xyz");
 
   expect(
     await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
@@ -229,7 +244,7 @@ test.each([false, true])(
   async (incompleto) => {
     if (incompleto) sdk.isSignInRedirected.mockReset().mockResolvedValue(false);
     else sdk.handleSignInCallback.mockRejectedValue(new Error("callback inválido"));
-    montar(incompleto ? "/callback" : "/callback?code=abc&state=xyz");
+    montar(incompleto ? "/auth/callback" : "/auth/callback?code=abc&state=xyz");
     expect(
       await screen.findByRole("heading", { name: "No pudimos iniciar sesión" }),
     ).toBeVisible();
@@ -254,7 +269,7 @@ test("cerrar sesión usa la salida del SDK y vuelve a la portada", async () => {
 
 test("un enlace de callback sin intento de ingreso activo ofrece volver", async () => {
   sdk.isSignInRedirected.mockReset().mockResolvedValue(false);
-  montar("/callback?code=viejo&state=viejo");
+  montar("/auth/callback?code=viejo&state=viejo");
   expect(
     await screen.findByRole("link", { name: "Volver a ingresar" }, { timeout: 2000 }),
   ).toBeVisible();
@@ -262,7 +277,7 @@ test("un enlace de callback sin intento de ingreso activo ofrece volver", async 
 });
 
 test("el callback del SDK funciona dentro de StrictMode", async () => {
-  montar("/callback?code=abc&state=xyz", true);
+  montar("/auth/callback?code=abc&state=xyz", true);
   expect(
     await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
   ).toBeVisible();

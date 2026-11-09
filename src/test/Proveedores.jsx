@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { ProveedorDeSesion } from "@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx";
+import { AuthProvider } from "@/Presentation/Context/AuthProvider.jsx";
 import { ProveedorDeAvisos } from "@/Presentation/Components/App/avisos/ProveedorDeAvisos.jsx";
-import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
+import { crearSesionFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 
 export function Proveedores({
   ruta = "/",
   cuenta = null,
-  identidad,
+  sesion,
   dependencies,
   children,
 }) {
-  const [identidadDePrueba] = useState(
-    () => identidad ?? crearIdentidadFalsa({ autenticado: Boolean(cuenta) }),
+  const [sesionDePrueba] = useState(
+    () => sesion ?? crearSesionFalsa({ autenticado: Boolean(cuenta) }),
   );
   const [dependenciasDePrueba] = useState(
     () => dependencies ?? { obtenerCuentaActual: async () => cuenta },
@@ -20,12 +20,13 @@ export function Proveedores({
   return (
     <MemoryRouter initialEntries={[ruta]}>
       <ProveedorDeAvisos>
-        <ProveedorDeSesion
-          identidad={identidadDePrueba}
+        <AuthProvider
+          usarSesion={sesionDePrueba.usarSesion}
+          CallbackComponent={sesionDePrueba.CallbackComponent}
           dependencies={dependenciasDePrueba}
         >
           {children}
-        </ProveedorDeSesion>
+        </AuthProvider>
       </ProveedorDeAvisos>
     </MemoryRouter>
   );

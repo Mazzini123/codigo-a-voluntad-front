@@ -4,14 +4,14 @@ import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { ErrorDeVerificacionDeCuenta } from "@/Presentation/Components/App/sesion/ErrorDeVerificacionDeCuenta.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useIngreso } from "@/Presentation/Hooks/sesion/useIngreso.js";
 import { inicioPorRol, RUTA_PROYECTOS } from "@/Presentation/Routes/rutas.js";
 import estilos from "./LoginPage.module.css";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
 export function LoginPage({ registro = false }) {
-  const { usuario, ingresoSinConfigurar, errorDeCuenta } = useSesion();
+  const { usuario, ingresoSinConfigurar, errorDeCuenta } = useAuth();
   const { abriendo, abrir } = useIngreso();
 
   if (errorDeCuenta) return <ErrorDeVerificacionDeCuenta />;

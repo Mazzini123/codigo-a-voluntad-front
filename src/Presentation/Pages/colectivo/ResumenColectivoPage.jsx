@@ -13,7 +13,7 @@ import { FilaDeProyecto } from "@/Presentation/Components/Colectivo/FilaDeProyec
 import panel from "@/Presentation/Components/Colectivo/PanelDelColectivo.module.css";
 import { PostulacionesPorRevisar } from "@/Presentation/Components/Colectivo/PostulacionesPorRevisar.jsx";
 import { textoPostulacionesPorRevisar } from "@/Presentation/Formatos/proyecto.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { usePanelDelColectivo } from "@/Presentation/Hooks/colectivo/usePanelDelColectivo.js";
 import { enlaceDePerfilPara } from "@/Presentation/Routes/navegacion.js";
 import {
@@ -27,7 +27,7 @@ const MAXIMO_PROYECTOS = 3;
 const MAXIMO_POSTULACIONES = 3;
 
 export function ResumenColectivoPage() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const { nombre, proyectos, error } = usePanelDelColectivo();
   const tieneProyectos = !error && proyectos?.length > 0;
   return (

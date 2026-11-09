@@ -1,32 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { ErrorDeVerificacionDeCuenta } from "@/Presentation/Components/App/sesion/ErrorDeVerificacionDeCuenta.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { inicioPorRol, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
 import estilos from "./CallbackPage.module.css";
 
 export function CallbackPage() {
-  const { usuario, cargando, errorDeCuenta, completarIngreso, callbackExterno } =
-    useSesion();
+  const { usuario, cargando, errorDeCuenta, completarIngreso, CallbackComponent } =
+    useAuth();
   const iniciado = useRef(false);
+  const [proveedor, setProveedor] = useState("procesando");
   const [resultado, setResultado] = useState({
     listo: false,
     volverA: null,
     fallo: false,
   });
+  const alCompletarElProveedor = useCallback(() => setProveedor("listo"), []);
+  const alFallarElProveedor = useCallback(() => setProveedor("fallo"), []);
 
   useEffect(() => {
-    if (iniciado.current) return;
-    if (callbackExterno && (!callbackExterno.listo || callbackExterno.fallo)) return;
+    if (proveedor !== "listo" || iniciado.current) return;
     iniciado.current = true;
-    completarIngreso(window.location.href)
+    completarIngreso()
       .then((volverA) => setResultado({ listo: true, volverA, fallo: false }))
       .catch(() => setResultado({ listo: false, volverA: null, fallo: true }));
-  }, [completarIngreso, callbackExterno]);
+  }, [proveedor, completarIngreso]);
 
-  if (resultado.fallo || callbackExterno?.fallo) {
+  if (resultado.fallo || proveedor === "fallo") {
     return (
       <div className={estilos.callback}>
         <TituloDePagina>No pudimos iniciar sesión</TituloDePagina>
@@ -53,6 +55,10 @@ export function CallbackPage() {
       <p role="status" className={estilos.estado}>
         Iniciando sesión…
       </p>
+      <CallbackComponent
+        alCompletar={alCompletarElProveedor}
+        alFallar={alFallarElProveedor}
+      />
     </div>
   );
 }

@@ -110,9 +110,9 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 
 ### 5.3 Sesión y rutas (§22.4)
 
-- **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx`, consumido a través de Dependencies y del contrato propio de identidad (`estaAutenticado`, `iniciarSesion`, `completarIngreso`, `obtenerToken`, `cerrarSesion`, `olvidarSesion`). El callback real lo completa `useHandleSignInCallback`; `ProveedorDeSesion` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
+- **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/logto/`; `authFactory.js` devuelve `{ Provider, usarSesion, CallbackComponent }` y `usarSesion()` cumple el contrato `{ autenticado, cargando, error, iniciar, cerrar, limpiar, obtenerToken }`. El callback real lo completa `LogtoCallback` (`useHandleSignInCallback`); `AuthProvider` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
 - **El rol y el perfil vienen del back** (`GET /auth/me`, pendiente en el back), no del proveedor: el proveedor dice quién es la persona; el back, qué es en la plataforma.
-- **`ProveedorDeSesion` + `useSesion()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe el adaptador por parámetro para poder probarlo con uno falso.
+- **`AuthProvider` + `useAuth()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe `usarSesion` y `CallbackComponent` por parámetro para poder probarlo con una sesión falsa (`crearSesionFalsa`).
 - **Almacenamiento a cargo del SDK de Logto en `localStorage`**, según la decisión aprobada del 05/11 que revisa la preferencia inicial por memoria (§22.4.3). El frontend no copia tokens a otro almacenamiento. Mantener la mitigación de vencimiento corto, rotación del refresh token y CSP en el despliegue.
 - **Contexto en vez de Zustand o Redux:** en una aplicación mediana el contexto alcanza (§21.4.12).
 - **`RutaProtegida` recibe los roles permitidos** (`<RutaProtegida roles={['COLECTIVO']} />`):
@@ -127,7 +127,7 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 | Ruta                                                   | Acceso       | Spec                    |
 | ------------------------------------------------------ | ------------ | ----------------------- |
 | `/`                                                    | pública      | redirige a `/proyectos` |
-| `/login`, `/callback`, `/registro`                     | pública      | 01                      |
+| `/login`, `/auth/callback`, `/registro`                | pública      | 01                      |
 | `/proyectos`                                           | pública      | 05                      |
 | `/proyectos/:id`                                       | pública      | 06                      |
 | `/proyectos/:id/avance`                                | pública      | 07                      |

@@ -1,5 +1,5 @@
 import { Outlet, ScrollRestoration, useMatches } from "react-router-dom";
-import { ProveedorDeSesion } from "@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx";
+import { AuthProvider } from "@/Presentation/Context/AuthProvider.jsx";
 import { ProveedorDeAvisos } from "@/Presentation/Components/App/avisos/ProveedorDeAvisos.jsx";
 import { PieDePagina } from "./PieDePagina.jsx";
 import { TIPO_DE_PANTALLA } from "@/Presentation/Routes/rutas.js";
@@ -18,15 +18,19 @@ function useTipoDePantalla() {
     .tipoDePantalla;
 }
 
-export function Raiz({ identidad, dependencies }) {
+export function Raiz({ usarSesion, CallbackComponent, dependencies }) {
   const tipo = useTipoDePantalla();
   return (
     <ProveedorDeAvisos>
       <div className={clases(estilos.pagina, ...(CLASES_POR_TIPO[tipo] ?? []))}>
-        <ProveedorDeSesion identidad={identidad} dependencies={dependencies}>
+        <AuthProvider
+          usarSesion={usarSesion}
+          CallbackComponent={CallbackComponent}
+          dependencies={dependencies}
+        >
           <Outlet />
           <ScrollRestoration />
-        </ProveedorDeSesion>
+        </AuthProvider>
         <PieDePagina />
       </div>
     </ProveedorDeAvisos>

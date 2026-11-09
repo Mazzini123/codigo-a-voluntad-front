@@ -30,7 +30,7 @@ import {
   selloDeProyecto,
 } from "@/Presentation/Formatos/proyecto.js";
 import { perfilesAbiertos } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useEsDuenoDelProyecto } from "@/Presentation/Hooks/proyecto/useEsDuenoDelProyecto.js";
 import { useHabilidadesPropias } from "@/Presentation/Hooks/colaboradora/useHabilidadesPropias.js";
 import { usePostulacionesEnProyecto } from "@/Presentation/Hooks/postulacion/usePostulacionesEnProyecto.js";
@@ -53,7 +53,7 @@ export function ProyectoPage() {
 }
 
 function ProyectoPorId({ id }) {
-  const { usuario, cargando: verificandoSesion } = useSesion();
+  const { usuario, cargando: verificandoSesion } = useAuth();
   const { proyecto, error, recargar } = useProyecto(id);
   const colaboradoraId =
     usuario?.rol === ROL_CUENTA.COLABORADORA ? usuario.perfilId : null;

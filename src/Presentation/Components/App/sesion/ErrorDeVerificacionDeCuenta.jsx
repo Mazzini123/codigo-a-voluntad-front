@@ -1,4 +1,4 @@
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import estilos from "./ErrorDeVerificacionDeCuenta.module.css";
@@ -6,7 +6,7 @@ import estilos from "./ErrorDeVerificacionDeCuenta.module.css";
 const TITULO = "No pudimos verificar tu sesión";
 
 export function ErrorDeVerificacionDeCuenta() {
-  const { errorDeCuenta, reintentarCuenta } = useSesion();
+  const { errorDeCuenta, reintentarCuenta } = useAuth();
 
   return (
     <div className={estilos.contenedor}>

@@ -9,16 +9,16 @@ Usar el mismo SDK de React que la integración de Facundo, conservando la consul
 ## Escenarios
 
 - Sin sesión, «Ingresar» abre Logto con `firstScreen: "signIn"`; «Crear una cuenta», con `firstScreen: "register"`. Ambos conservan ruta, filtros y fragmento de origen.
-- Al volver a `/callback`, el SDK completa la autenticación y recién entonces se consulta `/auth/me`. La cuenta del backend determina el rol y el perfil; una cuenta nueva llega a Bienvenida.
+- Al volver a `/auth/callback`, el SDK completa la autenticación y recién entonces se consulta `/auth/me`. La cuenta del backend determina el rol y el perfil; una cuenta nueva llega a Bienvenida.
 - Al recargar una ruta privada, se espera la inicialización del SDK y la consulta de cuenta antes de resolver los permisos.
 - Una falla al abrir el ingreso muestra un aviso genérico y habilita el reintento. Un callback inválido ofrece volver a ingresar.
 - Con sesión, se mantiene Mi cuenta y el cierre con confirmación.
 
 ## Requisitos
 
-- Un solo `LogtoProvider`; `useLogto` y `useHandleSignInCallback` quedan en `Infrastructure/Auth`, accesibles a Presentation a través de Dependencies.
-- `ProveedorDeSesion` sigue resolviendo la cuenta de dominio y la expiración por 401; autenticación de Logto no implica perfil ni rol de la plataforma.
-- Se mantiene `/callback`, el retorno de salida a `/` y `VITE_LOGTO_RECURSO` como nombre de configuración del recurso. No se integra el router ni el cliente HTTP antiguo del ZIP.
+- Estructura de la rama de Facundo: `authFactory` → `{ Provider, usarSesion, CallbackComponent }`, un solo `LogtoProvider` en `main.jsx` y `useLogto`/`useHandleSignInCallback` solo en `Infrastructure/Auth/logto/`.
+- `AuthProvider` (`useAuth`) sigue resolviendo la cuenta de dominio y la expiración por 401; autenticación de Logto no implica perfil ni rol de la plataforma.
+- Se adoptan `/auth/callback` (como en la rama de Facundo), el retorno de salida a `/` y `VITE_LOGTO_API_RESOURCE` como nombre de configuración del recurso. No se integra el router ni el cliente HTTP antiguo del ZIP.
 - El header conserva petróleo y crema de marca; ambos accesos a la derecha en escritorio y en una segunda fila en celular. Objetivos de al menos 44px y sin desborde a 320px.
 - `/login` y `/registro` conservan la cabecera con ambos accesos como enlaces y presentan las acciones de autenticación en el contenido.
 - Configuración incompleta: el header lleva a `/login` o `/registro`. Allí se muestran los campos deshabilitados, el estado del acceso y el enlace a proyectos. No se monta un SDK con valores parciales ni se reciben credenciales. Con tenant o simulación, se mantiene el flujo directo.
@@ -46,8 +46,8 @@ Credenciales del tenant, cambios en el backend, asignación de roles o scopes en
 
 ## A acordar con Facundo y el back
 
-- Configurar el tenant y registrar `/callback` y `/` para cada origen usado; no `/logto/callback`.
-- Mapear `VITE_LOGTO_API_RESOURCE` del ZIP a `VITE_LOGTO_RECURSO`, con el mismo identificador que valida el backend como audiencia.
+- Configurar el tenant y registrar `/auth/callback` y `/` para cada origen usado.
+- Usar en `VITE_LOGTO_API_RESOURCE` el mismo identificador que valida el backend como audiencia.
 - Validación del JWT (emisor, audiencia y JWKS), asociación por `sub`, `/auth/me` → `{ id, rol, perfilId }` y 401 si el token no es válido.
 - `rol` y `perfilId` nulos para cuentas sin perfil; altas de perfil asociadas al `sub` y conflicto 409 si ya existe uno.
 - Acordar scopes y roles en Logto solo si el backend los requiere. El frontend continúa usando el rol de la cuenta que responde el backend.

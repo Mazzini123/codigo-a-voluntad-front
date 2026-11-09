@@ -28,13 +28,13 @@ La app queda en <http://localhost:5173>. El backend tiene que estar corriendo (p
 
 ## Variables de entorno
 
-| Variable              | Descripción                                      | Ejemplo                         |
-| --------------------- | ------------------------------------------------ | ------------------------------- |
-| `VITE_API_URL`        | Destino del proxy de Vite en desarrollo          | `http://localhost:8000`         |
-| `VITE_API_BASE_URL`   | URL base que usa Axios                           | `/api`                          |
-| `VITE_LOGTO_ENDPOINT` | URL del tenant de Logto (vacía: sin sesión)      | `https://xxxx.logto.app`        |
-| `VITE_LOGTO_APP_ID`   | ID de la aplicación "Single page app" en Logto   | `abc123…`                       |
-| `VITE_LOGTO_RECURSO`  | Identificador del API resource del back en Logto | `https://api.codigo-a-voluntad` |
+| Variable                  | Descripción                                      | Ejemplo                         |
+| ------------------------- | ------------------------------------------------ | ------------------------------- |
+| `VITE_API_URL`            | Destino del proxy de Vite en desarrollo          | `http://localhost:8000`         |
+| `VITE_API_BASE_URL`       | URL base que usa Axios                           | `/api`                          |
+| `VITE_LOGTO_ENDPOINT`     | URL del tenant de Logto (vacía: sin sesión)      | `https://xxxx.logto.app`        |
+| `VITE_LOGTO_APP_ID`       | ID de la aplicación "Single page app" en Logto   | `abc123…`                       |
+| `VITE_LOGTO_API_RESOURCE` | Identificador del API resource del back en Logto | `https://api.codigo-a-voluntad` |
 
 En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante el proxy de Vite, eliminando el prefijo `/api`.
 
@@ -42,22 +42,22 @@ En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o
 
 ## Ingreso con Logto
 
-El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). Un único `LogtoProvider`, `useLogto` y `useHandleSignInCallback` quedan encapsulados en `Infrastructure/Auth/ProveedorDeSesionLogto.jsx`; Presentation los consume a través de Dependencies y `useSesion`. La app nunca ve contraseñas: redirige a Logto, vuelve a `/callback` y le pide al back la cuenta con `GET /auth/me`. El rol de la plataforma sale del backend.
+El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). La estructura sigue la integración de Facundo: `Infrastructure/Auth/authFactory.js` elige el proveedor y devuelve `{ Provider, usarSesion, CallbackComponent }`; `main.jsx` monta el `Provider` (un único `LogtoProvider` en `logto/`) y `Presentation/Context/AuthProvider.jsx` consume solo `usarSesion()` y expone `useAuth()`. `VITE_AUTH_PROVIDER` (`logto` o `simulada`) fuerza el proveedor; vacío elige solo según las variables. La app nunca ve contraseñas: redirige a Logto, vuelve a `/auth/callback` y le pide al back la cuenta con `GET /auth/me`. El rol de la plataforma sale del backend.
 
 «Ingresar» y «Crear una cuenta» en el header abren directamente la pantalla correspondiente de Logto y conservan el destino de origen. `/login` y `/registro` siguen disponibles para enlaces existentes, rutas protegidas y recuperación de errores.
 
 1. En la consola de Logto, crear una aplicación de tipo **Single page app**:
-   - Redirect URI: `http://localhost:5173/callback` (y la de producción).
+   - Redirect URI: `http://localhost:5173/auth/callback` (y la de producción).
    - Post sign-out redirect URI: `http://localhost:5173/` (y la de producción).
    - Copiar el **App ID** en `VITE_LOGTO_APP_ID` y el **endpoint** del tenant en `VITE_LOGTO_ENDPOINT`.
-2. En **API resources**, crear el recurso del back con el identificador de `VITE_LOGTO_RECURSO`. El back valida que el token tenga esa audiencia.
+2. En **API resources**, crear el recurso del back con el identificador de `VITE_LOGTO_API_RESOURCE`. El back valida que el token tenga esa audiencia.
 3. Recomendado: vencimiento corto del access token y rotación del refresh token (el SDK guarda la sesión en `localStorage`; ver `docs/decisiones.md`).
 
 Las tres variables de Logto son necesarias para autenticar. Con configuración incompleta, el header abre las pantallas locales `/login` y `/registro`, que explican que el acceso todavía no está habilitado y permiten seguir explorando proyectos. Los formularios de credenciales viven en Logto.
 
 ### Integración con la rama de Logto
 
-Se mantiene `@logto/react`, como en el adaptador de Facundo. Se usa `/callback` en lugar de `/logto/callback` y `VITE_LOGTO_RECURSO` en lugar de `VITE_LOGTO_API_RESOURCE`: copiar el mismo identificador del recurso a ese nombre. El equipo debe registrar las URI de cada origen real (el puerto también forma parte del origen).
+La sesión se adaptó a la estructura de esa rama (`authFactory`, `Provider`, `usarSesion`, `CallbackComponent`, `AuthProvider`, `useAuth`), no al revés. Se adoptan los nombres de la integración de Facundo: `/auth/callback` como ruta de retorno (`Infrastructure/Auth/authRoutes.js`) y `VITE_LOGTO_API_RESOURCE` para el identificador del recurso. El equipo debe registrar las URI de cada origen real (el puerto también forma parte del origen).
 
 Conservar el router, el cliente HTTP y la consulta de cuenta actuales. No agregar un segundo provider ni considerar que `isAuthenticated` ya define el rol o el perfil. El contrato pendiente con el back es `GET /auth/me` → `{ id, rol, perfilId }`, valores nulos de rol y perfil para cuentas nuevas, y 401 para tokens inválidos. Las altas asocian el perfil al `sub` de Logto y responden 409 si ya existe uno. Scopes y roles en Logto se configuran cuando el backend acuerde qué permisos requiere. Ver `specs/active/integracion-logto-react.md`.
 

@@ -53,25 +53,25 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 - **Variables nuevas en `.env.example`:**
   - `VITE_LOGTO_ENDPOINT`, la URL del tenant de Logto.
   - `VITE_LOGTO_APP_ID`, la aplicación de tipo "Single page app".
-  - `VITE_LOGTO_RECURSO`, el identificador del API resource del back (por ejemplo `https://api.codigo-a-voluntad`). Sin él, Logto entrega un token que el back no puede validar.
+  - `VITE_LOGTO_API_RESOURCE`, el identificador del API resource del back (por ejemplo `https://api.codigo-a-voluntad`). Sin él, Logto entrega un token que el back no puede validar.
 - **En la consola de Logto:**
-  - Redirect URI `http://localhost:5173/callback`.
+  - Redirect URI `http://localhost:5173/auth/callback`.
   - Post sign-out redirect URI `http://localhost:5173/`.
   - Más las mismas URI con el dominio de producción.
 - **El README** explica cómo crear la aplicación y el API resource en Logto.
 
 ### Infraestructura (`src/Infrastructure/Auth/`)
 
-- **`ProveedorDeSesionLogto`** monta un único `LogtoProvider`, espera su inicialización y conecta `useLogto` con el contrato propio de §5.3. En `/callback`, `useHandleSignInCallback` termina la autenticación antes de habilitar la consulta de cuenta:
+- **`ProveedorDeSesionLogto`** monta un único `LogtoProvider`, espera su inicialización y conecta `useLogto` con el contrato propio de §5.3. En `/auth/callback`, `useHandleSignInCallback` termina la autenticación antes de habilitar la consulta de cuenta:
 
-| Función                       | Qué hace                                                                                                          |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `estaAutenticado()`           | Promesa con un booleano.                                                                                          |
-| `iniciarSesion({ registro })` | Redirige a Logto con `redirectUri` = `<origen>/callback`, y `firstScreen: "register"` si `registro` es verdadero. |
-| `completarIngreso(url)`       | En la sesión real el callback ya fue completado por el hook del SDK; en dobles y simulación mantiene el contrato. |
-| `obtenerToken()`              | `getAccessToken(VITE_LOGTO_RECURSO)`; `null` si no hay sesión o falla.                                            |
-| `cerrarSesion()`              | `signOut(<origen>/)`; redirige a Logto y vuelve al inicio.                                                        |
-| `olvidarSesion()`             | `clearAllTokens()`, para el 401: borra la sesión local sin salir a Logto.                                         |
+| Función                       | Qué hace                                                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `estaAutenticado()`           | Promesa con un booleano.                                                                                               |
+| `iniciarSesion({ registro })` | Redirige a Logto con `redirectUri` = `<origen>/auth/callback`, y `firstScreen: "register"` si `registro` es verdadero. |
+| `completarIngreso(url)`       | En la sesión real el callback ya fue completado por el hook del SDK; en dobles y simulación mantiene el contrato.      |
+| `obtenerToken()`              | `getAccessToken(VITE_LOGTO_API_RESOURCE)`; `null` si no hay sesión o falla.                                            |
+| `cerrarSesion()`              | `signOut(<origen>/)`; redirige a Logto y vuelve al inicio.                                                             |
+| `olvidarSesion()`             | `clearAllTokens()`, para el 401: borra la sesión local sin salir a Logto.                                              |
 
 - **`crearIdentidadFalsa({ autenticado, token })`:** cumple el mismo contrato para tests. Sin configuración completa, se usa una identidad sin configurar: permite navegar como visitante y avisa si se intenta ingresar.
 - **`volverA.js`:** guarda y lee en `sessionStorage` la ruta a la que volver después del login. Es una comodidad de una pestaña, no un dato de sesión; si el almacenamiento falla, se vuelve al inicio del rol.
@@ -98,7 +98,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
   - Con un rol no permitido, `<Navigate to="/sin-permiso" replace />`.
 - **Rutas nuevas:**
   - `/login` y `/registro`: públicas. Es la misma pantalla, pero en `/registro` la acción principal es "Crear una cuenta". Si ya hay sesión, redirige al inicio del rol.
-  - `/callback`: pública.
+  - `/auth/callback`: pública.
   - `/bienvenida`: privada con `permitirSinPerfil`.
 - **Inicio por rol** (`Routes/rutas.js`): colectivo → `/colectivo/proyectos`, colaboradora → `/proyectos`, sin perfil → `/bienvenida`. Mientras esas pantallas no existan, todos van a `/habilidades`, en una sola línea fácil de cambiar.
 - **`lazy()` y `Suspense`** (§5.3) se aplican cuando exista la primera pantalla privada. `/bienvenida` es chica y no lo necesita.
@@ -160,7 +160,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 ## A acordar con el back
 
 - `GET /auth/me` → `200 { id, rol, perfilId }`, con `rol: null` y `perfilId: null` si la cuenta no tiene perfil. Con un token inválido o vencido, 401.
-- El back valida el JWT de Logto (emisor `<endpoint>/oidc`, audiencia `VITE_LOGTO_RECURSO`, JWKS del tenant) y toma el `sub` como identidad.
+- El back valida el JWT de Logto (emisor `<endpoint>/oidc`, audiencia `VITE_LOGTO_API_RESOURCE`, JWKS del tenant) y toma el `sub` como identidad.
 - `POST /colectivos` y `POST /colaboradores` asocian el perfil al `sub` del token, y responden 409 si la cuenta ya tiene un perfil (el tipo no se cambia).
 
 ## A confirmar

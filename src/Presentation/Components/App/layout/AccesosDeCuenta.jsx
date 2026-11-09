@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useIngreso } from "@/Presentation/Hooks/sesion/useIngreso.js";
 import estilos from "./AccesosDeCuenta.module.css";
 import {
@@ -9,7 +9,7 @@ import {
 } from "@/Presentation/Routes/rutas.js";
 
 export function AccesosDeCuenta() {
-  const { ingresoSinConfigurar, errorDeCuenta } = useSesion();
+  const { ingresoSinConfigurar, errorDeCuenta } = useAuth();
   const location = useLocation();
   const { abriendo, abrir } = useIngreso();
 

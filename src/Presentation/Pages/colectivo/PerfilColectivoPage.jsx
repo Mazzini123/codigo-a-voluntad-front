@@ -7,13 +7,13 @@ import {
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { useActualizarColectivo } from "@/Presentation/Hooks/colectivo/useActualizarColectivo.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useColectivo } from "@/Presentation/Hooks/colectivo/useColectivo.js";
 import estilos from "@/Presentation/Components/Perfil/Perfil.module.css";
 import { rutaColectivo } from "@/Presentation/Routes/rutas.js";
 
 export function PerfilColectivoPage() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const consulta = useColectivo(usuario.perfilId);
   const edicion = useActualizarColectivo(usuario.perfilId);
   const colectivo = edicion.guardado ?? consulta.colectivo;

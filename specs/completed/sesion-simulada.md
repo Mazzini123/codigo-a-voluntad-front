@@ -41,7 +41,7 @@ entonces la variable se ignora y el código de la simulación no queda en el bun
   3. Si no, una identidad "sin configurar".
 - **Identidad simulada** (`Infrastructure/Auth/crearIdentidadSimulada.js`):
   - Recuerda la sesión en `sessionStorage`, para que sobreviva a la recarga de la pestaña.
-  - `iniciarSesion` marca la sesión y navega a `/callback` con `window.location.assign`, como haría Logto. Así se prueba el mismo camino: `volverA`, "Iniciando sesión…" y la redirección por rol.
+  - `iniciarSesion` marca la sesión y navega a `/auth/callback` con `window.location.assign`, como haría Logto. Así se prueba el mismo camino: `volverA`, "Iniciando sesión…" y la redirección por rol.
   - `cerrarSesion` borra la marca y navega a `/`.
   - `obtenerToken` devuelve `null`: no se manda un token falso al back, que lo rechazaría con un 401.
 - **Cuenta simulada:** con la simulación activa, `obtenerCuentaActual` no llama al back y devuelve:
@@ -60,7 +60,7 @@ entonces la variable se ignora y el código de la simulación no queda en el bun
 - **`crearIdentidad`:** elige simulada, Logto o sin configurar según las variables, e ignora la simulación con `DEV: false`.
 - **Identidad simulada:**
   - Arranca sin sesión.
-  - `iniciarSesion` llama a `assign("/callback")` (con `window.location` simulado) y deja la sesión.
+  - `iniciarSesion` llama a `assign("/auth/callback")` (con `window.location` simulado) y deja la sesión.
   - `cerrarSesion` la borra.
   - `obtenerToken` es `null`.
 - **Cuenta simulada:** devuelve lo esperado para los tres valores.

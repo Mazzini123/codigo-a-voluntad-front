@@ -17,7 +17,7 @@ const CUENTAS = {
   SIN_PERFIL: { id: "cuenta-simulada", rol: null, perfilId: null },
 };
 
-const ETIQUETAS = {
+export const ETIQUETAS_SIMULADAS = {
   COLECTIVO: "Colectivo",
   COLABORADORA: "Colaboradora",
   SIN_PERFIL: "Sin perfil",
@@ -38,7 +38,7 @@ export function sesionSimuladaActiva(entorno) {
   return leerSesionSimulada(entorno.VITE_SESION_SIMULADA);
 }
 
-function tieneSesion() {
+export function tieneSesion() {
   try {
     return sessionStorage.getItem(CLAVE) === "1";
   } catch {
@@ -46,7 +46,14 @@ function tieneSesion() {
   }
 }
 
-function recordarSesion(activa) {
+const oyentes = new Set();
+
+export function suscribirseALaSesion(oyente) {
+  oyentes.add(oyente);
+  return () => oyentes.delete(oyente);
+}
+
+export function recordarSesion(activa) {
   try {
     if (activa) sessionStorage.setItem(CLAVE, "1");
     else {
@@ -55,6 +62,8 @@ function recordarSesion(activa) {
     }
   } catch {
     return;
+  } finally {
+    oyentes.forEach((oyente) => oyente());
   }
 }
 
@@ -66,33 +75,8 @@ function perfilAsociado() {
   }
 }
 
-function asociarPerfilSimulado(rol, perfilId) {
+export function asociarPerfilSimulado(rol, perfilId) {
   sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify({ rol, perfilId }));
-}
-
-export function crearIdentidadSimulada(tipo, ubicacion = window.location) {
-  return {
-    simulada: ETIQUETAS[tipo],
-    estaAutenticado: async () => tieneSesion(),
-    async iniciarSesion() {
-      recordarSesion(true);
-      ubicacion.assign("/callback");
-    },
-    async completarIngreso() {
-      recordarSesion(true);
-    },
-    obtenerToken: async () => null,
-    async cerrarSesion() {
-      recordarSesion(false);
-      ubicacion.assign("/");
-    },
-    async olvidarSesion() {
-      recordarSesion(false);
-    },
-    async asociarPerfil(rol, perfilId) {
-      asociarPerfilSimulado(rol, perfilId);
-    },
-  };
 }
 
 export function crearAuthHttpClientSimulado(tipo, perfilId) {

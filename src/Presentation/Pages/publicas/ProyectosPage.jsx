@@ -15,7 +15,7 @@ import {
   TarjetaProyecto,
   TarjetaProyectoSkeleton,
 } from "@/Presentation/Components/Proyecto/listado/TarjetaProyecto.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useBusquedaDeProyectos } from "@/Presentation/Hooks/proyecto/useBusquedaDeProyectos.js";
 import { useHabilidadesPropias } from "@/Presentation/Hooks/colaboradora/useHabilidadesPropias.js";
 import {
@@ -31,7 +31,7 @@ const AYUDA_DE_ETIQUETA = "Por ejemplo: educación, salud, ambiente.";
 const AYUDA_EN_PARA_VOS = "La búsqueda por etiqueta se hace sobre todos los proyectos.";
 
 export function ProyectosPage() {
-  const { usuario, cargando: verificandoSesion, errorDeCuenta } = useSesion();
+  const { usuario, cargando: verificandoSesion, errorDeCuenta } = useAuth();
   const esColaboradora = usuario?.rol === ROL_CUENTA.COLABORADORA;
   const busqueda = useParametrosDeBusqueda({ puedeVerParaVos: esColaboradora });
   const proyectos = useBusquedaDeProyectos({

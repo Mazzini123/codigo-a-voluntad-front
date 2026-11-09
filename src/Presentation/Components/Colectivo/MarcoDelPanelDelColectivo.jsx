@@ -1,12 +1,12 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useDatosDelPanel } from "@/Presentation/Hooks/colectivo/usePanelDelColectivo.js";
 import { SECCIONES_DEL_PANEL } from "@/Presentation/Routes/navegacion.js";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import estilos from "./MarcoDelPanelDelColectivo.module.css";
 
 export function MarcoDelPanelDelColectivo() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   return <PanelConDatos key={usuario.perfilId} colectivoId={usuario.perfilId} />;
 }
 

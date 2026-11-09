@@ -25,7 +25,7 @@ function montar(ruta = "/proyectos", cuenta = null) {
         <Route element={<MarcoDeLaApp />}>
           <Route path="/proyectos" element={<h1 tabIndex={-1}>Proyectos</h1>} />
           <Route path="/lenta" element={<PantallaLenta />} />
-          <Route path="/callback" element={<Navigate to="/otra" replace />} />
+          <Route path="/auth/callback" element={<Navigate to="/otra" replace />} />
           <Route
             path="/otra"
             element={
@@ -123,7 +123,7 @@ test("si la persona ya movió el foco mientras cargaba, el título no se lo roba
 });
 
 test("al volver del ingreso con replace, el foco va al título de la pantalla", async () => {
-  montar("/callback");
+  montar("/auth/callback");
   await waitFor(() =>
     expect(
       screen.getByRole("heading", { level: 1, name: "Otra pantalla" }),

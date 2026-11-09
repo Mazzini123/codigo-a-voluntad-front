@@ -7,19 +7,24 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
-import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
+import { crearSesionFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 
 export function montarRutas(
   hijos,
-  { ruta = "/", cuenta = null, identidad, dependencies } = {},
+  { ruta = "/", cuenta = null, sesion, dependencies } = {},
 ) {
-  const identidadUsada =
-    identidad ?? crearIdentidadFalsa({ autenticado: Boolean(cuenta) });
+  const sesionUsada = sesion ?? crearSesionFalsa({ autenticado: Boolean(cuenta) });
   const dependenciasUsadas = dependencies ?? { obtenerCuentaActual: async () => cuenta };
   const router = createMemoryRouter(
     createRoutesFromElements(
       <Route
-        element={<Raiz identidad={identidadUsada} dependencies={dependenciasUsadas} />}
+        element={
+          <Raiz
+            usarSesion={sesionUsada.usarSesion}
+            CallbackComponent={sesionUsada.CallbackComponent}
+            dependencies={dependenciasUsadas}
+          />
+        }
       >
         {hijos}
       </Route>,
@@ -27,5 +32,5 @@ export function montarRutas(
     { initialEntries: [ruta] },
   );
   const vista = render(<RouterProvider router={router} />);
-  return { ...vista, router, identidad: identidadUsada, user: userEvent.setup() };
+  return { ...vista, router, sesion: sesionUsada, user: userEvent.setup() };
 }

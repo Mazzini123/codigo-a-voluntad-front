@@ -26,7 +26,7 @@ import {
 import { fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useMisPostulaciones } from "@/Presentation/Hooks/postulacion/useMisPostulaciones.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   RUTA_PROYECTOS,
   estadoParaVolver,
@@ -37,7 +37,7 @@ import estilos from "./MisPostulacionesPage.module.css";
 const ERROR_DE_LA_BAJA = "No pudimos darte de baja. Probá de nuevo.";
 
 export function MisPostulacionesPage() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const [parametros, setParametros] = useSearchParams();
   const [confirmacion, setConfirmacion] = useState(null);
   const avisar = useAvisos();

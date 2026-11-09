@@ -1,11 +1,11 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ErrorDeVerificacionDeCuenta } from "@/Presentation/Components/App/sesion/ErrorDeVerificacionDeCuenta.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { RUTA_BIENVENIDA, RUTA_LOGIN, RUTA_SIN_PERMISO } from "./rutas.js";
 import estilos from "./RutaProtegida.module.css";
 
 export function RutaProtegida({ roles, permitirSinPerfil = false }) {
-  const { usuario, cargando, errorDeCuenta } = useSesion();
+  const { usuario, cargando, errorDeCuenta } = useAuth();
   const location = useLocation();
 
   if (errorDeCuenta) return <ErrorDeVerificacionDeCuenta />;

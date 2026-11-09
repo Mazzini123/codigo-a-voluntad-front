@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useColaboradora } from "@/Presentation/Hooks/colaboradora/useColaboradora.js";
 import { useColectivo } from "@/Presentation/Hooks/colectivo/useColectivo.js";
 import { enlaceDePerfilPara } from "@/Presentation/Routes/navegacion.js";
@@ -14,7 +14,7 @@ import { RUTA_CALLBACK } from "@/Presentation/Routes/rutas.js";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
 export function MenuDeCuenta() {
-  const { usuario, cargando, cerrarSesion, sesionSimulada } = useSesion();
+  const { usuario, cargando, cerrarSesion, sesionSimulada } = useAuth();
   const location = useLocation();
   const [abierto, setAbierto] = useState(false);
   const [nombreSolicitado, setNombreSolicitado] = useState(false);

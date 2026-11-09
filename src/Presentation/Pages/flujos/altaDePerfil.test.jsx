@@ -2,8 +2,9 @@ import { screen } from "@testing-library/react";
 import { Route } from "react-router-dom";
 import {
   crearAuthHttpClientSimulado,
-  crearIdentidadSimulada,
+  recordarSesion,
 } from "@/Infrastructure/Auth/sesionSimulada.js";
+import { crearSesionSimulada } from "@/Infrastructure/Auth/simulada/crearSesionSimulada.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 import { montarRutas } from "@/test/montarRutas.jsx";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
@@ -52,9 +53,9 @@ afterEach(() => {
 });
 
 async function montar(caso) {
-  const identidad = crearIdentidadSimulada("SIN_PERFIL");
-  await identidad.completarIngreso();
-  const asociarPerfil = vi.spyOn(identidad, "asociarPerfil");
+  const sesion = crearSesionSimulada("SIN_PERFIL", { assign: () => {} });
+  recordarSesion(true);
+  const asociarPerfil = vi.spyOn(sesion, "asociarPerfil");
   const cliente = crearAuthHttpClientSimulado("SIN_PERFIL");
   const cuentaSinPerfil = await cliente.obtenerCuentaActual();
   const obtenerCuentaActual = vi.fn(cliente.obtenerCuentaActual);
@@ -83,7 +84,7 @@ async function montar(caso) {
       </Route>
       <Route path={caso.destino} element={<h1>{caso.titulo}</h1>} />
     </Route>,
-    { ruta: caso.alta, identidad, dependencies: { obtenerCuentaActual } },
+    { ruta: caso.alta, sesion, dependencies: { obtenerCuentaActual } },
   );
   const pedidosDeAlta = () =>
     transporte.mock.calls.filter(([config]) => config.method === "post");

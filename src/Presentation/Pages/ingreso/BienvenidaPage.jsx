@@ -1,7 +1,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   inicioPorRol,
   RUTA_ALTA_COLABORADORA,
@@ -23,7 +23,7 @@ const OPCIONES = [
 ];
 
 export function BienvenidaPage() {
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   if (usuario?.rol) return <Navigate to={inicioPorRol(usuario.rol)} replace />;
 
   return (

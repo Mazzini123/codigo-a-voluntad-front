@@ -1,8 +1,5 @@
-import {
-  crearAuthHttpClientSimulado,
-  crearIdentidadSimulada,
-  leerSesionSimulada,
-} from "./sesionSimulada.js";
+import { crearAuthHttpClientSimulado, leerSesionSimulada } from "./sesionSimulada.js";
+import { crearSesionSimulada } from "./simulada/crearSesionSimulada.js";
 
 beforeEach(() => sessionStorage.clear());
 
@@ -17,30 +14,30 @@ test("lee los tres tipos válidos e ignora el resto", () => {
   expect(console.warn).toHaveBeenCalledTimes(1);
 });
 
-test("arranca sin sesión, ingresa yendo a /callback y sale yendo al inicio", async () => {
+test("arranca sin sesión, ingresa yendo a /auth/callback y sale yendo al inicio", async () => {
   const ubicacion = { assign: vi.fn() };
-  const identidad = crearIdentidadSimulada("COLECTIVO", ubicacion);
-  expect(identidad.simulada).toBe("Colectivo");
-  expect(await identidad.estaAutenticado()).toBe(false);
+  const sesion = crearSesionSimulada("COLECTIVO", ubicacion);
+  expect(sesion.simulada).toBe("Colectivo");
+  expect(sesion.estaAutenticado()).toBe(false);
 
-  await identidad.iniciarSesion({ registro: false });
-  expect(ubicacion.assign).toHaveBeenLastCalledWith("/callback");
-  expect(await identidad.estaAutenticado()).toBe(true);
+  await sesion.iniciar({ registro: false });
+  expect(ubicacion.assign).toHaveBeenLastCalledWith("/auth/callback");
+  expect(sesion.estaAutenticado()).toBe(true);
 
-  await identidad.cerrarSesion();
+  await sesion.cerrar();
   expect(ubicacion.assign).toHaveBeenLastCalledWith("/");
-  expect(await identidad.estaAutenticado()).toBe(false);
+  expect(sesion.estaAutenticado()).toBe(false);
 });
 
-test("la sesión sobrevive a una identidad nueva en la misma pestaña", async () => {
-  await crearIdentidadSimulada("COLECTIVO", { assign: () => {} }).iniciarSesion();
-  expect(await crearIdentidadSimulada("COLECTIVO").estaAutenticado()).toBe(true);
+test("la sesión sobrevive a una sesión nueva en la misma pestaña", async () => {
+  await crearSesionSimulada("COLECTIVO", { assign: () => {} }).iniciar();
+  expect(crearSesionSimulada("COLECTIVO").estaAutenticado()).toBe(true);
 });
 
 test("no manda token al back", async () => {
-  const identidad = crearIdentidadSimulada("COLECTIVO", { assign: () => {} });
-  await identidad.iniciarSesion();
-  expect(await identidad.obtenerToken()).toBeNull();
+  const sesion = crearSesionSimulada("COLECTIVO", { assign: () => {} });
+  await sesion.iniciar();
+  expect(await sesion.obtenerToken()).toBeNull();
 });
 
 test.each([
@@ -61,15 +58,15 @@ test("la cuenta simulada usa el perfil configurado y adopta el que se crea", asy
   const sinPerfil = crearAuthHttpClientSimulado("SIN_PERFIL", "colectivo-real-1");
   expect((await sinPerfil.obtenerCuentaActual()).perfilId).toBeNull();
 
-  const identidad = crearIdentidadSimulada("SIN_PERFIL", { assign: () => {} });
-  await identidad.iniciarSesion();
-  await identidad.asociarPerfil("COLECTIVO", "c-nuevo");
+  const sesion = crearSesionSimulada("SIN_PERFIL", { assign: () => {} });
+  await sesion.iniciar();
+  await sesion.asociarPerfil("COLECTIVO", "c-nuevo");
   expect(await sinPerfil.obtenerCuentaActual()).toEqual({
     id: "cuenta-simulada",
     rol: "COLECTIVO",
     perfilId: "c-nuevo",
   });
 
-  await identidad.cerrarSesion();
+  await sesion.cerrar();
   expect((await sinPerfil.obtenerCuentaActual()).rol).toBeNull();
 });

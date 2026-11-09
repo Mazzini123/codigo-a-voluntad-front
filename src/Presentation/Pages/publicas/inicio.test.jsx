@@ -2,7 +2,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
-import { crearIdentidadFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
+import { crearSesionFalsa } from "@/Presentation/Dependencies/identidadDependencies.js";
 import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
 import { rutas } from "@/Presentation/Routes/RutasDeLaApp.jsx";
 
@@ -59,7 +59,7 @@ afterEach(() => {
 
 function montar({
   cuenta = null,
-  identidad = crearIdentidadFalsa({ autenticado: Boolean(cuenta) }),
+  sesion = crearSesionFalsa({ autenticado: Boolean(cuenta) }),
   obtenerCuentaActual = async () => cuenta,
   ruta = "/",
 } = {}) {
@@ -67,7 +67,13 @@ function montar({
     [
       {
         ...rutas[0],
-        element: <Raiz identidad={identidad} dependencies={{ obtenerCuentaActual }} />,
+        element: (
+          <Raiz
+            usarSesion={sesion.usarSesion}
+            CallbackComponent={sesion.CallbackComponent}
+            dependencies={{ obtenerCuentaActual }}
+          />
+        ),
       },
     ],
     { initialEntries: [ruta] },
@@ -105,7 +111,7 @@ test("el visitante ve la portada con contenido completo sin consultar proyectos"
 test("el contenido público permanece disponible mientras se verifica la sesión", async () => {
   let resolver;
   const { router } = montar({
-    identidad: crearIdentidadFalsa({ autenticado: true }),
+    sesion: crearSesionFalsa({ autenticado: true }),
     obtenerCuentaActual: () =>
       new Promise((resolve) => {
         resolver = resolve;
@@ -250,7 +256,7 @@ test("Cómo funciona también enfoca la sección desde la propia landing", async
 
 test("la portada y el pie permanecen visibles si falla la verificación de sesión", async () => {
   montar({
-    identidad: crearIdentidadFalsa({ autenticado: true }),
+    sesion: crearSesionFalsa({ autenticado: true }),
     obtenerCuentaActual: async () => {
       throw new Error("sesión");
     },
@@ -277,15 +283,15 @@ test("el buscador conserva sus resultados públicos mientras se reintenta la cue
           recuperarCuenta = resolve;
         }),
     );
-  const identidad = crearIdentidadFalsa({ autenticado: true });
-  const { router, user } = montar({ ruta: "/proyectos", identidad, obtenerCuentaActual });
+  const sesion = crearSesionFalsa({ autenticado: true });
+  const { router, user } = montar({ ruta: "/proyectos", sesion, obtenerCuentaActual });
 
   expect(await screen.findByRole("link", { name: PROYECTO.titulo })).toBeVisible();
   expect(screen.queryByRole("link", { name: "Para vos" })).not.toBeInTheDocument();
   const ingreso = screen.getByRole("link", { name: "Ingresar" });
   await user.click(ingreso);
   expect(router.state.location.pathname).toBe("/login");
-  expect(identidad.inicios).toHaveLength(0);
+  expect(sesion.inicios).toHaveLength(0);
   expect(
     await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
   ).toBeVisible();
@@ -306,7 +312,7 @@ test("el panel privado espera una cuenta verificada en la misma ruta", async () 
     .mockResolvedValue(COLECTIVO);
   const { router, user } = montar({
     ruta: "/colectivo/resumen",
-    identidad: crearIdentidadFalsa({ autenticado: true }),
+    sesion: crearSesionFalsa({ autenticado: true }),
     obtenerCuentaActual,
   });
 

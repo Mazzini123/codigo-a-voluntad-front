@@ -1,14 +1,12 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { informarFalla } from "@/Presentation/Components/App/sesion/informarFalla.js";
 import { ContextoDeSesion } from "@/Presentation/Context/ContextoDeSesion.js";
 import { authDependencies } from "@/Presentation/Dependencies/authDependencies.js";
 import {
-  proveedorDeIdentidad,
-  PROVEEDOR_DE_IDENTIDAD,
+  configuracionAuth,
   recordarVolverA,
   tomarVolverA,
-  configuracionLogto,
-  ProveedorDeSesionLogto,
 } from "@/Presentation/Dependencies/identidadDependencies.js";
 import {
   cambiarSesionHttp,
@@ -19,7 +17,6 @@ import {
 import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { RUTA_CALLBACK, RUTA_INICIO, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
-import { informarFalla } from "./informarFalla.js";
 
 const AVISO_VENCIDA = "Tu sesión venció. Iniciá sesión de nuevo.";
 
@@ -29,63 +26,57 @@ class ErrorAlRecargarCuentaDelAlta extends Error {
   }
 }
 
-export function ProveedorDeSesion({
-  identidad: identidadRecibida,
+export function AuthProvider({
+  usarSesion = configuracionAuth.usarSesion,
+  CallbackComponent = configuracionAuth.CallbackComponent,
   dependencies: dependenciasRecibidas,
   children,
 }) {
-  const location = useLocation();
-  const proveedor = identidadRecibida
-    ? { identidad: identidadRecibida }
-    : proveedorDeIdentidad;
-  if (proveedor.tipo !== PROVEEDOR_DE_IDENTIDAD.LOGTO) {
-    return (
-      <ProveedorDeCuenta
-        identidad={proveedor.identidad}
-        dependencies={dependenciasRecibidas}
-      >
-        {children}
-      </ProveedorDeCuenta>
-    );
-  }
-  return (
-    <ProveedorDeSesionLogto
-      config={configuracionLogto}
-      esCallback={location.pathname === RUTA_CALLBACK}
-    >
-      {(sesion) => (
-        <ProveedorDeCuenta {...sesion} dependencies={dependenciasRecibidas}>
-          {children}
-        </ProveedorDeCuenta>
-      )}
-    </ProveedorDeSesionLogto>
-  );
-}
-
-function ProveedorDeCuenta({
-  identidad,
-  claveSesionHttp = identidad,
-  dependencies: dependenciasRecibidas,
-  esperandoIdentidad = false,
-  errorDeIngreso,
-  callbackExterno,
-  children,
-}) {
+  const sesion = usarSesion();
+  const {
+    autenticado,
+    cargando: esperandoIdentidad = false,
+    error: errorDeIngreso = null,
+    iniciar,
+    cerrar,
+    limpiar,
+    obtenerToken: tokenDelProveedor,
+    asociarPerfil: asociarEnElProveedor,
+    simulada = null,
+    sinConfigurar = false,
+  } = sesion;
   const dependencies = dependenciasRecibidas ?? authDependencies;
   const avisar = useAvisos();
   const navigate = useNavigate();
   const { pathname, search, hash } = useLocation();
+  const enCallback = pathname === RUTA_CALLBACK;
   const vencimientoAvisado = useRef(false);
   const manejarVencimiento = useRef(() => {});
+  const descartada = useRef(false);
+  const actual = useRef({ autenticado, tokenDelProveedor });
+  const claveSesionHttp = useMemo(() => ({ autenticada: autenticado }), [autenticado]);
+
+  useLayoutEffect(() => {
+    actual.current = { autenticado, tokenDelProveedor };
+  });
+
+  const estaAutenticada = useCallback(
+    async () => !descartada.current && actual.current.autenticado,
+    [],
+  );
+  const obtenerToken = useCallback(async () => {
+    if (descartada.current || !actual.current.autenticado) return null;
+    return (await actual.current.tokenDelProveedor()) ?? null;
+  }, []);
 
   useLayoutEffect(() => {
     configurarAuth({
       clave: claveSesionHttp,
-      obtenerToken: identidad.obtenerToken,
+      obtenerToken,
       alExpirar: () => manejarVencimiento.current(),
-      permiteSinToken: identidad.simulada ? identidad.estaAutenticado : undefined,
+      permiteSinToken: simulada ? estaAutenticada : undefined,
     });
-  }, [claveSesionHttp, identidad]);
+  }, [claveSesionHttp, obtenerToken, estaAutenticada, simulada]);
   useLayoutEffect(() => {
     vencimientoAvisado.current = false;
     return () => desconfigurarAuth(claveSesionHttp);
@@ -95,7 +86,7 @@ function ProveedorDeCuenta({
     async (signal, { desdeAlta = false } = {}) => {
       try {
         const autenticada =
-          !vencimientoAvisado.current && (await identidad.estaAutenticado());
+          !vencimientoAvisado.current && !descartada.current && autenticado;
         const cuenta = autenticada
           ? await dependencies.obtenerCuentaActual({ signal })
           : null;
@@ -105,10 +96,10 @@ function ProveedorDeCuenta({
         throw error;
       }
     },
-    [identidad, dependencies],
+    [autenticado, dependencies],
   );
   const { datos, error, cargando, ejecutar, reintentar } = useConsulta(buscarCuenta, {
-    inmediato: !esperandoIdentidad && !callbackExterno,
+    inmediato: !esperandoIdentidad && !enCallback,
   });
   const cuentaVerificada = datos?.cuenta ?? null;
   const falloDeRecargaDelAlta = error instanceof ErrorAlRecargarCuentaDelAlta;
@@ -124,7 +115,10 @@ function ProveedorDeCuenta({
       vencimientoAvisado.current = true;
       avisar.info(AVISO_VENCIDA);
       void Promise.resolve()
-        .then(() => identidad.olvidarSesion())
+        .then(() => limpiar())
+        .then(() => {
+          descartada.current = true;
+        })
         .catch((falla) => informarFalla("No pudimos limpiar la sesión vencida", falla));
       void ejecutar().then((limpiada) => {
         if (limpiada) {
@@ -135,39 +129,37 @@ function ProveedorDeCuenta({
         }
       });
     };
-  }, [avisar, identidad, ejecutar, navigate, pathname, search, hash]);
+  }, [avisar, limpiar, ejecutar, navigate, pathname, search, hash]);
 
   const iniciarSesion = useCallback(
     ({ desde = null, registro = false } = {}) => {
       recordarVolverA(desde);
-      return identidad.iniciarSesion({ registro });
+      return iniciar({ registro });
     },
-    [identidad],
+    [iniciar],
   );
 
-  const completarIngreso = useCallback(
-    async (url) => {
-      await identidad.completarIngreso(url);
-      vencimientoAvisado.current = false;
-      cambiarSesionHttp(claveSesionHttp, true);
-      await ejecutar();
-      return tomarVolverA();
-    },
-    [claveSesionHttp, identidad, ejecutar],
-  );
+  const completarIngreso = useCallback(async () => {
+    vencimientoAvisado.current = false;
+    descartada.current = false;
+    cambiarSesionHttp(claveSesionHttp, true);
+    await ejecutar();
+    return tomarVolverA();
+  }, [claveSesionHttp, ejecutar]);
 
   const asociarPerfil = useCallback(
     async (rol, perfilId) => {
-      await identidad.asociarPerfil?.(rol, perfilId);
+      await asociarEnElProveedor?.(rol, perfilId);
     },
-    [identidad],
+    [asociarEnElProveedor],
   );
 
   const cerrarSesion = useCallback(async () => {
     recordarVolverA(null);
     const generacion = cambiarSesionHttp(claveSesionHttp, false);
     try {
-      await identidad.cerrarSesion();
+      await cerrar();
+      descartada.current = true;
     } catch (falla) {
       informarFalla("No pudimos cerrar la sesión", falla);
       if (sesionHttpVigente(generacion)) {
@@ -178,18 +170,18 @@ function ProveedorDeCuenta({
     }
     await ejecutar();
     navigate(RUTA_INICIO, { replace: true, flushSync: true });
-  }, [avisar, claveSesionHttp, identidad, ejecutar, navigate]);
+  }, [avisar, claveSesionHttp, cerrar, ejecutar, navigate]);
 
-  const sesion = useMemo(
+  const valor = useMemo(
     () => ({
       usuario,
-      sesionSimulada: identidad.simulada ?? null,
-      ingresoSinConfigurar: identidad.sinConfigurar === true,
+      sesionSimulada: simulada,
+      ingresoSinConfigurar: sinConfigurar,
       estaAutenticado: Boolean(usuario),
       cargando: esperandoIdentidad || (verificandoCuenta && !usuario),
       errorDeCuenta,
       errorDeIngreso,
-      callbackExterno,
+      CallbackComponent,
       iniciarSesion,
       completarIngreso,
       cerrarSesion,
@@ -199,12 +191,13 @@ function ProveedorDeCuenta({
     }),
     [
       usuario,
-      identidad,
+      simulada,
+      sinConfigurar,
       verificandoCuenta,
       esperandoIdentidad,
       errorDeCuenta,
       errorDeIngreso,
-      callbackExterno,
+      CallbackComponent,
       iniciarSesion,
       completarIngreso,
       cerrarSesion,
@@ -214,5 +207,5 @@ function ProveedorDeCuenta({
     ],
   );
 
-  return <ContextoDeSesion.Provider value={sesion}>{children}</ContextoDeSesion.Provider>;
+  return <ContextoDeSesion.Provider value={valor}>{children}</ContextoDeSesion.Provider>;
 }

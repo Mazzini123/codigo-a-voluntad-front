@@ -10,7 +10,7 @@ import {
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { SelectorDeHabilidades } from "@/Presentation/Components/Formulario/SelectorDeHabilidades.jsx";
 import { useActualizarColaboradora } from "@/Presentation/Hooks/colaboradora/useActualizarColaboradora.js";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useCatalogoDeHabilidades } from "@/Presentation/Hooks/habilidad/useCatalogoDeHabilidades.js";
 import { useColaboradora } from "@/Presentation/Hooks/colaboradora/useColaboradora.js";
 import { useHabilidadesDeColaboradora } from "@/Presentation/Hooks/colaboradora/useHabilidadesDeColaboradora.js";
@@ -19,7 +19,7 @@ import estilos from "@/Presentation/Components/Perfil/Perfil.module.css";
 
 export function PerfilColaboradoraPage() {
   const location = useLocation();
-  const { usuario } = useSesion();
+  const { usuario } = useAuth();
   const consulta = useColaboradora(usuario.perfilId);
   const [actualizada, setActualizada] = useState(null);
   const edicion = useActualizarColaboradora(usuario.perfilId, setActualizada);

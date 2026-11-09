@@ -4,8 +4,8 @@ import { TIPO_DE_PANTALLA } from "@/Presentation/Routes/rutas.js";
 import { Raiz } from "./Raiz.jsx";
 import estilos from "./Raiz.module.css";
 
-vi.mock("@/Presentation/Components/App/sesion/ProveedorDeSesion.jsx", () => ({
-  ProveedorDeSesion: ({ children }) => children,
+vi.mock("@/Presentation/Context/AuthProvider.jsx", () => ({
+  AuthProvider: ({ children }) => children,
 }));
 vi.mock("./PieDePagina.jsx", () => ({ PieDePagina: () => null }));
 

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useSesion } from "./useSesion.js";
+import { useAuth } from "./useAuth.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { esRutaDeAcceso, rutaDe } from "@/Presentation/Routes/rutas.js";
 
 export function useIngreso() {
-  const { iniciarSesion, errorDeIngreso } = useSesion();
+  const { iniciarSesion, errorDeIngreso } = useAuth();
   const location = useLocation();
   const avisar = useAvisos();
   const [abriendo, setAbriendo] = useState(null);

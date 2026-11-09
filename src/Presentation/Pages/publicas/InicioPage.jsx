@@ -5,7 +5,7 @@ import ilustracionPreguntas from "@/assets/inicio-preguntas.webp";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { useSesion } from "@/Presentation/Hooks/sesion/useSesion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   inicioPorRol,
   RUTA_COMO_EMPEZAR,
@@ -33,7 +33,7 @@ const PREGUNTAS = [
 ];
 
 export function InicioPage() {
-  const { usuario, cargando } = useSesion();
+  const { usuario, cargando } = useAuth();
   const { hash } = useLocation();
   const listaPreguntas = useRef(null);
   const [todasAbiertas, setTodasAbiertas] = useState(false);
