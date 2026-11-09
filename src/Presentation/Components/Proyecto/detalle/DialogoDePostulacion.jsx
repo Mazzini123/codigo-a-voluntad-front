@@ -29,7 +29,9 @@ export function DialogoDePostulacion({
       titulo="¿Te postulás a este perfil?"
       descripcion={
         <>
-          <span className={estilos.recortada}>{perfil?.descripcion}</span>{" "}
+          <span className={estilos.recortada}>
+            {perfil?.titulo || perfil?.descripcion}
+          </span>{" "}
           <span className={estilos.recortada}>Proyecto: {proyecto.titulo}.</span>
         </>
       }

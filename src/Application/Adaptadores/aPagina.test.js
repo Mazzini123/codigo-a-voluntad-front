@@ -16,3 +16,13 @@ test("sin datos devuelve una lista vacía", () => {
   ).toEqual([]);
   expect(aPagina(undefined).items).toEqual([]);
 });
+
+test("conserva el total de no leídos cuando el back lo informa", () => {
+  expect(
+    aPagina({
+      data: [],
+      meta: { page: 1, per_page: 10, total: 0, total_pages: 0, unread: 3 },
+    }).noLeidas,
+  ).toBe(3);
+  expect(aPagina({ data: [], meta: { page: 1 } })).not.toHaveProperty("noLeidas");
+});

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   BloqueEsqueleto,
@@ -8,12 +8,18 @@ import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeErr
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
 import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
+import { Selector } from "@/Presentation/Components/App/ui/Selector.jsx";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 import { MensajeDeLaBandeja } from "@/Presentation/Components/Mensaje/MensajeDeLaBandeja.jsx";
 import { TITULO_SIN_MENSAJES } from "@/Presentation/Formatos/mensaje.js";
 import { useMensajes } from "@/Presentation/Hooks/mensaje/useMensajes.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import estilos from "./MensajesPage.module.css";
+
+const FILTROS = Object.freeze([
+  { valor: "", texto: "Todos" },
+  { valor: "sin-leer", texto: "Solo los no leídos" },
+]);
 
 function leerPagina(valor) {
   const numero = Number(valor);
@@ -36,10 +42,39 @@ export function MensajesPage() {
   const { usuario } = useAuth();
   const [parametros, setParametros] = useSearchParams();
   const pagina = leerPagina(parametros.get("pagina"));
+  const soloSinLeer = parametros.get("mostrar") === "sin-leer";
   const { resultado, error, cargando, cargandoPagina, reintentar } = useMensajes(
     usuario.perfilId,
     pagina,
+    soloSinLeer,
   );
+  const [leidosAqui, setLeidosAqui] = useState({ resultado: null, cantidad: 0 });
+  const leidosEnEstaLista = leidosAqui.resultado === resultado ? leidosAqui.cantidad : 0;
+  const sinLeer =
+    resultado && Number.isInteger(resultado.noLeidas)
+      ? Math.max(0, resultado.noLeidas - leidosEnEstaLista)
+      : null;
+  const registrarLectura = useCallback(
+    () =>
+      setLeidosAqui((previo) => ({
+        resultado,
+        cantidad: (previo.resultado === resultado ? previo.cantidad : 0) + 1,
+      })),
+    [resultado],
+  );
+
+  function cambiarFiltro(valor) {
+    setParametros(
+      (actuales) => {
+        const nuevos = new URLSearchParams(actuales);
+        if (valor) nuevos.set("mostrar", valor);
+        else nuevos.delete("mostrar");
+        nuevos.delete("pagina");
+        return nuevos;
+      },
+      { replace: true },
+    );
+  }
 
   const irAPagina = useCallback(
     (numero, { reemplazar = false } = {}) => {
@@ -73,6 +108,21 @@ export function MensajesPage() {
       <h1 id="titulo-mensajes" tabIndex={-1}>
         Mensajes
       </h1>
+      {sinLeer !== null && (
+        <p role="status" className={estilos.resumen}>
+          {sinLeer === 0
+            ? "No tenés mensajes sin leer."
+            : sinLeer === 1
+              ? "Tenés 1 mensaje sin leer."
+              : `Tenés ${sinLeer} mensajes sin leer.`}
+        </p>
+      )}
+      <Selector
+        etiqueta="Mostrar"
+        opciones={FILTROS}
+        value={soloSinLeer ? "sin-leer" : ""}
+        onChange={(evento) => cambiarFiltro(evento.target.value)}
+      />
       {error && !resultado ? (
         <EstadoDeError
           titulo="No pudimos cargar tus mensajes"
@@ -82,7 +132,9 @@ export function MensajesPage() {
       ) : cargando || !resultado ? (
         <Cargando />
       ) : resultado.items.length === 0 && !fueraDeRango ? (
-        <EstadoVacio titulo={TITULO_SIN_MENSAJES} />
+        <EstadoVacio
+          titulo={soloSinLeer ? "No tenés mensajes sin leer" : TITULO_SIN_MENSAJES}
+        />
       ) : (
         <>
           {error && (
@@ -102,6 +154,7 @@ export function MensajesPage() {
                 key={mensaje.id}
                 mensaje={mensaje}
                 colaboradorId={usuario.perfilId}
+                alLeer={registrarLectura}
               />
             ))}
           </ul>

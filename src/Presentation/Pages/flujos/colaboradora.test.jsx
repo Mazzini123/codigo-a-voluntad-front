@@ -32,6 +32,7 @@ const COLABORADORA = {
 const adaptadorOriginal = axiosClient.defaults.adapter;
 let cuenta;
 let transporte;
+let medios;
 let guardada;
 
 function respuesta(config, data, status = 200) {
@@ -54,6 +55,7 @@ function porTitulo(codigo) {
 
 beforeEach(() => {
   guardada = structuredClone(COLABORADORA);
+  medios = [{ tipo: "EMAIL", valor: "pixel@mail.com" }];
   cuenta = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "co1" };
   transporte = vi.fn(async (config) => {
     const { method, url } = config;
@@ -66,6 +68,20 @@ beforeEach(() => {
     }
     if (method === "get" && url === "/colaboradores/co1")
       return respuesta(config, guardada);
+    if (url === "/colaboradores/co1/medios-de-contacto") {
+      if (method === "get") return respuesta(config, medios);
+      if (method === "post") {
+        const nuevo = JSON.parse(config.data);
+        if (medios.some((m) => m.valor === nuevo.valor)) return falla(config, 409);
+        medios = [...medios, nuevo];
+        return respuesta(config, nuevo, 201);
+      }
+    }
+    if (method === "delete" && url.includes("/medios-de-contacto/")) {
+      const valor = decodeURIComponent(url.split("/").at(-1));
+      medios = medios.filter((m) => m.valor !== valor);
+      return respuesta(config, null, 204);
+    }
     if (method === "get" && url === "/colaboradores/co1/colaboraciones")
       return respuesta(config, []);
     if (method === "get") return falla(config, 404);
@@ -183,11 +199,40 @@ describe("alta", () => {
 });
 
 describe("edición", () => {
-  test("la bajada describe la edición sin mencionar medios de contacto", async () => {
+  test("la bajada describe la edición", async () => {
     montar("/colaboradora/perfil");
     await screen.findByLabelText("Presentación");
     expect(screen.getByText("Editá cómo te ven los colectivos.")).toBeInTheDocument();
-    expect(screen.queryByText(/medios de contacto/i)).not.toBeInTheDocument();
+  });
+
+  test("muestra tus medios de contacto privados y deja agregar y quitar", async () => {
+    const { user } = montar("/colaboradora/perfil");
+    const lista = await screen.findByRole("list", {
+      name: "Medios de contacto cargados",
+    });
+    expect(within(lista).getByText("pixel@mail.com")).toBeVisible();
+
+    await user.type(screen.getByLabelText("Email"), "otro@mail.com");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(await screen.findByText("Medio de contacto agregado.")).toBeVisible();
+    expect(within(lista).getByText("otro@mail.com")).toBeVisible();
+    expect(pedidos("post", "/colaboradores/co1/medios-de-contacto")).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Quitar Email pixel@mail.com" }));
+    expect(await screen.findByText("Quitaste el medio de contacto.")).toBeVisible();
+    expect(within(lista).queryByText("pixel@mail.com")).not.toBeInTheDocument();
+  });
+
+  test("un medio repetido o inválido muestra un mensaje propio", async () => {
+    const { user } = montar("/colaboradora/perfil");
+    await screen.findByRole("list", { name: "Medios de contacto cargados" });
+    await user.type(screen.getByLabelText("Email"), "no-es-un-email");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(await screen.findByText(/Escribí un email válido/)).toBeVisible();
+    await user.clear(screen.getByLabelText("Email"));
+    await user.type(screen.getByLabelText("Email"), "pixel@mail.com");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(await screen.findByText("Ya cargaste ese medio de contacto.")).toBeVisible();
   });
 
   test("muestra la identidad sin dejarla editar y manda solo lo que cambió", async () => {

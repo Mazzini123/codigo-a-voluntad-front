@@ -7,6 +7,7 @@ import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
+import { FiltrosDeProyectos } from "@/Presentation/Components/Proyecto/listado/FiltrosDeProyectos.jsx";
 import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.jsx";
 import { Esqueleto } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TextoOculto } from "@/Presentation/Components/App/ui/TextoOculto.jsx";
@@ -37,6 +38,8 @@ export function ProyectosPage() {
   const proyectos = useBusquedaDeProyectos({
     vista: busqueda.vista,
     etiqueta: busqueda.etiqueta,
+    filtros: busqueda.filtros,
+    clave: busqueda.clave,
     pagina: busqueda.pagina,
     colaboradoraId: usuario?.perfilId,
     listo: !verificandoSesion || Boolean(errorDeCuenta),
@@ -92,6 +95,13 @@ export function ProyectosPage() {
         <TemasDeBusqueda proyectos={proyectos} busqueda={busqueda} />
       </div>
 
+      <FiltrosDeProyectos
+        filtros={busqueda.filtros}
+        hayFiltros={busqueda.hayFiltros}
+        alCambiar={busqueda.cambiarFiltro}
+        alLimpiar={busqueda.limpiarFiltros}
+      />
+
       {esColaboradora && (
         <nav aria-label="Vistas de proyectos">
           <ul className={estilos.vistas}>
@@ -133,6 +143,7 @@ function textoDeAnuncio({ error, resultado, desactualizado, busqueda }) {
   if (resultado.items.length === 0) {
     if (busqueda.etiqueta)
       return `No encontramos proyectos con la etiqueta «${busqueda.etiqueta}»`;
+    if (busqueda.hayFiltros) return "No encontramos proyectos con esos filtros";
     if (busqueda.vista === VISTA.PARA_VOS)
       return "Todavía no hay proyectos que encajen con tus habilidades";
     return "Todavía no hay proyectos publicados";
@@ -145,8 +156,7 @@ function textoDeAnuncio({ error, resultado, desactualizado, busqueda }) {
 
 function Resultados({ busqueda, proyectos, colaboradoraId }) {
   const { resultado, error } = proyectos;
-  const desactualizado =
-    !resultado || resultado.consulta !== `${busqueda.vista}|${busqueda.etiqueta}`;
+  const desactualizado = !resultado || resultado.consulta !== busqueda.clave;
   const anuncio = textoDeAnuncio({ error, resultado, desactualizado, busqueda });
   return (
     <>
@@ -163,8 +173,7 @@ function Resultados({ busqueda, proyectos, colaboradoraId }) {
 function ListaDeResultados({ busqueda, proyectos, colaboradoraId }) {
   const refConteo = useRef(null);
   const { resultado, error, cargando, reintentar } = proyectos;
-  const consultaActual = `${busqueda.vista}|${busqueda.etiqueta}`;
-  const desactualizado = !resultado || resultado.consulta !== consultaActual;
+  const desactualizado = !resultado || resultado.consulta !== busqueda.clave;
   const codigosPropios = useHabilidadesPropias(colaboradoraId);
   const proyectosPostulados = useProyectosPostulados(colaboradoraId);
 
@@ -305,6 +314,17 @@ function TemasDeBusqueda({ proyectos, busqueda }) {
 }
 
 function SinProyectos({ busqueda }) {
+  if (busqueda.hayFiltros && !busqueda.etiqueta) {
+    return (
+      <EstadoVacio
+        nivel={3}
+        titulo="No encontramos proyectos con esos filtros"
+        descripcion="Probá con otras opciones o quitá algún filtro."
+      >
+        <Boton onClick={busqueda.limpiarFiltros}>Limpiar filtros</Boton>
+      </EstadoVacio>
+    );
+  }
   if (busqueda.etiqueta) {
     return (
       <EstadoVacio

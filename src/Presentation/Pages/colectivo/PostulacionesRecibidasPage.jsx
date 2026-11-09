@@ -57,7 +57,12 @@ function agrupar(perfiles, filas, filtro) {
   const grupos = new Map(
     perfiles.map((perfil, indice) => [
       perfil.id,
-      { titulo: `Perfil ${indice + 1}`, perfil, filas: [], aceptadas: 0 },
+      {
+        titulo: perfil.titulo || `Perfil ${indice + 1}`,
+        perfil,
+        filas: [],
+        aceptadas: 0,
+      },
     ]),
   );
   const eliminados = { titulo: "Perfil eliminado", filas: [] };

@@ -5,6 +5,8 @@ import {
 import { OPCION_UBICACION } from "./formularioColectivo.js";
 
 export const LARGO_ETIQUETA = 30;
+export const LARGO_NOMBRE = 100;
+export const LARGO_DESCRIPCION = 2000;
 
 export function validarEtiqueta(texto, existentes) {
   return validarTexto(texto, existentes, {
@@ -20,10 +22,14 @@ export function validarEtiqueta(texto, existentes) {
 export function validarColectivo(estado, { esAlta }) {
   const errores = {};
   if (!estado.nombre.trim()) errores.nombre = "Escribí el nombre del colectivo.";
+  else if (estado.nombre.trim().length > LARGO_NOMBRE)
+    errores.nombre = `El nombre puede tener hasta ${LARGO_NOMBRE} caracteres.`;
   if (esAlta && !estado.tipoColectivo)
     errores.tipoColectivo = "Elegí el tipo de colectivo.";
   if (!estado.descripcion.trim())
     errores.descripcion = "Contá en pocas líneas a qué se dedican.";
+  else if (estado.descripcion.trim().length > LARGO_DESCRIPCION)
+    errores.descripcion = `La descripción puede tener hasta ${LARGO_DESCRIPCION} caracteres.`;
 
   const { opcion, provincia, localidad } = estado.ubicacion;
   if (opcion === OPCION_UBICACION.PROVINCIA && !provincia)

@@ -791,7 +791,7 @@ describe("postularse", () => {
   });
 
   test.each([
-    [409, "Ya te postulaste a este perfil.", "Ya te postulaste a este proyecto."],
+    [409, "Ya existe una postulación a este perfil.", "Ya te postulaste a este perfil."],
     [
       400,
       "No cumplís las habilidades requeridas.",

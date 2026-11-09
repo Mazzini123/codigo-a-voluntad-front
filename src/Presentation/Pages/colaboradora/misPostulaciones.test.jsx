@@ -13,6 +13,7 @@ let proyectos;
 let transporte;
 let falloDeLista;
 let falloDeBaja;
+let falloDeRetiro;
 
 function registro(proyectoId, id, estado, campos = {}) {
   return {
@@ -59,6 +60,7 @@ beforeEach(() => {
   };
   falloDeLista = false;
   falloDeBaja = null;
+  falloDeRetiro = null;
   transporte = vi.fn(async (config) => {
     const { url, method } = config;
     const responder = (data) => ({
@@ -91,6 +93,16 @@ beforeEach(() => {
       }
       colaboraciones.find((r) => r.colaboracion.id === baja[2]).colaboracion.estado =
         "DESVINCULADA";
+      return responder({});
+    }
+    const retiro = url.match(/^\/proyectos\/(\w+)\/colaboraciones\/(\w+)\/retiro$/);
+    if (retiro && method === "post") {
+      const fila = colaboraciones.find((r) => r.colaboracion.id === retiro[2]);
+      if (falloDeRetiro) {
+        if (falloDeRetiro === 409) fila.colaboracion.estado = "ACEPTADA";
+        return fallar(falloDeRetiro);
+      }
+      fila.colaboracion.estado = "RETIRADA";
       return responder({});
     }
     throw new Error(`Pedido inesperado: ${method} ${url}`);
@@ -134,8 +146,8 @@ test("lista las postulaciones de la más reciente a la más antigua con estado, 
   expect(within(filas[1]).getByText(/Te postulaste el/)).toBeVisible();
   expect(within(filas[2]).getByText(/Terminó el/)).toBeVisible();
   expect(
-    screen.getByText("Las postulaciones anónimas todavía no aparecen en esta lista."),
-  ).toBeVisible();
+    screen.queryByText("Las postulaciones anónimas todavía no aparecen en esta lista."),
+  ).not.toBeInTheDocument();
 });
 
 test("las anónimas dicen Contribución anónima", async () => {
@@ -279,4 +291,60 @@ test("una persona sin sesión va a ingresar y un colectivo ve sin permiso", asyn
   sinSesion.unmount();
   montar("", { id: "2", rol: "COLECTIVO", perfilId: "cl1" });
   expect(await screen.findByRole("heading", { name: "Sin permiso" })).toBeVisible();
+});
+
+test("solo las pendientes tienen Retirar postulación", async () => {
+  montar();
+  await screen.findByText("Huerta compartida");
+  expect(screen.getAllByRole("button", { name: "Retirar postulación" })).toHaveLength(1);
+});
+
+test("retirar una postulación pide confirmación, la retira y avisa", async () => {
+  const { user } = montar();
+  await user.click(await screen.findByRole("button", { name: "Retirar postulación" }));
+  const dialogo = screen.getByRole("dialog", { name: "¿Retirar tu postulación?" });
+  expect(
+    within(dialogo).getByText(/Retirás tu postulación a «Huerta compartida»/),
+  ).toBeVisible();
+  expect(
+    within(dialogo).queryByText("Esta acción no se puede deshacer."),
+  ).not.toBeInTheDocument();
+  expect(bajas()).toHaveLength(0);
+  await user.click(within(dialogo).getByRole("button", { name: "Retirar" }));
+  expect(
+    await screen.findByText("Retiraste tu postulación a «Huerta compartida»."),
+  ).toBeVisible();
+  expect(bajas()[0][0].url).toBe("/proyectos/p2/colaboraciones/c2/retiro");
+  expect(screen.getByText("Retirada")).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Retirar postulación" }),
+  ).not.toBeInTheDocument();
+});
+
+test("si la postulación ya no está pendiente, avisa sin mostrar el error crudo", async () => {
+  falloDeRetiro = 409;
+  const { user } = montar();
+  await user.click(await screen.findByRole("button", { name: "Retirar postulación" }));
+  await user.click(
+    within(screen.getByRole("dialog")).getByRole("button", { name: "Retirar" }),
+  );
+  expect(await screen.findByText("Esta postulación ya no está pendiente.")).toBeVisible();
+});
+
+test("usa el proyecto y el perfil que trae la lista, sin pedir cada proyecto", async () => {
+  colaboraciones = [
+    {
+      ...registro("p1", "c1", "ACEPTADA"),
+      proyecto: { id: "p1", titulo: "Turnos del barrio", estado: "ABIERTO" },
+      perfil: { id: "pe1", titulo: "Diseño web", descripcion: "Interfaz web" },
+    },
+  ];
+  montar();
+  expect(await screen.findByRole("heading", { level: 2 })).toHaveTextContent(
+    "Turnos del barrio",
+  );
+  expect(screen.getByText("Diseño web")).toBeVisible();
+  expect(
+    transporte.mock.calls.filter(([config]) => config.url === "/proyectos/p1"),
+  ).toHaveLength(0);
 });

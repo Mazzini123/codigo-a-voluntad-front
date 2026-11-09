@@ -7,16 +7,21 @@ export const MENSAJES_POR_PAGINA = 10;
 export function useMensajes(
   colaboradorId,
   pagina,
+  soloSinLeer = false,
   dependencias = notificacionDependencies,
 ) {
   const consultar = useCallback(
     (signal) =>
       dependencias.listarNotificaciones(
         colaboradorId,
-        { page: pagina, limit: MENSAJES_POR_PAGINA },
+        {
+          page: pagina,
+          limit: MENSAJES_POR_PAGINA,
+          ...(soloSinLeer && { leida: false }),
+        },
         { signal },
       ),
-    [colaboradorId, pagina, dependencias],
+    [colaboradorId, pagina, soloSinLeer, dependencias],
   );
   const { datos, error, cargando, reintentar } = useConsulta(consultar);
 

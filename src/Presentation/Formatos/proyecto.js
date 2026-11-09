@@ -14,7 +14,7 @@ const TEXTO_PERIODO = Object.freeze({
   [PERIODO_COMPROMISO.HS_TOTALES]: "en total",
 });
 
-const TEXTO_MODALIDAD = Object.freeze({
+export const TEXTO_MODALIDAD = Object.freeze({
   [MODALIDAD_COLABORACION.GRATUITA]: "Colaboración sin remuneración",
   [MODALIDAD_COLABORACION.OFRECE_INCENTIVO_ECONOMICO]: "Con incentivo económico",
   [MODALIDAD_COLABORACION.EXISTE_POSIBILIDAD_DE_CONTRATACION]:

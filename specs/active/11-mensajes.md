@@ -1,6 +1,6 @@
 # Mensajes internos (bandeja de notificaciones)
 
-Origen: borrador `specs/backlog/11-mensajes.md`, contrastado con el módulo Notificación de `docs/PLAN-ENTIDADES.md`, `docs/plan-front.md` (ruta `/mensajes`, ambos roles) y los casos de uso y el HttpClient que ya existen.
+Origen: borrador `specs/backlog/11-mensajes.md`, contrastado con el módulo Notificación de `docs/PLAN-ENTIDADES.md`, `docs/plan-front.md` (ruta `/mensajes`; decidido: solo colaboradora, sin bandeja de colectivo) y los casos de uso y el HttpClient que ya existen.
 
 Estado: aprobada (09/11/2026) con las tres decisiones de «Decisiones tomadas». Se implementa en una sesión nueva.
 

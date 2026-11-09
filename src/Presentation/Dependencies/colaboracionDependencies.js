@@ -5,6 +5,7 @@ import { crearAceptarPostulacion } from "@/Application/UseCases/Colaboracion/Ace
 import { crearRechazarPostulacion } from "@/Application/UseCases/Colaboracion/RechazarPostulacion.js";
 import { crearFinalizarColaboracion } from "@/Application/UseCases/Colaboracion/FinalizarColaboracion.js";
 import { crearDesvincularColaboracion } from "@/Application/UseCases/Colaboracion/DesvincularColaboracion.js";
+import { crearRetirarPostulacion } from "@/Application/UseCases/Colaboracion/RetirarPostulacion.js";
 import { crearColaboracionHttpClient } from "@/Infrastructure/HttpClients/ColaboracionHttpClient.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 
@@ -18,6 +19,7 @@ export function crearColaboracionDependencies(http = axiosClient) {
     rechazarPostulacion: crearRechazarPostulacion(httpClient),
     finalizarColaboracion: crearFinalizarColaboracion(httpClient),
     desvincularColaboracion: crearDesvincularColaboracion(httpClient),
+    retirarPostulacion: crearRetirarPostulacion(httpClient),
   };
 }
 

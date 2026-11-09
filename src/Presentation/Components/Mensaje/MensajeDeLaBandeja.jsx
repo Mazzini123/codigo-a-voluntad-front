@@ -19,7 +19,7 @@ import { useMarcarComoLeido } from "@/Presentation/Hooks/mensaje/useMarcarComoLe
 import { estadoParaVolver, rutaProyecto } from "@/Presentation/Routes/rutas.js";
 import estilos from "./MensajeDeLaBandeja.module.css";
 
-export function MensajeDeLaBandeja({ mensaje, colaboradorId }) {
+export function MensajeDeLaBandeja({ mensaje, colaboradorId, alLeer }) {
   const ubicacion = useLocation();
   const avisar = useAvisos();
   const [leido, setLeido] = useState(estaLeido(mensaje));
@@ -32,6 +32,7 @@ export function MensajeDeLaBandeja({ mensaje, colaboradorId }) {
     if (resultado.ignorada) return;
     if (resultado.ok) {
       setLeido(true);
+      alLeer?.();
       avisar.exito(AVISO_MENSAJE_LEIDO);
     } else {
       avisar.error(ERROR_AL_MARCAR_COMO_LEIDO);

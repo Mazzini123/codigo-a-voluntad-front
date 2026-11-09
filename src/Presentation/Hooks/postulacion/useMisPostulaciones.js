@@ -10,6 +10,10 @@ const DEPENDENCIAS = Object.freeze({
   proyectos: proyectoDependencies,
 });
 
+const MENSAJES_DEL_RETIRO = Object.freeze({
+  409: "Esta postulación ya no está pendiente.",
+});
+
 const MENSAJES_DE_LA_BAJA = Object.freeze({
   409: "Esta colaboración ya no está activa.",
 });
@@ -26,7 +30,11 @@ export function useMisPostulaciones(colaboradoraId, dependencias = DEPENDENCIAS)
           { signal, requiereSesion: true },
         );
       const faltantes = [
-        ...new Set(registros.map(({ proyectoId }) => proyectoId)),
+        ...new Set(
+          registros
+            .filter(({ proyecto, perfil }) => !proyecto || !perfil)
+            .map(({ proyectoId }) => proyectoId),
+        ),
       ].filter((id) => !proyectosCargados.current.has(id));
       const resultados = await Promise.allSettled(
         faltantes.map((id) => dependencias.proyectos.obtenerProyecto(id, { signal })),
@@ -36,10 +44,11 @@ export function useMisPostulaciones(colaboradoraId, dependencias = DEPENDENCIAS)
           proyectosCargados.current.set(faltantes[indice], resultado.value);
       });
       return ordenarPorFechaDescendente(registros).map(
-        ({ proyectoId, colaboracion }) => ({
+        ({ proyectoId, colaboracion, proyecto, perfil }) => ({
           proyectoId,
           colaboracion,
-          proyecto: proyectosCargados.current.get(proyectoId) ?? null,
+          proyecto: proyecto ?? proyectosCargados.current.get(proyectoId) ?? null,
+          perfil: perfil ?? null,
         }),
       );
     },
@@ -54,8 +63,15 @@ export function useMisPostulaciones(colaboradoraId, dependencias = DEPENDENCIAS)
   );
   const mutacion = useMutacion(desvincular, { mensajes: MENSAJES_DE_LA_BAJA });
 
-  async function darDeBaja(proyectoId, colaboracionId) {
-    const { ignorada, error } = await mutacion.ejecutar(proyectoId, colaboracionId);
+  const retirar = useCallback(
+    (_signal, proyectoId, colaboracionId) =>
+      dependencias.colaboraciones.retirarPostulacion(proyectoId, colaboracionId),
+    [dependencias],
+  );
+  const mutacionDeRetiro = useMutacion(retirar, { mensajes: MENSAJES_DEL_RETIRO });
+
+  async function ejecutarYActualizar(operacion, proyectoId, colaboracionId) {
+    const { ignorada, error } = await operacion.ejecutar(proyectoId, colaboracionId);
     if (ignorada) return null;
     setActualizando(true);
     const actualizado = await consulta.reintentar();
@@ -63,11 +79,17 @@ export function useMisPostulaciones(colaboradoraId, dependencias = DEPENDENCIAS)
     return { fallo: error, actualizado };
   }
 
+  const darDeBaja = (proyectoId, colaboracionId) =>
+    ejecutarYActualizar(mutacion, proyectoId, colaboracionId);
+  const retirarPostulacion = (proyectoId, colaboracionId) =>
+    ejecutarYActualizar(mutacionDeRetiro, proyectoId, colaboracionId);
+
   return {
     postulaciones: consulta.datos,
     error: consulta.error,
     reintentar: consulta.reintentar,
     darDeBaja,
-    procesando: mutacion.enviando || actualizando,
+    retirarPostulacion,
+    procesando: mutacion.enviando || mutacionDeRetiro.enviando || actualizando,
   };
 }

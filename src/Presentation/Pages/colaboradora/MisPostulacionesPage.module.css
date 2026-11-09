@@ -17,10 +17,6 @@
   gap: var(--espacio-2);
 }
 
-.nota {
-  color: var(--color-tinta-suave);
-}
-
 .filtro {
   max-inline-size: var(--ancho-aviso);
 }

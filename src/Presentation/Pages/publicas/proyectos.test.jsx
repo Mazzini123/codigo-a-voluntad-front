@@ -63,6 +63,17 @@ beforeEach(() => {
         : TODOS;
       return respuesta(config, pagina(lista, config.params));
     }
+    if (config.url === "/habilidades")
+      return respuesta(
+        config,
+        pagina(
+          [
+            { codigo: "react", titulo: "React", activo: true },
+            { codigo: "python", titulo: "Python", activo: true },
+          ],
+          config.params,
+        ),
+      );
     if (config.url === "/colaboradores/co1/proyectos-potenciales")
       return respuesta(config, pagina(potenciales, config.params));
     if (config.url === "/colaboradores/co1")
@@ -260,14 +271,20 @@ test("una página que ya no existe lleva a la última", async () => {
 });
 
 test("si falla ofrece Reintentar sin perder la búsqueda", async () => {
-  transporte.mockImplementationOnce(async (config) => {
-    throw new axios.AxiosError(
-      "Error",
-      "ERR_BAD_RESPONSE",
-      config,
-      null,
-      respuesta(config, {}, 500),
-    );
+  const original = transporte.getMockImplementation();
+  let fallo = true;
+  transporte.mockImplementation(async (config) => {
+    if (config.url === "/proyectos" && fallo) {
+      fallo = false;
+      throw new axios.AxiosError(
+        "Error",
+        "ERR_BAD_RESPONSE",
+        config,
+        null,
+        respuesta(config, {}, 500),
+      );
+    }
+    return original(config);
   });
   const { user } = montar("/proyectos?etiqueta=salud");
   expect(await screen.findByText("No pudimos cargar los proyectos")).toBeInTheDocument();
@@ -323,5 +340,60 @@ describe("colaboradora", () => {
       "href",
       "/colaboradora/perfil",
     );
+  });
+});
+
+describe("filtros", () => {
+  test("los filtros de la URL viajan al back y se ven elegidos", async () => {
+    montar(
+      "/proyectos?estado=ABIERTO&tipoColectivo=ONG&ubicacion=Cordoba&modalidad=GRATUITA&habilidad=react",
+    );
+    await screen.findByText("Mostrando 1–12 de 30 proyectos");
+    const params = pedidosA("/proyectos")[0].params;
+    expect(params).toMatchObject({
+      estado: "ABIERTO",
+      tipoColectivo: "ONG",
+      ubicacion: "Cordoba",
+      modalidad: "GRATUITA",
+      habilidad: "react",
+    });
+    expect(screen.getByLabelText("Estado")).toHaveValue("ABIERTO");
+    expect(screen.getByLabelText("Tipo de colectivo")).toHaveValue("ONG");
+    expect(screen.getByLabelText("Modalidad")).toHaveValue("GRATUITA");
+  });
+
+  test("elegir un filtro lo guarda en la URL, vuelve a la primera página y se puede limpiar", async () => {
+    const { user, router } = montar("/proyectos?pagina=2");
+    await screen.findByText("Mostrando 13–24 de 30 proyectos");
+    await user.selectOptions(screen.getByLabelText("Estado"), "FINALIZADO");
+    await waitFor(() => expect(router.state.location.search).toBe("?estado=FINALIZADO"));
+    await user.click(screen.getByRole("button", { name: "Limpiar filtros" }));
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(
+      screen.queryByRole("button", { name: "Limpiar filtros" }),
+    ).not.toBeInTheDocument();
+  });
+
+  test("sin resultados ofrece limpiar los filtros", async () => {
+    const original = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) =>
+      config.url === "/proyectos" && config.params.estado
+        ? respuesta(config, pagina([], config.params))
+        : original(config),
+    );
+    const { user } = montar("/proyectos?estado=FINALIZADO");
+    expect(
+      await screen.findByRole("heading", {
+        name: "No encontramos proyectos con esos filtros",
+      }),
+    ).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Limpiar filtros" })[0]);
+    expect(await screen.findByText(/de 30 proyectos/)).toBeInTheDocument();
+  });
+
+  test("una colaboradora que filtra pasa a ver todos los proyectos", async () => {
+    montar("/proyectos?modalidad=GRATUITA", COLABORADORA);
+    expect(await screen.findByText(/de 30 proyectos/)).toBeInTheDocument();
+    expect(pedidosA("/colaboradores/co1/proyectos-potenciales")).toHaveLength(0);
   });
 });

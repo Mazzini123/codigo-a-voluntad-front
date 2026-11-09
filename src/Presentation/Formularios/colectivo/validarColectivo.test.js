@@ -66,3 +66,12 @@ test("las etiquetas no pueden estar vacías, ser muy largas ni repetirse", () =>
   expect(validarEtiqueta("Educación", ["educación"])).not.toBeNull();
   expect(validarEtiqueta("huerta", ["educación"])).toBeNull();
 });
+
+test("avisa cuando el nombre o la descripción pasan el máximo", () => {
+  const errores = validarColectivo(
+    { ...valido(), nombre: "a".repeat(101), descripcion: "a".repeat(2001) },
+    { esAlta: true },
+  );
+  expect(errores.nombre).toBe("El nombre puede tener hasta 100 caracteres.");
+  expect(errores.descripcion).toBe("La descripción puede tener hasta 2000 caracteres.");
+});

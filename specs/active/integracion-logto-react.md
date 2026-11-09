@@ -48,8 +48,8 @@ Credenciales del tenant, cambios en el backend, asignación de roles o scopes en
 
 - Configurar el tenant y registrar `/auth/callback` y `/` para cada origen usado.
 - Usar en `VITE_LOGTO_API_RESOURCE` el mismo identificador que valida el backend como audiencia.
-- Validación del JWT (emisor, audiencia y JWKS), asociación por `sub`, `/auth/me` → `{ id, rol, perfilId }` y 401 si el token no es válido.
-- `rol` y `perfilId` nulos para cuentas sin perfil; altas de perfil asociadas al `sub` y conflicto 409 si ya existe uno.
+- Hecho en el back (09/11/2026, probado con un JWKS local, no con un tenant real): validación del JWT (emisor, audiencia y JWKS), asociación por `sub`, `/auth/me` → `{ id, rol, perfilId }` y 401 si el token no es válido.
+- Hecho en el back: `rol` y `perfilId` nulos para cuentas sin perfil; altas de perfil asociadas al `sub` y conflicto 409 si ya existe uno; tras la baja de un colectivo la cuenta queda sin perfil.
 - Acordar scopes y roles en Logto solo si el backend los requiere. El frontend continúa usando el rol de la cuenta que responde el backend.
 - Probar ingreso, registro, recarga, cierre y expiración con tenant y backend reales.
 

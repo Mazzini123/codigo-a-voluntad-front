@@ -12,13 +12,16 @@ const DEPENDENCIAS = Object.freeze({
 });
 
 export function useBusquedaDeProyectos(
-  { vista, etiqueta, pagina, colaboradoraId, listo = true },
+  { vista, etiqueta, filtros = {}, clave, pagina, colaboradoraId, listo = true },
   dependencias = DEPENDENCIAS,
 ) {
   const buscar = useCallback(
     async (signal) => {
       if (!listo) return null;
       const query = { page: pagina, limit: PROYECTOS_POR_PAGINA };
+      const condiciones = Object.fromEntries(
+        Object.entries({ etiqueta, ...filtros }).filter(([, valor]) => valor),
+      );
       const resultado =
         vista === VISTA.PARA_VOS
           ? await dependencias.reclutamiento.buscarProyectosPotenciales(
@@ -29,12 +32,12 @@ export function useBusquedaDeProyectos(
               },
             )
           : await dependencias.proyectos.listarProyectos(
-              etiqueta ? { ...query, etiqueta } : query,
+              { ...query, ...condiciones },
               { signal },
             );
-      return { ...resultado, consulta: `${vista}|${etiqueta}` };
+      return { ...resultado, consulta: clave ?? `${vista}|${etiqueta}` };
     },
-    [vista, etiqueta, pagina, colaboradoraId, listo, dependencias],
+    [vista, etiqueta, filtros, clave, pagina, colaboradoraId, listo, dependencias],
   );
   const { datos, error, cargando, reintentar } = useConsulta(buscar);
   return { resultado: datos, error, cargando: cargando || !listo, reintentar };

@@ -10,6 +10,13 @@ export function crearColaboracionHttpClient(http) {
         { signal, requiereSesion: true },
       );
     },
+    async retirar(proyectoId, colaboracionId, { signal } = {}) {
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/retiro`,
+        undefined,
+        { signal, requiereSesion: true },
+      );
+    },
     async registrar(proyectoId, request, { signal } = {}) {
       return api.post(ruta`/proyectos/${proyectoId}/colaboraciones`, request, {
         signal,

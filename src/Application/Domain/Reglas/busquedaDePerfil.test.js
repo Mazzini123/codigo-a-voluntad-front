@@ -115,3 +115,23 @@ test("cuenta las pendientes y no inventa el conteo sin colaboraciones", () => {
   ).toBe(1);
   expect(postulacionesPendientes({ estado: "ABIERTO" })).toBeNull();
 });
+
+describe("estadoBusqueda que informa el back", () => {
+  test("LIMITE_ALCANZADO cierra aunque la lista de colaboraciones no esté", () => {
+    const perfil = unPerfil({ estadoBusqueda: "LIMITE_ALCANZADO" });
+    expect(
+      motivoDeCierre(perfil, unProyecto([perfil], { colaboraciones: undefined }), HOY),
+    ).toBe(MOTIVO_DE_CIERRE.LIMITE_ALCANZADO);
+  });
+
+  test("CERRADA cierra la búsqueda", () => {
+    const perfil = unPerfil({ estadoBusqueda: "CERRADA" });
+    expect(recibePostulaciones(perfil, unProyecto([perfil]), HOY)).toBe(false);
+  });
+
+  test("ABIERTA o ausente no cambia el cálculo local", () => {
+    const perfil = unPerfil({ estadoBusqueda: "ABIERTA" });
+    expect(recibePostulaciones(perfil, unProyecto([perfil]), HOY)).toBe(true);
+    expect(recibePostulaciones(unPerfil(), unProyecto([perfil]), HOY)).toBe(true);
+  });
+});

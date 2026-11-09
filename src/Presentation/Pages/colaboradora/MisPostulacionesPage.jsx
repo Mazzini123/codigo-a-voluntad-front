@@ -16,8 +16,10 @@ import { clases } from "@/Presentation/Components/App/ui/clases.js";
 import {
   ESTADOS,
   avisoDeBaja,
+  avisoDeRetiro,
   datosDelPerfil,
   descripcionDeLaBaja,
+  descripcionDelRetiro,
   fechaValida,
   filtroDeEstadoValido,
   textoDeContribucion,
@@ -35,6 +37,7 @@ import {
 import estilos from "./MisPostulacionesPage.module.css";
 
 const ERROR_DE_LA_BAJA = "No pudimos darte de baja. Probá de nuevo.";
+const ERROR_DEL_RETIRO = "No pudimos retirar tu postulación. Probá de nuevo.";
 
 export function MisPostulacionesPage() {
   const { usuario } = useAuth();
@@ -43,9 +46,8 @@ export function MisPostulacionesPage() {
   const avisar = useAvisos();
   const refTitulo = useRef(null);
   const refBotonDeBaja = useRef(null);
-  const { postulaciones, error, reintentar, darDeBaja, procesando } = useMisPostulaciones(
-    usuario.perfilId,
-  );
+  const { postulaciones, error, reintentar, darDeBaja, retirarPostulacion, procesando } =
+    useMisPostulaciones(usuario.perfilId);
   const filtro = filtroDeEstadoValido(parametros.get("estado"));
   const visibles = (postulaciones ?? []).filter(
     ({ colaboracion }) => !filtro || colaboracion.estado === filtro,
@@ -64,22 +66,30 @@ export function MisPostulacionesPage() {
     setParametros(siguientes);
   }
 
-  function pedirBaja(registro, boton) {
+  function pedirAccion(tipo, registro, boton) {
     refBotonDeBaja.current = boton;
-    setConfirmacion(registro);
+    setConfirmacion({ tipo, registro });
   }
 
-  async function confirmarBaja() {
-    const { proyectoId, colaboracion, proyecto } = confirmacion;
-    const resultado = await darDeBaja(proyectoId, colaboracion.id);
+  async function confirmarAccion() {
+    const { tipo, registro } = confirmacion;
+    const { proyectoId, colaboracion, proyecto } = registro;
+    const esRetiro = tipo === "retiro";
+    const resultado = await (esRetiro ? retirarPostulacion : darDeBaja)(
+      proyectoId,
+      colaboracion.id,
+    );
     if (!resultado) return;
     setConfirmacion(null);
+    const aviso = esRetiro ? avisoDeRetiro(proyecto) : avisoDeBaja(proyecto);
     if (resultado.fallo) {
-      avisar.error(resultado.fallo.mensaje ?? ERROR_DE_LA_BAJA);
+      avisar.error(
+        resultado.fallo.mensaje ?? (esRetiro ? ERROR_DEL_RETIRO : ERROR_DE_LA_BAJA),
+      );
     } else if (resultado.actualizado) {
-      avisar.exito(avisoDeBaja(proyecto));
+      avisar.exito(aviso);
     } else {
-      avisar.exito(`${avisoDeBaja(proyecto)} No pudimos actualizar la lista.`);
+      avisar.exito(`${aviso} No pudimos actualizar la lista.`);
     }
   }
 
@@ -90,9 +100,6 @@ export function MisPostulacionesPage() {
         <h1 id="titulo-mis-postulaciones" ref={refTitulo} tabIndex={-1}>
           Mis postulaciones
         </h1>
-        <p className={estilos.nota}>
-          Las postulaciones anónimas todavía no aparecen en esta lista.
-        </p>
       </div>
       {error ? (
         <EstadoDeError
@@ -134,7 +141,7 @@ export function MisPostulacionesPage() {
                   key={registro.colaboracion.id}
                   registro={registro}
                   ocupado={procesando}
-                  alPedirBaja={pedirBaja}
+                  alPedirAccion={pedirAccion}
                 />
               ))}
             </ul>
@@ -143,34 +150,37 @@ export function MisPostulacionesPage() {
       )}
       <DialogoDeConfirmacion
         abierto={Boolean(confirmacion)}
-        titulo="¿Darte de baja de este proyecto?"
-        descripcion={
-          confirmacion &&
-          descripcionDeLaBaja({
-            proyecto: confirmacion.proyecto,
-            perfil: datosDelPerfil(
-              confirmacion.proyecto,
-              confirmacion.colaboracion.perfil,
-            ),
-            esPublica: confirmacion.colaboracion.esPublica,
-          })
+        titulo={
+          confirmacion?.tipo === "retiro"
+            ? "¿Retirar tu postulación?"
+            : "¿Darte de baja de este proyecto?"
         }
-        textoConfirmar="Darme de baja"
-        textoEnviando="Dándote de baja…"
-        permanente
+        descripcion={confirmacion && descripcionDeLaAccion(confirmacion)}
+        textoConfirmar={confirmacion?.tipo === "retiro" ? "Retirar" : "Darme de baja"}
+        textoEnviando={
+          confirmacion?.tipo === "retiro" ? "Retirando…" : "Dándote de baja…"
+        }
+        permanente={confirmacion?.tipo !== "retiro"}
         enviando={procesando}
         destinoDeFoco={destinoDeFoco}
-        alConfirmar={confirmarBaja}
+        alConfirmar={confirmarAccion}
         alCancelar={() => setConfirmacion(null)}
       />
     </section>
   );
 }
 
-function Fila({ registro, ocupado, alPedirBaja }) {
+function descripcionDeLaAccion({ tipo, registro }) {
+  const { proyecto, colaboracion, perfil: resumen } = registro;
+  const perfil = datosDelPerfil(proyecto, colaboracion.perfil, resumen);
+  if (tipo === "retiro") return descripcionDelRetiro({ proyecto, perfil });
+  return descripcionDeLaBaja({ proyecto, perfil, esPublica: colaboracion.esPublica });
+}
+
+function Fila({ registro, ocupado, alPedirAccion }) {
   const location = useLocation();
   const { proyectoId, colaboracion, proyecto } = registro;
-  const perfil = datosDelPerfil(proyecto, colaboracion.perfil);
+  const perfil = datosDelPerfil(proyecto, colaboracion.perfil, registro.perfil);
   return (
     <li className={estilos.fila}>
       <h2 className={estilos.titulo}>
@@ -182,7 +192,7 @@ function Fila({ registro, ocupado, alPedirBaja }) {
           {proyecto?.titulo ?? "Ver el proyecto"}
         </Link>
       </h2>
-      {proyecto ? (
+      {proyecto || perfil ? (
         <p className={estilos.perfil}>
           <strong>{perfil.titulo}</strong>
           {perfil.descripcion && (
@@ -219,9 +229,19 @@ function Fila({ registro, ocupado, alPedirBaja }) {
           <Boton
             variante="peligroso"
             disabled={ocupado}
-            onClick={(evento) => alPedirBaja(registro, evento.currentTarget)}
+            onClick={(evento) => alPedirAccion("baja", registro, evento.currentTarget)}
           >
             Darme de baja
+          </Boton>
+        </div>
+      )}
+      {colaboracion.estado === ESTADO.PENDIENTE && (
+        <div className={estilos.acciones}>
+          <Boton
+            disabled={ocupado}
+            onClick={(evento) => alPedirAccion("retiro", registro, evento.currentTarget)}
+          >
+            Retirar postulación
           </Boton>
         </div>
       )}

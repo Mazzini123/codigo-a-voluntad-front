@@ -6,7 +6,7 @@ const CAMPOS_FIJOS = [
   ["nombre", "Nombre"],
   ["apellido", "Apellido"],
   ["tipoColectivo", "Tipo de colectivo"],
-  ["cuentaGit", "Cuenta de GitHub o GitLab"],
+  ["cuentaGit", "Usuario de GitHub o GitLab"],
   ["descripcion", "Descripción"],
   ["presentacion", "Presentación"],
   ["ubicacion", "Dónde trabajan"],

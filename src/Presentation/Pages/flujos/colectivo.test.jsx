@@ -29,6 +29,7 @@ const adaptadorOriginal = axiosClient.defaults.adapter;
 let cuenta;
 let transporte;
 let guardado;
+let medios;
 
 function respuesta(config, data, status = 200) {
   return { config, data, status, statusText: "", headers: {} };
@@ -46,8 +47,22 @@ function falla(config, status, data = {}) {
 
 beforeEach(() => {
   guardado = structuredClone(COLECTIVO);
+  medios = [{ tipo: "WHATSAPP", valor: "+5491122223333" }];
   cuenta = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "c1" };
   transporte = vi.fn(async (config) => {
+    if (config.url === "/colectivos/c1/medios-de-contacto") {
+      if (config.method === "get") return respuesta(config, medios);
+      if (config.method === "post") {
+        const nuevo = JSON.parse(config.data);
+        medios = [...medios, nuevo];
+        return respuesta(config, nuevo, 201);
+      }
+    }
+    if (config.method === "delete" && config.url.includes("/medios-de-contacto/")) {
+      const valor = decodeURIComponent(config.url.split("/").at(-1));
+      medios = medios.filter((m) => m.valor !== valor);
+      return respuesta(config, null, 204);
+    }
     if (config.method === "get" && config.url === "/colectivos/c1")
       return respuesta(config, guardado);
     if (config.method === "get" && config.url === "/colectivos/c1/proyectos")
@@ -90,10 +105,10 @@ function montar(ruta) {
   );
 }
 
-function pedidos(metodo) {
+function pedidos(metodo, url) {
   return transporte.mock.calls
     .map(([config]) => config)
-    .filter((c) => c.method === metodo);
+    .filter((c) => c.method === metodo && (!url || c.url === url));
 }
 
 describe("alta", () => {
@@ -162,7 +177,7 @@ describe("alta", () => {
       nombre: "Asamblea de Fiorito",
       descripcion: "Comedor y apoyo escolar.",
       tipoColectivo: "ASAMBLEA",
-      ubicacion: { tipoUbicacion: "PROVINCIA", nombre: "Córdoba" },
+      ubicacion: { tipoUbicacion: "PROVINCIA", nombre: "Cordoba" },
       mediosDeContacto: [{ tipo: "EMAIL", valor: "hola@fiorito.org" }],
       redesSociales: [],
       etiquetas: ["educación"],
@@ -217,13 +232,7 @@ describe("edición", () => {
   test("manda solo lo que cambió y avisa", async () => {
     const { user } = montar("/colectivo/perfil");
     const descripcion = await screen.findByLabelText(/^Descripción/);
-    expect(
-      screen.getByText(/Por ahora no podés editar los medios de contacto/),
-    ).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "Agregar medio de contacto" }),
-    ).not.toBeInTheDocument();
-    expect(document.body).not.toHaveTextContent("+5491122223333");
+    expect(screen.getByText(/Solo los ves y los cambiás vos/)).toBeVisible();
     await user.clear(descripcion);
     await user.type(descripcion, "Comedor, apoyo escolar y huerta.");
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
@@ -338,5 +347,51 @@ describe("vista pública", () => {
     guardado = { ...COLECTIVO, proyectos: [] };
     montar("/colectivos/c1");
     expect(await screen.findByText("Todavía no publicó proyectos.")).toBeInTheDocument();
+  });
+});
+
+describe("medios de contacto privados", () => {
+  test("el dueño los ve, agrega y quita con pedidos propios", async () => {
+    const { user } = montar("/colectivo/perfil");
+    const lista = await screen.findByRole("list", {
+      name: "Medios de contacto cargados",
+    });
+    expect(within(lista).getByText("+5491122223333")).toBeVisible();
+
+    await user.selectOptions(screen.getByLabelText("Tipo"), "EMAIL");
+    await user.type(screen.getByLabelText("Email"), "hola@fiorito.org");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(await screen.findByText("Medio de contacto agregado.")).toBeVisible();
+    expect(within(lista).getByText("hola@fiorito.org")).toBeVisible();
+    expect(
+      JSON.parse(pedidos("post", "/colectivos/c1/medios-de-contacto")[0].data),
+    ).toEqual({
+      tipo: "EMAIL",
+      valor: "hola@fiorito.org",
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Quitar WhatsApp +5491122223333" }),
+    );
+    expect(await screen.findByText("Quitaste el medio de contacto.")).toBeVisible();
+    expect(within(lista).queryByText("+5491122223333")).not.toBeInTheDocument();
+  });
+
+  test("si no se pueden cargar, ofrece Reintentar", async () => {
+    const original = transporte.getMockImplementation();
+    let fallo = true;
+    transporte.mockImplementation(async (config) => {
+      if (config.url === "/colectivos/c1/medios-de-contacto" && fallo) {
+        fallo = false;
+        return falla(config, 500);
+      }
+      return original(config);
+    });
+    const { user } = montar("/colectivo/perfil");
+    expect(
+      await screen.findByText("No pudimos cargar tus medios de contacto"),
+    ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(await screen.findByText("+5491122223333")).toBeVisible();
   });
 });

@@ -24,6 +24,7 @@ import {
 } from "@/Presentation/Formularios/colaboradora/validarColaboradora.js";
 import { useFormularioDePerfil } from "@/Presentation/Hooks/perfil/useFormularioDePerfil.js";
 import { PieDeFormularioDePerfil } from "@/Presentation/Components/Formulario/PieDeFormularioDePerfil.jsx";
+import { MediosPrivadosDeLaColaboradora } from "@/Presentation/Components/Colaboradora/MediosPrivadosDeLaColaboradora.jsx";
 
 const OPCIONES_DE_IDENTIFICACION = [
   { valor: IDENTIFICACION.FANTASIA, texto: "Con un nombre de fantasía" },
@@ -112,8 +113,8 @@ export function ColaboradoraForm({
               )}
               <Campo
                 id={idDe("cuentaGit")}
-                etiqueta="Cuenta de GitHub o GitLab"
-                ayuda="Tu usuario o la dirección de tu perfil."
+                etiqueta="Usuario de GitHub o GitLab"
+                ayuda="Solo tu usuario, sin la dirección. Por ejemplo: mi-usuario."
                 autoComplete="off"
                 value={estado.cuentaGit}
                 error={errores.cuentaGit}
@@ -180,22 +181,26 @@ export function ColaboradoraForm({
           />
         </fieldset>
 
-        {esAlta && (
-          <fieldset className={estilos.seccion}>
-            <legend>Medios de contacto</legend>
-            <p className={estilos.privacidad}>
-              <Icono nombre="info" />
-              Los medios de contacto no se muestran en tu perfil público. Los ve un
-              colectivo solo si acepta tu postulación.
-            </p>
+        <fieldset className={estilos.seccion}>
+          <legend>Medios de contacto</legend>
+          <p className={estilos.privacidad}>
+            <Icono nombre="info" />
+            Los medios de contacto no se muestran en tu perfil público. Los ve un
+            colectivo solo si acepta tu postulación.
+          </p>
+          {esAlta ? (
             <MediosDeContacto
               prefijoDeIds={idBase}
               items={estado.mediosDeContacto}
               errores={errores}
               alCambiar={(mediosDeContacto) => actualizar({ mediosDeContacto })}
             />
-          </fieldset>
-        )}
+          ) : (
+            colaboradora?.id && (
+              <MediosPrivadosDeLaColaboradora colaboradoraId={colaboradora.id} />
+            )
+          )}
+        </fieldset>
 
         <fieldset className={estilos.seccion}>
           <legend>Redes sociales</legend>

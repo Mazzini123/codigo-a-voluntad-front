@@ -120,7 +120,7 @@ function PerfilPublico({ colaboradora, volver }) {
                     Perfil de {git.hostname === "github.com" ? "GitHub" : "GitLab"}
                   </EnlaceExterno>
                 ) : (
-                  <>Cuenta de GitHub o GitLab: {cuentaGit}</>
+                  <>Usuario de GitHub o GitLab: {cuentaGit}</>
                 )}
               </p>
             )}

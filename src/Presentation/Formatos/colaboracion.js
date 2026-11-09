@@ -7,6 +7,7 @@ export const ESTADOS = Object.freeze([
   { valor: ESTADO.RECHAZADA, texto: "Rechazadas", singular: "Rechazada" },
   { valor: ESTADO.FINALIZADA, texto: "Finalizadas", singular: "Finalizada" },
   { valor: ESTADO.DESVINCULADA, texto: "Desvinculadas", singular: "Desvinculada" },
+  { valor: ESTADO.RETIRADA, texto: "Retiradas", singular: "Retirada" },
 ]);
 
 const LARGO_MAXIMO_DEL_PERFIL = 90;
@@ -35,13 +36,20 @@ export function ordenarPorFechaDescendente(registros) {
   return [...registros].sort((a, b) => marca(b) - marca(a));
 }
 
-export function datosDelPerfil(proyecto, perfilId) {
+export function datosDelPerfil(proyecto, perfilId, resumen = null) {
+  if (resumen) {
+    return {
+      titulo: resumen.titulo || "Perfil",
+      descripcion: resumen.descripcion ?? "",
+    };
+  }
   if (!proyecto) return null;
   const indice = (proyecto.perfiles ?? []).findIndex(({ id }) => id === perfilId);
   if (indice < 0) return { titulo: "Perfil eliminado", descripcion: "" };
+  const encontrado = proyecto.perfiles[indice];
   return {
-    titulo: `Perfil ${indice + 1}`,
-    descripcion: proyecto.perfiles[indice].descripcion ?? "",
+    titulo: encontrado.titulo || `Perfil ${indice + 1}`,
+    descripcion: encontrado.descripcion ?? "",
   };
 }
 
@@ -63,6 +71,21 @@ export function descripcionDeLaBaja({ proyecto, perfil, esPublica }) {
       ? "Como tu contribución es anónima, no figura en tu perfil público."
       : "Va a figurar como desvinculada en tu perfil público.";
   return `Dejás de participar en ${nombre}${textoDelPerfilEnLaBaja(perfil)}. ${consecuencia}`;
+}
+
+export function descripcionDelRetiro({ proyecto, perfil }) {
+  const nombre = proyecto?.titulo ? `«${proyecto.titulo}»` : "este proyecto";
+  const destino =
+    perfil?.titulo && perfil.titulo !== "Perfil eliminado"
+      ? `, perfil «${perfil.titulo}»`
+      : "";
+  return `Retirás tu postulación a ${nombre}${destino}. Si cambiás de idea, vas a poder postularte de nuevo.`;
+}
+
+export function avisoDeRetiro(proyecto) {
+  return proyecto?.titulo
+    ? `Retiraste tu postulación a «${proyecto.titulo}».`
+    : "Retiraste tu postulación.";
 }
 
 export function avisoDeBaja(proyecto) {

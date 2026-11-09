@@ -100,7 +100,7 @@ const MENSAJES_DE_CAMPOS = Object.freeze({
   },
   nombre: { too_small: "Escribí tu nombre.", defecto: "Revisá tu nombre." },
   apellido: { too_small: "Escribí tu apellido.", defecto: "Revisá tu apellido." },
-  cuentaGit: "Revisá la cuenta de GitHub o GitLab.",
+  cuentaGit: "Revisá tu usuario de GitHub o GitLab.",
   presentacion: "Revisá tu presentación.",
   pronombres: "Revisá los pronombres.",
   recibeMensajeriaInterna: "Revisá esta opción.",

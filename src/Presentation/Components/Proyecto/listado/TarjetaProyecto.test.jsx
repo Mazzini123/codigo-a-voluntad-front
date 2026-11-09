@@ -143,3 +143,15 @@ describe("como proyecto propio", () => {
     expect(screen.queryByText(/busca gente|buscan gente/)).not.toBeInTheDocument();
   });
 });
+
+test("muestra el colectivo que publica el proyecto cuando el back lo trae", () => {
+  montar({
+    proyecto: { ...PROYECTO, colectivo: { id: "c1", nombre: "Huerta Viva" } },
+  });
+  expect(screen.getByText("Huerta Viva")).toBeInTheDocument();
+});
+
+test("sin colectivo en el proyecto no muestra nada extra", () => {
+  montar();
+  expect(screen.queryByText("Huerta Viva")).not.toBeInTheDocument();
+});

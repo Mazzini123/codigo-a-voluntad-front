@@ -8,6 +8,11 @@ export const MOTIVO_DE_CIERRE = Object.freeze({
   LIMITE_ALCANZADO: "LIMITE_ALCANZADO",
 });
 
+const ESTADO_BUSQUEDA_DEL_BACK = Object.freeze({
+  CERRADA: "CERRADA",
+  LIMITE_ALCANZADO: "LIMITE_ALCANZADO",
+});
+
 export function busquedaVencida(perfil, hoy = new Date()) {
   return (
     Boolean(perfil.fechaCierreBusqueda) && new Date(perfil.fechaCierreBusqueda) <= hoy
@@ -23,6 +28,7 @@ export function colaboracionesAceptadasDe(proyecto, perfil) {
 }
 
 export function limiteAlcanzado(perfil, proyecto) {
+  if (perfil.estadoBusqueda === ESTADO_BUSQUEDA_DEL_BACK.LIMITE_ALCANZADO) return true;
   return (
     perfil.limiteColaboraciones != null &&
     colaboracionesAceptadasDe(proyecto, perfil).length >= perfil.limiteColaboraciones
@@ -35,6 +41,8 @@ export function motivoDeCierre(perfil, proyecto, hoy = new Date()) {
   if (!perfil.busquedaAbierta) return MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA;
   if (busquedaVencida(perfil, hoy)) return MOTIVO_DE_CIERRE.BUSQUEDA_VENCIDA;
   if (limiteAlcanzado(perfil, proyecto)) return MOTIVO_DE_CIERRE.LIMITE_ALCANZADO;
+  if (perfil.estadoBusqueda === ESTADO_BUSQUEDA_DEL_BACK.CERRADA)
+    return MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA;
   return null;
 }
 

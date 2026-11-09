@@ -123,6 +123,7 @@ export function TarjetaProyecto({
       ) : (
         <div className={estilos.pie}>
           <div className={estilos.datos}>
+            {proyecto.colectivo?.nombre && <span>{proyecto.colectivo.nombre}</span>}
             {!finalizado && Array.isArray(proyecto.perfiles) && (
               <span>
                 {abiertos === 1 ? "1 perfil abierto" : `${abiertos} perfiles abiertos`}

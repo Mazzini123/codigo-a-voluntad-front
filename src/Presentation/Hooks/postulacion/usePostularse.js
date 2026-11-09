@@ -11,7 +11,7 @@ const PERFIL_CERRADO =
   "No pudimos registrar tu postulación. Puede que la búsqueda de este perfil ya haya cerrado.";
 const MENSAJES = Object.freeze({
   400: PERFIL_CERRADO,
-  409: "Ya te postulaste a este proyecto.",
+  409: "Ya te postulaste a este perfil.",
   422: PERFIL_CERRADO,
 });
 

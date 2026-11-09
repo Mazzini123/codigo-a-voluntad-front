@@ -1,0 +1,39 @@
+.medios,
+.lista {
+  display: grid;
+  gap: var(--espacio-3);
+  min-inline-size: 0;
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-md);
+  overflow-wrap: anywhere;
+}
+
+.vacio {
+  color: var(--color-tinta-suave);
+}
+
+.agregar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--espacio-3);
+}
+
+.agregar > button {
+  justify-self: start;
+}

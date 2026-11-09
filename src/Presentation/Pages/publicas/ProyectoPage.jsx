@@ -41,7 +41,9 @@ import {
   estadoParaVolver,
   RUTA_PROYECTOS,
   rutaAvanceDelProyecto,
+  rutaColectivo,
 } from "@/Presentation/Routes/rutas.js";
+import { textoUbicacion } from "@/Presentation/Formatos/colectivo.js";
 import estilosDePerfil from "@/Presentation/Components/Perfil/Perfil.module.css";
 import estilos from "./ProyectoPage.module.css";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
@@ -153,6 +155,19 @@ function DetalleDelProyecto({
           </h1>
           {sello && <SelloDeBusqueda estado={sello} />}
         </div>
+        {proyecto.colectivo?.id && (
+          <p className={estilosDePerfil.meta}>
+            Publicado por{" "}
+            <Link
+              to={rutaColectivo(proyecto.colectivo.id)}
+              state={estadoParaVolver(location, "Volver al proyecto")}
+            >
+              {proyecto.colectivo.nombre}
+            </Link>
+            {textoUbicacion(proyecto.colectivo.ubicacion) &&
+              ` · ${textoUbicacion(proyecto.colectivo.ubicacion)}`}
+          </p>
+        )}
         {proyecto.fechaCreacion && (
           <p className={estilosDePerfil.meta}>
             Publicado el{" "}

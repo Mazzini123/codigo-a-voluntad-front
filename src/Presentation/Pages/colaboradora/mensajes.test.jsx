@@ -26,15 +26,17 @@ function mensaje(id, campos = {}) {
   };
 }
 
-function pagina(numero, porPagina) {
+function pagina(numero, porPagina, soloSinLeer = false) {
+  const lista = soloSinLeer ? mensajes.filter(({ esLeida }) => !esLeida) : mensajes;
   const inicio = (numero - 1) * porPagina;
   return {
-    data: mensajes.slice(inicio, inicio + porPagina),
+    data: lista.slice(inicio, inicio + porPagina),
     meta: {
+      unread: mensajes.filter(({ esLeida }) => !esLeida).length,
       page: numero,
       per_page: porPagina,
-      total: mensajes.length,
-      total_pages: Math.ceil(mensajes.length / porPagina),
+      total: lista.length,
+      total_pages: Math.ceil(lista.length / porPagina),
     },
   };
 }
@@ -62,7 +64,9 @@ beforeEach(() => {
       });
     };
     if (url === "/colaboradores/co1/notificaciones" && method === "get")
-      return falloDeLista ? fallar(500) : responder(pagina(params.page, params.limit));
+      return falloDeLista
+        ? fallar(500)
+        : responder(pagina(params.page, params.limit, params.leida === false));
     const lectura = url.match(/^\/colaboradores\/co1\/notificaciones\/(\w+)\/lectura$/);
     if (lectura && method === "post") {
       if (falloDeLectura) return fallar(500);
@@ -189,4 +193,30 @@ test("una persona sin sesión va a ingresar y un colectivo ve sin permiso", asyn
   sinSesion.unmount();
   montar("", { id: "2", rol: "COLECTIVO", perfilId: "cl1" });
   expect(await screen.findByRole("heading", { name: "Sin permiso" })).toBeVisible();
+});
+
+test("informa cuántos mensajes hay sin leer y lo actualiza al leer uno", async () => {
+  const { user } = montar();
+  expect(await screen.findByText("Tenés 1 mensaje sin leer.")).toBeVisible();
+  await user.click(screen.getByText("Asunto n1"));
+  expect(await screen.findByText("No tenés mensajes sin leer.")).toBeVisible();
+});
+
+test("el filtro Sin leer queda en la URL y pide solo los no leídos", async () => {
+  const { user, router } = montar();
+  await screen.findByText("Asunto n2");
+  await user.selectOptions(screen.getByLabelText("Mostrar"), "sin-leer");
+  await waitFor(() => expect(router.state.location.search).toBe("?mostrar=sin-leer"));
+  await waitFor(() => expect(screen.queryByText("Asunto n2")).not.toBeInTheDocument());
+  expect(screen.getByText("Asunto n1")).toBeVisible();
+  const pedidos = transporte.mock.calls
+    .map(([config]) => config)
+    .filter((c) => c.method === "get");
+  expect(pedidos.at(-1).params).toMatchObject({ leida: false });
+});
+
+test("sin mensajes sin leer, el filtro lo dice", async () => {
+  mensajes = [mensaje("n2", { esLeida: true })];
+  montar("?mostrar=sin-leer");
+  expect(await screen.findByText("No tenés mensajes sin leer")).toBeVisible();
 });

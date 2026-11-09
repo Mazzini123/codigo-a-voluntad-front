@@ -37,3 +37,42 @@ test("los pronombres no pueden estar vacíos, ser largos ni repetirse", () => {
   expect(validarPronombre("Ella", ["ella"])).not.toBeNull();
   expect(validarPronombre("elle", ["ella"])).toBeNull();
 });
+
+describe("usuario de Git y largos máximos", () => {
+  const base = {
+    ...estadoInicial(null),
+    identificacion: "FANTASIA",
+    nombreFantasia: "Ana",
+    habilidades: [{ codigo: "react", titulo: "React" }],
+  };
+
+  test.each(["ana-dev", "ana", "A1"])("acepta el usuario %s", (cuentaGit) => {
+    expect(validarColaboradora({ ...base, cuentaGit }, { esAlta: true })).toEqual({});
+  });
+
+  test.each(["https://github.com/ana", "ana dev", "-ana", "ana-", "a".repeat(40)])(
+    "rechaza %s como usuario",
+    (cuentaGit) => {
+      expect(
+        validarColaboradora({ ...base, cuentaGit }, { esAlta: true }),
+      ).toHaveProperty("cuentaGit");
+    },
+  );
+
+  test("sin usuario no marca error", () => {
+    expect(validarColaboradora({ ...base, cuentaGit: "" }, { esAlta: true })).toEqual({});
+  });
+
+  test("avisa cuando el nombre o la presentación pasan el máximo", () => {
+    const errores = validarColaboradora(
+      { ...base, nombreFantasia: "a".repeat(51), presentacion: "a".repeat(1001) },
+      { esAlta: true },
+    );
+    expect(errores.nombreFantasia).toBe(
+      "El nombre de fantasía puede tener hasta 50 caracteres.",
+    );
+    expect(errores.presentacion).toBe(
+      "La presentación puede tener hasta 1000 caracteres.",
+    );
+  });
+});

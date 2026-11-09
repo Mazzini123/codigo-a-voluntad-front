@@ -45,6 +45,12 @@ export function crearColaboradorHttpClient(http) {
         { signal, requiereSesion: true },
       );
     },
+    async listarMediosDeContacto(colaboradorId, { signal } = {}) {
+      return api.get(ruta`/colaboradores/${colaboradorId}/medios-de-contacto`, {
+        signal,
+        requiereSesion: true,
+      });
+    },
     async agregarMedioDeContacto(colaboradorId, request, { signal } = {}) {
       return api.post(ruta`/colaboradores/${colaboradorId}/medios-de-contacto`, request, {
         signal,
@@ -52,7 +58,7 @@ export function crearColaboradorHttpClient(http) {
       });
     },
     async quitarMedioDeContacto(colaboradorId, tipo, valor, { signal } = {}) {
-      await http.delete(
+      await api.delete(
         ruta`/colaboradores/${colaboradorId}/medios-de-contacto/${tipo}/${valor}`,
         { signal, requiereSesion: true },
       );

@@ -1,3 +1,4 @@
+import { PROVINCIAS } from "@/Application/Domain/Enums/PROVINCIAS.js";
 import { TIPO_COLECTIVO } from "@/Application/Domain/Enums/TIPO_COLECTIVO.js";
 import { TIPOS_MEDIOS_CONTACTO } from "@/Application/Domain/Enums/TIPOS_MEDIOS_CONTACTO.js";
 import { TIPO_UBICACION } from "@/Application/Domain/Enums/TIPO_UBICACION.js";
@@ -29,4 +30,20 @@ export function textoUbicacion(ubicacion) {
     default:
       return ubicacion.nombre ?? "";
   }
+}
+
+export function sinTildes(texto) {
+  return String(texto ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+export function opcionesDeProvincias(catalogo) {
+  const nombres = catalogo?.length ? catalogo : PROVINCIAS;
+  return nombres.map((nombre) => ({
+    valor: sinTildes(nombre),
+    texto:
+      PROVINCIAS.find((provincia) => sinTildes(provincia) === sinTildes(nombre)) ??
+      nombre,
+  }));
 }

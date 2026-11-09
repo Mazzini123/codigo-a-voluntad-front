@@ -40,7 +40,7 @@ entonces ve "Este colectivo ya estaba dado de baja".
 
 ## A acordar con el back
 
-- Qué pasa con la cuenta de Logto y con `GET /auth/me` después de la baja: si la cuenta queda sin rol, la persona vuelve a `/bienvenida`.
+- Resuelto en el back (09/11/2026): al darse de baja, la cuenta queda sin perfil. `GET /auth/me` devuelve `rol: null` y `perfilId: null`, así que si la persona vuelve a ingresar llega a `/bienvenida` y puede crear un perfil nuevo. La cuenta de Logto no se borra. El front cierra la sesión después de la baja, como ya describe el escenario.
 
 ## A confirmar
 

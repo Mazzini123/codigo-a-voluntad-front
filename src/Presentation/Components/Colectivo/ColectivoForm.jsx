@@ -1,4 +1,3 @@
-import { PROVINCIAS } from "@/Application/Domain/Enums/PROVINCIAS.js";
 import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
 import { GrupoDeOpciones } from "@/Presentation/Components/App/ui/GrupoDeOpciones.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
@@ -24,6 +23,8 @@ import {
   validarColectivo,
   validarEtiqueta,
 } from "@/Presentation/Formularios/colectivo/validarColectivo.js";
+import { MediosPrivadosDelColectivo } from "@/Presentation/Components/Colectivo/MediosPrivadosDelColectivo.jsx";
+import { useProvincias } from "@/Presentation/Hooks/colectivo/useProvincias.js";
 import { useFormularioDePerfil } from "@/Presentation/Hooks/perfil/useFormularioDePerfil.js";
 import { PieDeFormularioDePerfil } from "@/Presentation/Components/Formulario/PieDeFormularioDePerfil.jsx";
 import { AYUDA_MARKDOWN } from "@/Presentation/Formatos/markdown.js";
@@ -41,11 +42,6 @@ const OPCIONES_DE_UBICACION = [
   { valor: OPCION_UBICACION.NINGUNA, texto: "Prefiero no indicarla" },
 ];
 
-const OPCIONES_DE_PROVINCIA = PROVINCIAS.map((provincia) => ({
-  valor: provincia,
-  texto: provincia,
-}));
-
 export function ColectivoForm({
   colectivo = null,
   esAlta,
@@ -55,6 +51,7 @@ export function ColectivoForm({
   errorEnvio,
   alEnviar,
 }) {
+  const opcionesDeProvincia = useProvincias();
   const formulario = useFormularioDePerfil({
     crearEstadoInicial: () => estadoInicial(colectivo),
     validar: validarColectivo,
@@ -138,7 +135,7 @@ export function ColectivoForm({
               etiqueta="Provincia"
               obligatorio
               textoVacio="Elegí una provincia"
-              opciones={OPCIONES_DE_PROVINCIA}
+              opciones={opcionesDeProvincia}
               value={estado.ubicacion.provincia}
               error={errores["ubicacion.provincia"]}
               onChange={(e) => actualizarUbicacion({ provincia: e.target.value })}
@@ -163,15 +160,17 @@ export function ColectivoForm({
             <Icono nombre="info" />
             {esAlta
               ? "Los medios de contacto no se muestran en tu perfil público."
-              : "Por ahora no podés editar los medios de contacto desde acá."}
+              : "Solo los ves y los cambiás vos. Se comparten únicamente con quien aceptás como colaboradora."}
           </p>
-          {esAlta && (
+          {esAlta ? (
             <MediosDeContacto
               prefijoDeIds={idBase}
               items={estado.mediosDeContacto}
               errores={errores}
               alCambiar={(mediosDeContacto) => actualizar({ mediosDeContacto })}
             />
+          ) : (
+            colectivo?.id && <MediosPrivadosDelColectivo colectivoId={colectivo.id} />
           )}
         </fieldset>
 

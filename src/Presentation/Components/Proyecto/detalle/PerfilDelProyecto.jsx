@@ -33,6 +33,7 @@ export function PerfilDelProyecto({
   const location = useLocation();
   const refTitulo = useRef(null);
   const [expandida, setExpandida] = useState(false);
+  const tieneTitulo = Boolean(perfil.titulo);
   const recortada = useTextoRecortado(refTitulo, perfil.descripcion);
   const idTitulo = idDeTituloDePerfil(perfil.id);
   const idColaboran = `colaboran-${perfil.id}`;
@@ -63,13 +64,17 @@ export function PerfilDelProyecto({
           ref={refTitulo}
           id={idTitulo}
           tabIndex={-1}
-          className={clases(estilos.titulo, !expandida && estilos.recortado)}
+          className={clases(
+            estilos.titulo,
+            !tieneTitulo && !expandida && estilos.recortado,
+          )}
         >
-          {perfil.descripcion}
+          {tieneTitulo ? perfil.titulo : perfil.descripcion}
         </h3>
         <SelloDeBusqueda estado={estado} />
       </header>
-      {(recortada || expandida) && (
+      {tieneTitulo && <p className={estilos.descripcion}>{perfil.descripcion}</p>}
+      {!tieneTitulo && (recortada || expandida) && (
         <button
           type="button"
           className={estilos.verMas}

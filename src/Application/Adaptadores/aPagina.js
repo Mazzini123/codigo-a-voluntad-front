@@ -6,5 +6,6 @@ export function aPagina(dto) {
     porPagina: meta.per_page,
     total: meta.total,
     totalPaginas: meta.total_pages,
+    ...(Number.isInteger(meta.unread) && { noLeidas: meta.unread }),
   };
 }
