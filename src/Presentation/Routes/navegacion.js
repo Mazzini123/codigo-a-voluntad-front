@@ -1,6 +1,9 @@
+import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
+import { tienePermiso } from "@/Application/Domain/Reglas/permisos.js";
 import {
   RUTA_MENSAJES,
+  RUTA_MIEMBROS_COLECTIVO,
   RUTA_MIS_PROYECTOS,
   RUTA_PERFIL_COLABORADORA,
   RUTA_PERFIL_COLECTIVO,
@@ -8,6 +11,7 @@ import {
   RUTA_POSTULACIONES_COLECTIVO,
   RUTA_PROYECTOS,
   RUTA_RESUMEN_COLECTIVO,
+  RUTA_SOLICITUDES_COLECTIVO,
 } from "./rutas.js";
 
 export const MINIMO_ENLACES_PARA_MENU = 2;
@@ -25,7 +29,12 @@ const ENLACES_POR_ROL = Object.freeze({
     Object.freeze({
       ruta: RUTA_RESUMEN_COLECTIVO,
       texto: "Panel del colectivo",
-      tambienActivoEn: Object.freeze([RUTA_MIS_PROYECTOS, RUTA_POSTULACIONES_COLECTIVO]),
+      tambienActivoEn: Object.freeze([
+        RUTA_MIS_PROYECTOS,
+        RUTA_POSTULACIONES_COLECTIVO,
+        RUTA_MIEMBROS_COLECTIVO,
+        RUTA_SOLICITUDES_COLECTIVO,
+      ]),
     }),
   ]),
 });
@@ -38,7 +47,20 @@ export const SECCIONES_DEL_PANEL = Object.freeze([
     texto: "Postulaciones",
     icono: "lista",
   }),
+  Object.freeze({ ruta: RUTA_MIEMBROS_COLECTIVO, texto: "Miembros", icono: "personas" }),
+  Object.freeze({
+    ruta: RUTA_SOLICITUDES_COLECTIVO,
+    texto: "Solicitudes",
+    icono: "personas",
+    permiso: PERMISO.MEMBRESIA_SOLICITUD_RESOLVER,
+  }),
 ]);
+
+export function seccionesDelPanelPara(cuenta) {
+  return SECCIONES_DEL_PANEL.filter(
+    ({ permiso }) => !permiso || tienePermiso(cuenta, permiso),
+  );
+}
 
 export function estaActivo({ ruta, tambienActivoEn = [] }, pathname) {
   return [ruta, ...tambienActivoEn].some(

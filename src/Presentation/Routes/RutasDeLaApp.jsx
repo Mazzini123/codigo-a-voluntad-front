@@ -36,6 +36,7 @@ import {
   RUTA_INICIO,
   RUTA_LOGIN,
   RUTA_MENSAJES,
+  RUTA_MIEMBROS_COLECTIVO,
   RUTA_MIS_PROYECTOS,
   RUTA_NOMBRE,
   RUTA_NUEVO_PROYECTO,
@@ -48,10 +49,15 @@ import {
   RUTA_PROYECTOS,
   RUTA_REGISTRO,
   RUTA_RESUMEN_COLECTIVO,
+  RUTA_SOLICITUDES_COLECTIVO,
   RUTA_SIN_PERMISO,
   TIPO_DE_PANTALLA,
 } from "./rutas.js";
 
+const cargarMiembrosPage = () =>
+  import("@/Presentation/Pages/colectivo/MiembrosPage.jsx");
+const cargarSolicitudesDeIngresoPage = () =>
+  import("@/Presentation/Pages/colectivo/SolicitudesDeIngresoPage.jsx");
 const cargarAvanceDelProyecto = () =>
   import("@/Presentation/Pages/publicas/AvancePage.jsx");
 const cargarAdministrarProyecto = () =>
@@ -167,6 +173,14 @@ export const rutas = createRoutesFromElements(
             <Route
               path={RUTA_POSTULACIONES_COLECTIVO}
               element={<PostulacionesPendientesPage />}
+            />
+            <Route
+              path={RUTA_MIEMBROS_COLECTIVO}
+              element={<PantallaDiferida cargar={cargarMiembrosPage} />}
+            />
+            <Route
+              path={RUTA_SOLICITUDES_COLECTIVO}
+              element={<PantallaDiferida cargar={cargarSolicitudesDeIngresoPage} />}
             />
           </Route>
           <Route

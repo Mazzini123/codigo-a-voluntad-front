@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
+import { tienePermiso } from "@/Application/Domain/Reglas/permisos.js";
 import { BajaDelColectivo } from "@/Presentation/Components/Colectivo/BajaDelColectivo.jsx";
 import { ColectivoForm } from "@/Presentation/Components/Colectivo/ColectivoForm.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
@@ -15,6 +17,33 @@ import { rutaColectivo } from "@/Presentation/Routes/rutas.js";
 
 export function PerfilColectivoPage() {
   const { usuario } = useAuth();
+  if (!tienePermiso(usuario, PERMISO.COLECTIVO_EDITAR)) {
+    return <PerfilSoloLectura colectivoId={usuario.perfilId} />;
+  }
+  return <PerfilEditable usuario={usuario} />;
+}
+
+function PerfilSoloLectura({ colectivoId }) {
+  return (
+    <section className={estilos.pagina} aria-labelledby="titulo-perfil-colectivo">
+      <TituloDePagina>Perfil del colectivo</TituloDePagina>
+      <div className={estilos.titulos}>
+        <h1 id="titulo-perfil-colectivo" tabIndex={-1}>
+          Perfil del colectivo
+        </h1>
+        <p className={estilos.bajada}>
+          Solo quien tiene el liderazgo puede editar los datos y los medios de contacto
+          del colectivo.
+        </p>
+      </div>
+      <Link to={rutaColectivo(colectivoId)} className={estilos.enlace}>
+        Ver perfil público
+      </Link>
+    </section>
+  );
+}
+
+function PerfilEditable({ usuario }) {
   const consulta = useColectivo(usuario.perfilId);
   const edicion = useActualizarColectivo(usuario.perfilId);
   const colectivo = edicion.guardado ?? consulta.colectivo;
@@ -37,7 +66,11 @@ export function PerfilColectivoPage() {
         </Link>
       </div>
       <Contenido consulta={consulta} edicion={edicion} colectivo={colectivo} />
-      {colectivo && !consulta.error && <BajaDelColectivo colectivo={colectivo} />}
+      {colectivo &&
+        !consulta.error &&
+        tienePermiso(usuario, PERMISO.COLECTIVO_ELIMINAR) && (
+          <BajaDelColectivo colectivo={colectivo} />
+        )}
     </section>
   );
 }

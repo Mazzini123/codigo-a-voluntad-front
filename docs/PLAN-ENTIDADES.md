@@ -354,6 +354,25 @@ Composición: `Presentation/Dependencies/authDependencies.js`.
 
 `GET /auth/me` conserva `{ id, rol, perfilId }` (derivados del contexto actual) y suma `usuario { id, nombre, nombrePendiente }`, `contextoActual` y `contextos` (cada uno con `tipo`, `rol` —`COLABORADOR`, `MIEMBRO` o `LIDER`—, su colectivo o colaboradora y `permisos`). `aCuenta` lo aplana para la vista. Si responde 403 `USUARIO_NO_REGISTRADO`, el `AuthProvider` registra y vuelve a pedirla. Cada pedido con token lleva `X-Context-Id` con el contexto actual; los errores traen `codigo` (`CONTEXTO_NO_ACTUAL`, `PERMISO_INSUFICIENTE`, `NOMBRE_REQUERIDO`...). El proveedor de identidad (Logto) vive en `Infrastructure/Auth/` detrás del contrato `Identidad` y solo se compone en `Presentation/Dependencies/identidadDependencies.js`.
 
+### Membresia
+
+Composición: `Presentation/Dependencies/membresiaDependencies.js`. Todas llevan sesión.
+
+| Caso de uso                     | Verbo y endpoint                                                  | Request / query     | Respuesta                                  |
+| ------------------------------- | ----------------------------------------------------------------- | ------------------- | ------------------------------------------ |
+| `ListarMiembros`                | `GET /colectivos/:id/miembros`                                    | Sin body            | `MiembroDto[]` (`contextoId`, `nombre`, `rol`) |
+| `QuitarMiembro`                 | `DELETE /colectivos/:id/miembros/:contextoId`                     | Sin body            | 204                                        |
+| `AbandonarColectivo`            | `POST /colectivos/:id/abandono`                                   | Sin body            | 204                                        |
+| `TransferirLiderazgo`           | `POST /colectivos/:id/lider`                                      | `{ contextoId }`    | Liderazgo nuevo                            |
+| `ListarSolicitudesDeIngreso`    | `GET /colectivos/:id/solicitudes-ingreso`                         | `estado` (opcional) | `SolicitudDeIngresoDto[]` con `usuario`    |
+| `AceptarSolicitudDeIngreso`     | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/aceptacion` | Sin body            | `{ solicitud, miembro }`                   |
+| `RechazarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/rechazo`   | Sin body            | `SolicitudDeIngresoDto`                    |
+| `SolicitarIngreso`              | `POST /colectivos/:id/solicitudes-ingreso`                        | Sin body            | `SolicitudDeIngresoDto` (201)              |
+| `CancelarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/cancelacion` | Sin body          | `SolicitudDeIngresoDto`                    |
+| `ListarMisSolicitudesDeIngreso` | `GET /auth/solicitudes-ingreso`                                   | Sin body            | `SolicitudDeIngresoDto[]` (pendientes primero) |
+
+Los permisos del contexto actual (`contextoActual.permisos`) deciden qué acciones se muestran (`Domain/Reglas/permisos.js`); el back vuelve a validarlos. Los 409 traen `codigo` (`LIDER_DEBE_TRANSFERIR`, `LIDER_UNICO_MIEMBRO`, `SOLICITUD_YA_RESUELTA`, `SOLICITUD_PENDIENTE`, `YA_ES_MIEMBRO`...) y `Formatos/membresia.js` los traduce.
+
 ## Cómo consumir un flujo desde presentación
 
 Las dependencias ya exportan los casos de uso listos. Al incorporar un hook, importar sólo la composición del módulo y pasar el request exacto de backend:
