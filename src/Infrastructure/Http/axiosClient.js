@@ -104,6 +104,7 @@ function aApiError(error) {
     codigo,
     ...describirError(error, { sesionVencida }),
     issues: Array.isArray(data?.issues) ? data.issues : [],
+    detalle: data?.detalle ?? null,
     cause: error,
   });
 }

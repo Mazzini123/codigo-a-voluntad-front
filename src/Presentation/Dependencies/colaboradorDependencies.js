@@ -9,6 +9,8 @@ import { crearQuitarHabilidadDeColaborador } from "@/Application/UseCases/Colabo
 import { crearAgregarMedioDeContacto } from "@/Application/UseCases/Colaborador/AgregarMedioDeContacto.js";
 import { crearQuitarMedioDeContacto } from "@/Application/UseCases/Colaborador/QuitarMedioDeContacto.js";
 import { crearListarMediosDeContacto } from "@/Application/UseCases/Colaborador/ListarMediosDeContacto.js";
+import { crearDarDeBajaColaborador } from "@/Application/UseCases/Colaborador/DarDeBajaColaborador.js";
+import { crearReactivarColaborador } from "@/Application/UseCases/Colaborador/ReactivarColaborador.js";
 import { crearColaboradorHttpClient } from "@/Infrastructure/HttpClients/ColaboradorHttpClient.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 
@@ -26,6 +28,8 @@ export function crearColaboradorDependencies(http = axiosClient) {
     listarMediosDeContacto: crearListarMediosDeContacto(httpClient),
     agregarMedioDeContacto: crearAgregarMedioDeContacto(httpClient),
     quitarMedioDeContacto: crearQuitarMedioDeContacto(httpClient),
+    darDeBajaColaborador: crearDarDeBajaColaborador(httpClient),
+    reactivarColaborador: crearReactivarColaborador(httpClient),
   };
 }
 

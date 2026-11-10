@@ -63,5 +63,17 @@ export function crearColaboradorHttpClient(http) {
         { signal, requiereSesion: true },
       );
     },
+    async darDeBaja(colaboradorId, { signal } = {}) {
+      return api.post(ruta`/colaboradores/${colaboradorId}/baja`, undefined, {
+        signal,
+        requiereSesion: true,
+      });
+    },
+    async reactivar(colaboradorId, { signal } = {}) {
+      return api.post(ruta`/colaboradores/${colaboradorId}/reactivacion`, undefined, {
+        signal,
+        requiereSesion: true,
+      });
+    },
   };
 }

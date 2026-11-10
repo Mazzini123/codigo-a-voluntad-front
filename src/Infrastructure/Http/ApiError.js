@@ -7,6 +7,7 @@ export class ApiError extends Error {
     mensaje,
     esReintentable = false,
     issues = [],
+    detalle = null,
     cause,
   }) {
     super(mensaje, { cause });
@@ -15,6 +16,7 @@ export class ApiError extends Error {
     this.codigo = codigo;
     this.esReintentable = esReintentable;
     this.issues = issues;
+    this.detalle = detalle;
   }
 
   get mensaje() {
@@ -32,6 +34,7 @@ export class ApiError extends Error {
       mensaje,
       esReintentable: this.esReintentable,
       issues: this.issues,
+      detalle: this.detalle,
       cause: this.cause,
     });
   }

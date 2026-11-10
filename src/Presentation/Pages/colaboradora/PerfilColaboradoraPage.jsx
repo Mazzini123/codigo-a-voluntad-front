@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
+import { tienePermiso } from "@/Application/Domain/Reglas/permisos.js";
+import { BajaDeColaboradora } from "@/Presentation/Components/Colaboradora/BajaDeColaboradora.jsx";
 import { ColaboradoraForm } from "@/Presentation/Components/Colaboradora/ColaboradoraForm.jsx";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
@@ -95,6 +98,9 @@ export function PerfilColaboradoraPage() {
               alDesmarcar={habilidades.quitar}
             />
           </section>
+          {tienePermiso(usuario, PERMISO.COLABORADOR_BAJA) && (
+            <BajaDeColaboradora colaboradorId={usuario.perfilId} />
+          )}
         </>
       )}
     </section>

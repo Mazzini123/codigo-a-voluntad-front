@@ -354,6 +354,8 @@ Composición: `Presentation/Dependencies/authDependencies.js`.
 
 `GET /auth/me` conserva `{ id, rol, perfilId }` (derivados del contexto actual) y suma `usuario { id, nombre, nombrePendiente }`, `contextoActual` y `contextos` (cada uno con `tipo`, `rol` —`COLABORADOR`, `MIEMBRO` o `LIDER`—, su colectivo o colaboradora y `permisos`). `aCuenta` lo aplana para la vista. Si responde 403 `USUARIO_NO_REGISTRADO`, el `AuthProvider` registra y vuelve a pedirla. Cada pedido con token lleva `X-Context-Id` con el contexto actual; los errores traen `codigo` (`CONTEXTO_NO_ACTUAL`, `PERMISO_INSUFICIENTE`, `NOMBRE_REQUERIDO`...). El proveedor de identidad (Logto) vive en `Infrastructure/Auth/` detrás del contrato `Identidad` y solo se compone en `Presentation/Dependencies/identidadDependencies.js`.
 
+Colaborador también expone `DarDeBajaColaborador` (`POST /colaboradores/:id/baja`; 409 `ACTIVIDAD_EN_CURSO` con `detalle` = `[{ proyectoId, proyecto, colaboracionId, estado }]`) y `ReactivarColaborador` (`POST /colaboradores/:id/reactivacion`). `ApiError` conserva `detalle`.
+
 ### Membresia
 
 Composición: `Presentation/Dependencies/membresiaDependencies.js`. Todas llevan sesión.
