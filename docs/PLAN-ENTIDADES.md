@@ -344,11 +344,15 @@ Array cronológico de eventos públicos. Los campos adicionales dependen del tip
 
 Composición: `Presentation/Dependencies/authDependencies.js`.
 
-| Caso de uso           | Verbo y endpoint | Request / query | Respuesta   |
-| --------------------- | ---------------- | --------------- | ----------- |
-| `ObtenerCuentaActual` | `GET /auth/me`   | Sin body        | `CuentaDto` |
+| Caso de uso              | Verbo y endpoint               | Request / query        | Respuesta               |
+| ------------------------ | ------------------------------ | ---------------------- | ----------------------- |
+| `ObtenerCuentaActual`    | `GET /auth/me`                 | Sin body               | `CuentaDto`             |
+| `RegistrarUsuario`       | `POST /auth/registro`          | Sin body (idempotente) | `{ usuarioId, creado }` |
+| `CambiarNombreDeUsuario` | `PUT /auth/usuario`            | `{ nombre }`           | `{ id, nombre }`        |
+| `SeleccionarContexto`    | `PUT /auth/contexto-actual`    | `{ contextoId }`       | `ContextoDto`           |
+| `LimpiarContexto`        | `DELETE /auth/contexto-actual` | Sin body               | 204                     |
 
-Pendiente en el back. Devuelve `{ id, rol, perfilId }` de la persona con sesión; `rol` es `COLECTIVO`, `COLABORADORA` o `null` si la cuenta todavía no tiene perfil (`ROL_CUENTA`). Responde 401 con un token inválido o vencido. El proveedor de identidad (Logto) vive en `Infrastructure/Auth/` detrás del contrato `Identidad` y solo se compone en `Presentation/Dependencies/identidadDependencies.js`.
+`GET /auth/me` conserva `{ id, rol, perfilId }` (derivados del contexto actual) y suma `usuario { id, nombre, nombrePendiente }`, `contextoActual` y `contextos` (cada uno con `tipo`, `rol` —`COLABORADOR`, `MIEMBRO` o `LIDER`—, su colectivo o colaboradora y `permisos`). `aCuenta` lo aplana para la vista. Si responde 403 `USUARIO_NO_REGISTRADO`, el `AuthProvider` registra y vuelve a pedirla. Cada pedido con token lleva `X-Context-Id` con el contexto actual; los errores traen `codigo` (`CONTEXTO_NO_ACTUAL`, `PERMISO_INSUFICIENTE`, `NOMBRE_REQUERIDO`...). El proveedor de identidad (Logto) vive en `Infrastructure/Auth/` detrás del contrato `Identidad` y solo se compone en `Presentation/Dependencies/identidadDependencies.js`.
 
 ## Cómo consumir un flujo desde presentación
 

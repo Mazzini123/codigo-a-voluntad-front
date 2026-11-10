@@ -1,5 +1,6 @@
 import axios from "axios";
 import { aPagina } from "../../src/Application/Adaptadores/aPagina.js";
+import { aCuenta } from "../../src/Application/Adaptadores/aCuenta.js";
 import { COLABORACION_ESTADO } from "../../src/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { TIPO_NOTIFICACION } from "../../src/Application/Domain/Enums/TIPO_NOTIFICACION.js";
 import { crearHabilidadDependencies } from "../../src/Presentation/Dependencies/habilidadDependencies.js";
@@ -860,6 +861,40 @@ const cases = [
     empty: false,
   },
   {
+    module: "Auth",
+    operation: "registrarUsuario",
+    method: "post",
+    url: "/auth/registro",
+    args: [],
+    empty: false,
+  },
+  {
+    module: "Auth",
+    operation: "cambiarNombreDeUsuario",
+    method: "put",
+    url: "/auth/usuario",
+    args: ["  Ana Diaz "],
+    body: { nombre: "Ana Diaz" },
+    empty: false,
+  },
+  {
+    module: "Auth",
+    operation: "seleccionarContexto",
+    method: "put",
+    url: "/auth/contexto-actual",
+    args: ["contextoId-1"],
+    body: { contextoId: "contextoId-1" },
+    empty: false,
+  },
+  {
+    module: "Auth",
+    operation: "limpiarContexto",
+    method: "delete",
+    url: "/auth/contexto-actual",
+    args: [],
+    empty: true,
+  },
+  {
     module: "Proyecto",
     operation: "obtenerContactoDeColaborador",
     method: "get",
@@ -910,6 +945,8 @@ test.each(cases)(
       entry.body,
     );
     if (PAGINADAS.has(entry.operation)) expect(result).toEqual(aPagina(payload));
+    else if (entry.operation === "obtenerCuentaActual")
+      expect(result).toEqual(aCuenta(payload));
     else expect(result).toBe(payload);
   },
 );

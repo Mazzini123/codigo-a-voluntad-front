@@ -9,6 +9,7 @@ import {
   tomarVolverA,
 } from "@/Presentation/Dependencies/identidadDependencies.js";
 import {
+  cambiarContextoHttp,
   cambiarSesionHttp,
   configurarAuth,
   desconfigurarAuth,
@@ -17,8 +18,21 @@ import {
 import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { RUTA_CALLBACK, RUTA_INICIO, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
+import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
 
 const AVISO_VENCIDA = "Tu sesión venció. Iniciá sesión de nuevo.";
+const AVISO_CONTEXTO =
+  "Tu sesión cambió en otra ventana o en tu colectivo. Actualizamos tus datos.";
+const ESPERA_AL_SALIR_MS = 2000;
+
+function conLimite(promesa, ms) {
+  return Promise.race([
+    promesa,
+    new Promise((resolver) => {
+      setTimeout(resolver, ms);
+    }),
+  ]);
+}
 
 class ErrorAlRecargarCuentaDelAlta extends Error {
   constructor(cause) {
@@ -55,6 +69,8 @@ export function AuthProvider({
   const manejarVencimiento = useRef(() => {});
   const descartada = useRef(false);
   const actual = useRef({ autenticado, tokenDelProveedor });
+  const contextoActualId = useRef(null);
+  const manejarCambioDeContexto = useRef(() => {});
   const claveSesionHttp = useMemo(() => ({ autenticada: autenticado }), [autenticado]);
 
   useLayoutEffect(() => {
@@ -76,6 +92,8 @@ export function AuthProvider({
       obtenerToken,
       alExpirar: () => manejarVencimiento.current(),
       permiteSinToken: simulada ? estaAutenticada : undefined,
+      obtenerContextoId: () => contextoActualId.current,
+      alCambiarContexto: () => manejarCambioDeContexto.current(),
     });
   }, [claveSesionHttp, obtenerToken, estaAutenticada, simulada]);
   useLayoutEffect(() => {
@@ -88,9 +106,7 @@ export function AuthProvider({
       try {
         const autenticada =
           !vencimientoAvisado.current && !descartada.current && autenticado;
-        const cuenta = autenticada
-          ? await dependencies.obtenerCuentaActual({ signal })
-          : null;
+        const cuenta = autenticada ? await cuentaRegistrada(dependencies, signal) : null;
         return { cuenta };
       } catch (error) {
         if (desdeAlta) throw new ErrorAlRecargarCuentaDelAlta(error);
@@ -116,6 +132,25 @@ export function AuthProvider({
     [perfilDadoDeBaja, usuarioSinBaja],
   );
   const verificandoCuenta = cargando || (!datos && !error);
+  const idDelContexto = usuario?.contextoActual?.id ?? null;
+
+  useLayoutEffect(() => {
+    const anterior = contextoActualId.current;
+    contextoActualId.current = idDelContexto;
+    if (anterior && anterior !== idDelContexto) cambiarContextoHttp(claveSesionHttp);
+  }, [idDelContexto, claveSesionHttp]);
+
+  const recargandoPorContexto = useRef(false);
+  useLayoutEffect(() => {
+    manejarCambioDeContexto.current = () => {
+      if (recargandoPorContexto.current) return;
+      recargandoPorContexto.current = true;
+      avisar.info(AVISO_CONTEXTO);
+      void ejecutar().finally(() => {
+        recargandoPorContexto.current = false;
+      });
+    };
+  }, [avisar, ejecutar]);
 
   useLayoutEffect(() => {
     manejarVencimiento.current = () => {
@@ -163,8 +198,31 @@ export function AuthProvider({
     [asociarEnElProveedor],
   );
 
+  const seleccionarContexto = useCallback(
+    async (contextoId) => {
+      await dependencies.seleccionarContexto(contextoId);
+      await ejecutar();
+    },
+    [dependencies, ejecutar],
+  );
+
+  const cambiarNombre = useCallback(
+    async (nombre) => {
+      const resultado = await dependencies.cambiarNombreDeUsuario(nombre);
+      await ejecutar();
+      return resultado;
+    },
+    [dependencies, ejecutar],
+  );
+
   const cerrarSesion = useCallback(async () => {
     recordarVolverA(null);
+    if (dependencies.limpiarContexto && actual.current.autenticado) {
+      await conLimite(
+        dependencies.limpiarContexto({ timeout: ESPERA_AL_SALIR_MS }).catch(() => null),
+        ESPERA_AL_SALIR_MS,
+      );
+    }
     const generacion = cambiarSesionHttp(claveSesionHttp, false);
     try {
       await cerrar();
@@ -179,7 +237,7 @@ export function AuthProvider({
     }
     await ejecutar();
     navigate(RUTA_INICIO, { replace: true, flushSync: true });
-  }, [avisar, claveSesionHttp, cerrar, ejecutar, navigate]);
+  }, [avisar, claveSesionHttp, cerrar, dependencies, ejecutar, navigate]);
 
   const invalidarPerfil = useCallback(async () => {
     setPerfilDadoDeBaja(true);
@@ -202,6 +260,8 @@ export function AuthProvider({
       invalidarPerfil,
       perfilDadoDeBaja,
       asociarPerfil,
+      seleccionarContexto,
+      cambiarNombre,
       recargarCuenta: ejecutar,
       reintentarCuenta: reintentar,
     }),
@@ -220,10 +280,27 @@ export function AuthProvider({
       invalidarPerfil,
       perfilDadoDeBaja,
       asociarPerfil,
+      seleccionarContexto,
+      cambiarNombre,
       ejecutar,
       reintentar,
     ],
   );
 
   return <ContextoDeSesion.Provider value={valor}>{children}</ContextoDeSesion.Provider>;
+}
+
+async function cuentaRegistrada(dependencies, signal) {
+  try {
+    return await dependencies.obtenerCuentaActual({ signal });
+  } catch (error) {
+    if (
+      error?.codigo !== CODIGO_ERROR.USUARIO_NO_REGISTRADO ||
+      !dependencies.registrarUsuario
+    ) {
+      throw error;
+    }
+    await dependencies.registrarUsuario({ signal });
+    return dependencies.obtenerCuentaActual({ signal });
+  }
 }

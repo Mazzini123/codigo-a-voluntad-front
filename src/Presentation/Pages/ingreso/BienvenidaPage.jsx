@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
+import { SelectorDeContexto } from "@/Presentation/Components/App/sesion/SelectorDeContexto.jsx";
+import { TIPO_CONTEXTO } from "@/Application/Domain/Enums/TIPO_CONTEXTO.js";
 import {
   inicioPorRol,
   RUTA_ALTA_COLABORADORA,
@@ -16,11 +18,13 @@ const OPCIONES = [
     ruta: RUTA_ALTA_COLECTIVO,
     nombre: "Soy un colectivo",
     detalle: "Publico proyectos y busco colaboradoras.",
+    incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
   },
   {
     ruta: RUTA_ALTA_COLABORADORA,
     nombre: "Soy colaboradora",
     detalle: "Me sumo a proyectos con mis habilidades.",
+    incompatibleCon: TIPO_CONTEXTO.COLECTIVO,
   },
 ];
 
@@ -51,18 +55,33 @@ export function BienvenidaPage() {
     );
   if (usuario?.rol) return <Navigate to={inicioPorRol(usuario.rol)} replace />;
 
+  const contextos = usuario?.contextos ?? [];
+  const tipos = new Set(contextos.map((contexto) => contexto.tipo));
+  const opciones = OPCIONES.filter(({ incompatibleCon }) => !tipos.has(incompatibleCon));
+
   return (
     <section className={estilos.bienvenida} aria-labelledby="titulo-bienvenida">
       <TituloDePagina>Bienvenida</TituloDePagina>
       <h1 id="titulo-bienvenida" tabIndex={-1}>
         ¿Cómo vas a usar Código a Voluntad?
       </h1>
+      {contextos.length > 0 && (
+        <section className={estilos.contextos} aria-labelledby="titulo-contextos">
+          <h2 id="titulo-contextos">Seguí donde estabas</h2>
+          <SelectorDeContexto
+            contextos={contextos}
+            etiqueta="Tus perfiles y colectivos"
+            claseDeOpcion={estilos.contexto}
+          />
+        </section>
+      )}
       <p className={estilos.bajada}>
-        Elegí una opción para armar tu perfil. El tipo de cuenta no se puede cambiar
-        después.
+        {contextos.length > 0
+          ? "O armá un perfil nuevo. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."
+          : "Elegí una opción para armar tu perfil. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."}
       </p>
       <ul className={estilos.opciones}>
-        {OPCIONES.map(({ ruta, nombre, detalle }) => (
+        {opciones.map(({ ruta, nombre, detalle }) => (
           <li key={ruta}>
             <Link to={ruta} className={estilos.opcion}>
               <span className={estilos.nombre}>

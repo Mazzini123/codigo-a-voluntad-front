@@ -80,14 +80,39 @@ export function asociarPerfilSimulado(rol, perfilId) {
   sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify({ rol, perfilId }));
 }
 
+const CLAVE_NOMBRE = "codigo-a-voluntad:sesion-simulada:nombre";
+
+function nombreSimulado() {
+  try {
+    return sessionStorage.getItem(CLAVE_NOMBRE) ?? "Persona de prueba";
+  } catch {
+    return "Persona de prueba";
+  }
+}
+
 export function crearAuthHttpClientSimulado(tipo, perfilId) {
   return {
     async obtenerCuentaActual() {
       const asociado = perfilAsociado();
-      if (asociado) return { ...CUENTAS[tipo], ...asociado };
-      const cuenta = { ...CUENTAS[tipo] };
-      if (perfilId && cuenta.rol) cuenta.perfilId = perfilId;
-      return cuenta;
+      const cuenta = asociado ? { ...CUENTAS[tipo], ...asociado } : { ...CUENTAS[tipo] };
+      if (!asociado && perfilId && cuenta.rol) cuenta.perfilId = perfilId;
+      return {
+        ...cuenta,
+        usuario: { id: cuenta.id, nombre: nombreSimulado(), nombrePendiente: false },
+      };
+    },
+    async registrarUsuario() {
+      return { creado: false };
+    },
+    async cambiarNombre({ nombre }) {
+      sessionStorage.setItem(CLAVE_NOMBRE, nombre);
+      return { nombre };
+    },
+    async seleccionarContexto() {
+      return null;
+    },
+    async limpiarContexto() {
+      return null;
     },
   };
 }

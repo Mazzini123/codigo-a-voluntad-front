@@ -2,6 +2,8 @@ const sinSesion = {
   obtenerToken: async () => null,
   alExpirar: () => {},
   permiteSinToken: async () => false,
+  obtenerContextoId: () => null,
+  alCambiarContexto: () => {},
 };
 
 let auth = { ...sinSesion, clave: null, generacion: 0, habilitada: false };
@@ -11,6 +13,8 @@ export function configurarAuth({
   obtenerToken = sinSesion.obtenerToken,
   alExpirar = sinSesion.alExpirar,
   permiteSinToken = sinSesion.permiteSinToken,
+  obtenerContextoId = sinSesion.obtenerContextoId,
+  alCambiarContexto = sinSesion.alCambiarContexto,
 } = {}) {
   const mismaSesion = auth.clave === clave;
   auth = {
@@ -18,6 +22,8 @@ export function configurarAuth({
     obtenerToken,
     alExpirar,
     permiteSinToken,
+    obtenerContextoId,
+    alCambiarContexto,
     generacion: mismaSesion ? auth.generacion : auth.generacion + 1,
     habilitada: mismaSesion ? auth.habilitada : true,
   };
@@ -52,5 +58,17 @@ export function avisarSesionVencida(generacion) {
   const { clave, alExpirar } = auth;
   cambiarSesionHttp(clave, false);
   alExpirar();
+  return true;
+}
+
+export function cambiarContextoHttp(clave) {
+  if (auth.clave !== clave) return;
+  auth = { ...auth, generacion: auth.generacion + 1 };
+  return auth.generacion;
+}
+
+export function avisarContextoDesactualizado(generacion) {
+  if (!auth.habilitada || !sesionHttpVigente(generacion)) return false;
+  auth.alCambiarContexto();
   return true;
 }

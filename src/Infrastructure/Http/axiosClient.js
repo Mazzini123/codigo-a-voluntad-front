@@ -2,10 +2,14 @@ import axios from "axios";
 import { ApiError } from "./ApiError.js";
 import { describirError, esDemora } from "./mensajesDeError.js";
 import {
+  avisarContextoDesactualizado,
   avisarSesionVencida,
   sesionHttpActual,
   sesionHttpVigente,
 } from "./configurarAuth.js";
+import { CODIGOS_DE_CONTEXTO } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
+
+const ENCABEZADO_DE_CONTEXTO = "X-Context-Id";
 
 function esperar(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -40,7 +44,10 @@ function verificarSesionDelPedido(config) {
 async function agregarToken(config) {
   verificarSesionDelPedido(config);
   const sesion = sesionHttpActual();
-  if (config.bearerDeSesion) config.headers.delete("Authorization");
+  if (config.bearerDeSesion) {
+    config.headers.delete("Authorization");
+    config.headers.delete(ENCABEZADO_DE_CONTEXTO);
+  }
   config.bearerDeSesion = false;
   if (config.intentosRealizados && config.sesionHttpDelPedido === undefined)
     return config;
@@ -67,6 +74,8 @@ async function agregarToken(config) {
   }
   if (token) {
     config.headers.set("Authorization", `Bearer ${token}`);
+    const contextoId = sesion.obtenerContextoId();
+    if (contextoId) config.headers.set(ENCABEZADO_DE_CONTEXTO, contextoId);
     config.bearerDeSesion = true;
   } else if (config.requiereSesion && !permitidoSinToken) {
     throw new ApiError({
@@ -86,8 +95,13 @@ function aApiError(error) {
     error.config?.bearerDeSesion &&
     avisarSesionVencida(error.config.sesionHttpDelPedido);
   const data = error.response?.data;
+  const codigo = data?.codigo ?? null;
+  if (CODIGOS_DE_CONTEXTO.includes(codigo) && error.config?.bearerDeSesion) {
+    avisarContextoDesactualizado(error.config.sesionHttpDelPedido);
+  }
   return new ApiError({
     status: error.response?.status ?? null,
+    codigo,
     ...describirError(error, { sesionVencida }),
     issues: Array.isArray(data?.issues) ? data.issues : [],
     cause: error,

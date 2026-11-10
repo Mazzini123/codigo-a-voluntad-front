@@ -1,4 +1,5 @@
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
+import { TIPO_CONTEXTO } from "@/Application/Domain/Enums/TIPO_CONTEXTO.js";
 
 export const RUTA_INICIO = "/";
 export const RUTA_COMO_EMPEZAR = "/#como-empezar";
@@ -15,6 +16,7 @@ export const RUTA_HABILIDADES = "/habilidades";
 export const RUTA_BIENVENIDA = "/bienvenida";
 export const RUTA_ALTA_COLECTIVO = "/bienvenida/colectivo";
 export const RUTA_ALTA_COLABORADORA = "/bienvenida/colaboradora";
+export const RUTA_NOMBRE = "/cuenta/nombre";
 export const RUTA_PERFIL_COLECTIVO = "/colectivo/perfil";
 export const RUTA_PERFIL_COLABORADORA = "/colaboradora/perfil";
 export const RUTA_POSTULACIONES_COLABORADORA = "/colaboradora/postulaciones";
@@ -90,6 +92,15 @@ const INICIO_POR_ROL = Object.freeze({
 
 export function inicioPorRol(rol) {
   return rol ? (INICIO_POR_ROL[rol] ?? RUTA_PROYECTOS) : RUTA_BIENVENIDA;
+}
+
+export function inicioPorContexto(contexto) {
+  if (!contexto) return RUTA_BIENVENIDA;
+  return inicioPorRol(
+    contexto.tipo === TIPO_CONTEXTO.COLECTIVO
+      ? ROL_CUENTA.COLECTIVO
+      : ROL_CUENTA.COLABORADORA,
+  );
 }
 
 export function estadoParaVolver(ubicacion, textoVolver) {

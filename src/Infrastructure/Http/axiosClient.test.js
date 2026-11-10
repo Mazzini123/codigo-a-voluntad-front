@@ -416,3 +416,56 @@ describe("cancelación", () => {
     expect(transporte).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("contexto", () => {
+  test("manda X-Context-Id junto con el token", async () => {
+    configurarAuth({
+      obtenerToken: async () => "abc123",
+      obtenerContextoId: () => "ctx-1",
+    });
+    const transporte = vi.fn(async (config) => respuesta(config, 200));
+    await crearCliente(transporte).get("/proyectos");
+    expect(transporte.mock.calls[0][0].headers["X-Context-Id"]).toBe("ctx-1");
+  });
+
+  test("sin token no manda el contexto", async () => {
+    configurarAuth({ obtenerContextoId: () => "ctx-1" });
+    const transporte = vi.fn(async (config) => respuesta(config, 200));
+    await crearCliente(transporte).get("/proyectos");
+    expect(transporte.mock.calls[0][0].headers["X-Context-Id"]).toBeUndefined();
+  });
+
+  test("un contexto desactualizado avisa a la sesión y llega con su código y mensaje", async () => {
+    const alCambiarContexto = vi.fn();
+    configurarAuth({
+      obtenerToken: async () => "abc123",
+      obtenerContextoId: () => "ctx-1",
+      alCambiarContexto,
+    });
+    const error = await errorDe(
+      crearCliente(
+        fallaConStatus(409, { message: "x", codigo: "CONTEXTO_NO_ACTUAL" }),
+      ).post("/colectivos/1/proyectos", {}),
+    );
+
+    expect(alCambiarContexto).toHaveBeenCalledTimes(1);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.codigo).toBe("CONTEXTO_NO_ACTUAL");
+    expect(error.esDeSesion).toBe(true);
+    expect(error.mensaje).toMatch(/otra ventana/);
+  });
+
+  test("un 403 por permiso explica el rol y no toca la sesión", async () => {
+    const alCambiarContexto = vi.fn();
+    configurarAuth({ obtenerToken: async () => "abc123", alCambiarContexto });
+    const error = await errorDe(
+      crearCliente(fallaConStatus(403, { codigo: "PERMISO_INSUFICIENTE" })).put(
+        "/colectivos/1",
+        {},
+      ),
+    );
+
+    expect(alCambiarContexto).not.toHaveBeenCalled();
+    expect(error.mensaje).toBe("Tu rol en este colectivo no permite hacer esto.");
+  });
+});

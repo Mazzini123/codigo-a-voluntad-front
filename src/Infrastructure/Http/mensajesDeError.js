@@ -1,3 +1,5 @@
+import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
+
 const SIN_CONEXION = "No pudimos conectarnos con el servidor. Revisá tu conexión.";
 const DEMORA = "El servidor tardó demasiado en responder. Probá de nuevo.";
 const ERROR_DEL_SERVIDOR =
@@ -18,6 +20,28 @@ const POR_DEFECTO = {
 
 const GENERICO = "No pudimos completar la operación.";
 
+export const MENSAJES_DE_SESION = new Map([
+  [
+    CODIGO_ERROR.CONTEXTO_NO_ACTUAL,
+    "Cambiaste de perfil o de colectivo en otra ventana. Actualizamos tu sesión: revisá y volvé a intentar.",
+  ],
+  [
+    CODIGO_ERROR.CONTEXTO_INACTIVO,
+    "Ya no podés operar con ese perfil o colectivo. Actualizamos tu sesión.",
+  ],
+  [CODIGO_ERROR.CONTEXTO_INVALIDO, "Ese perfil no es tuyo. Actualizamos tu sesión."],
+  [
+    CODIGO_ERROR.CONTEXTO_REQUERIDO,
+    "Elegí con qué perfil querés operar y volvé a intentar.",
+  ],
+  [CODIGO_ERROR.PERMISO_INSUFICIENTE, "Tu rol en este colectivo no permite hacer esto."],
+  [CODIGO_ERROR.NOMBRE_REQUERIDO, "Antes de seguir, contanos tu nombre."],
+  [
+    CODIGO_ERROR.MODALIDAD_INCOMPATIBLE,
+    "Tu cuenta ya opera con otro tipo de perfil. No se pueden usar los dos a la vez.",
+  ],
+]);
+
 export function esDemora(error) {
   return error.code === "ECONNABORTED" || error.code === "ETIMEDOUT";
 }
@@ -32,6 +56,10 @@ export function describirError(error, { sesionVencida = false } = {}) {
       mensaje: "Tu sesión venció. Iniciá sesión de nuevo.",
       esReintentable: false,
     };
+  }
+  const codigo = error.response.data?.codigo;
+  if (MENSAJES_DE_SESION.has(codigo)) {
+    return { mensaje: MENSAJES_DE_SESION.get(codigo), esReintentable: false };
   }
   if (status >= 500) return { mensaje: ERROR_DEL_SERVIDOR, esReintentable: true };
   if (FIJOS[status]) return { mensaje: FIJOS[status], esReintentable: false };

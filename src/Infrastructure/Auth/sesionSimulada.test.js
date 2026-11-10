@@ -48,6 +48,11 @@ test.each([
   expect(await crearAuthHttpClientSimulado(tipo).obtenerCuentaActual()).toEqual({
     id: "cuenta-simulada",
     ...esperado,
+    usuario: {
+      id: "cuenta-simulada",
+      nombre: "Persona de prueba",
+      nombrePendiente: false,
+    },
   });
 });
 
@@ -61,7 +66,7 @@ test("la cuenta simulada usa el perfil configurado y adopta el que se crea", asy
   const sesion = crearSesionSimulada("SIN_PERFIL", { assign: () => {} });
   await sesion.iniciar();
   await sesion.asociarPerfil("COLECTIVO", "c-nuevo");
-  expect(await sinPerfil.obtenerCuentaActual()).toEqual({
+  expect(await sinPerfil.obtenerCuentaActual()).toMatchObject({
     id: "cuenta-simulada",
     rol: "COLECTIVO",
     perfilId: "c-nuevo",
@@ -69,4 +74,10 @@ test("la cuenta simulada usa el perfil configurado y adopta el que se crea", asy
 
   await sesion.cerrar();
   expect((await sinPerfil.obtenerCuentaActual()).rol).toBeNull();
+});
+
+test("la sesión simulada guarda el nombre que se carga", async () => {
+  const cliente = crearAuthHttpClientSimulado("COLECTIVO");
+  await cliente.cambiarNombre({ nombre: "Ana" });
+  expect((await cliente.obtenerCuentaActual()).usuario.nombre).toBe("Ana");
 });

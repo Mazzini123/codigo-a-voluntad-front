@@ -10,7 +10,8 @@ import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/Di
 import { BloqueEsqueleto } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { AccesosDeCuenta } from "./AccesosDeCuenta.jsx";
 import estilos from "./MenuDeCuenta.module.css";
-import { RUTA_CALLBACK } from "@/Presentation/Routes/rutas.js";
+import { RUTA_CALLBACK, RUTA_NOMBRE } from "@/Presentation/Routes/rutas.js";
+import { SelectorDeContexto } from "@/Presentation/Components/App/sesion/SelectorDeContexto.jsx";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
 export function MenuDeCuenta() {
@@ -50,6 +51,9 @@ export function MenuDeCuenta() {
   }
 
   const enlaceDePerfil = enlaceDePerfilPara(usuario.rol);
+  const otrosContextos = (usuario.contextos ?? []).filter(
+    (contexto) => contexto.id !== usuario.contextoActual?.id,
+  );
 
   function alternar() {
     setAbierto((valor) => !valor);
@@ -103,6 +107,27 @@ export function MenuDeCuenta() {
               onClick={() => setAbierto(false)}
             >
               {enlaceDePerfil.texto}
+            </NavLink>
+          </li>
+        )}
+        {otrosContextos.length > 0 && (
+          <li className={estilos.contextos}>
+            <span className={estilos.ingresasteComo}>Cambiar a</span>
+            <SelectorDeContexto
+              contextos={otrosContextos}
+              etiqueta="Cambiar a"
+              alElegir={() => setAbierto(false)}
+            />
+          </li>
+        )}
+        {usuario.usuarioId && (
+          <li>
+            <NavLink
+              to={RUTA_NOMBRE}
+              className={estilos.opcion}
+              onClick={() => setAbierto(false)}
+            >
+              Tu nombre
             </NavLink>
           </li>
         )}

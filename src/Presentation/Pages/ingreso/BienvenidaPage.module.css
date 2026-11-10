@@ -56,3 +56,16 @@
 .detalle {
   color: var(--color-tinta-suave);
 }
+
+.contextos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.contexto {
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}

@@ -1,4 +1,5 @@
 export {
+  cambiarContextoHttp,
   cambiarSesionHttp,
   configurarAuth,
   desconfigurarAuth,

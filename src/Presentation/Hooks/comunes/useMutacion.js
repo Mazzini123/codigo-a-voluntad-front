@@ -4,6 +4,7 @@ const SIN_PEDIDO = Object.freeze({ enviando: false, error: null, datos: null });
 const IGNORADA = Object.freeze({ ok: false, ignorada: true, datos: null, error: null });
 
 function conMensajePropio(error, mensajes) {
+  if (error?.esDeSesion) return error;
   const mensaje = mensajes?.[error?.status];
   return mensaje && typeof error.conMensaje === "function"
     ? error.conMensaje(mensaje)

@@ -37,6 +37,7 @@ import {
   RUTA_LOGIN,
   RUTA_MENSAJES,
   RUTA_MIS_PROYECTOS,
+  RUTA_NOMBRE,
   RUTA_NUEVO_PROYECTO,
   RUTA_PERFIL_COLABORADORA,
   RUTA_PERFIL_COLECTIVO,
@@ -62,6 +63,10 @@ const cargarColaboradorasPotenciales = () =>
 const cargarContactoDeColaboradora = () =>
   import("@/Presentation/Pages/colectivo/ContactoDeColaboradoraPage.jsx");
 
+const cargarNombrePage = () =>
+  import("@/Presentation/Pages/ingreso/NombrePage.jsx").then((modulo) => ({
+    default: modulo.NombrePage,
+  }));
 const cargarAltaColaboradoraPage = () =>
   import("@/Presentation/Pages/ingreso/AltaColaboradoraPage.jsx").then((modulo) => ({
     default: modulo.AltaColaboradoraPage,
@@ -131,6 +136,12 @@ export const rutas = createRoutesFromElements(
           handle={{ tipoDePantalla: TIPO_DE_PANTALLA.ACCESO }}
         />
         <Route path={RUTA_CALLBACK} element={<CallbackPage />} />
+        <Route element={<RutaProtegida permitirSinPerfil permitirSinNombre />}>
+          <Route
+            path={RUTA_NOMBRE}
+            element={<PantallaDiferida cargar={cargarNombrePage} />}
+          />
+        </Route>
         <Route element={<RutaProtegida permitirSinPerfil />}>
           <Route path={RUTA_BIENVENIDA} element={<BienvenidaPage />} />
           <Route
