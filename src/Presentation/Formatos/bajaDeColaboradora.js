@@ -10,8 +10,3 @@ export function actividadEnCurso(error) {
     estado: ESTADOS.find(({ valor }) => valor === item.estado)?.singular ?? "En curso",
   }));
 }
-
-export function perfilDadoDeBajaDe(error) {
-  if (error?.codigo !== CODIGO_ERROR.PERFIL_COLABORADOR_DADO_DE_BAJA) return null;
-  return error.detalle?.colaboradorId ?? null;
-}

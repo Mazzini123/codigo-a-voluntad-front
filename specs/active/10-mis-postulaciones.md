@@ -93,7 +93,7 @@ Aprobada el 08/11/2026 con las propuestas indicadas en cada punto.
 5. **Volver a postularse tras la baja.** ¿Puede postularse de nuevo al mismo perfil o responde 409 por "ya postulada"? De eso depende el texto del diálogo y lo que se ve después en el detalle del proyecto.
 6. **Orden y paginación.** Si el listado se llega a paginar, filtrar por `estado` y ordenar por `fecha` descendente desde el servidor.
 7. **Swagger desactualizado.** El esquema `Colaboracion` de `openapi.js` no lista `DESVINCULADA` ni el campo `perfil`.
-8. **Identidad:** `GET /auth/me` para el `id` de la colaboradora (ya pendiente).
+8. **Identidad:** `GET /auth/me` informa el `perfilId` de la colaboradora de su contexto actual.
 9. **Retirar una postulación pendiente** (no bloquea esta spec). Hoy una postulación hecha por error solo se resuelve si el colectivo la rechaza. Hace falta un endpoint propio; cuando exista, se suma a esta pantalla con confirmación.
 
 ## Fuera de alcance

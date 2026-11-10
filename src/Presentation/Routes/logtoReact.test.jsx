@@ -87,9 +87,11 @@ beforeEach(() => {
     statusText: "OK",
     headers: {},
     data:
-      config.url === "/auth/me"
-        ? { id: "cuenta-1", rol: null, perfilId: null }
-        : { data: [], meta: { page: 1, per_page: 12, total: 0, total_pages: 0 } },
+      config.url === "/auth/registro"
+        ? { usuarioId: "u1", creado: false }
+        : config.url === "/auth/me"
+          ? { id: "cuenta-1", rol: null, perfilId: null }
+          : { data: [], meta: { page: 1, per_page: 12, total: 0, total_pages: 0 } },
   }));
   axiosClient.defaults.adapter = transporte;
 });
@@ -153,12 +155,17 @@ test("espera al SDK al recargar antes de consultar la cuenta y enviar el token d
   expect(
     await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
   ).toBeVisible();
-  const cuenta = transporte.mock.calls.find(([config]) => config.url === "/auth/me")[0];
-  expect(cuenta.headers.Authorization).toBe("Bearer jwt-react");
-  expect(sdk.getAccessToken).toHaveBeenCalledWith("https://api.codigo-a-voluntad");
+  const pedidos = transporte.mock.calls
+    .map(([config]) => config)
+    .filter(({ url }) => url.startsWith("/auth/"));
+  expect(pedidos.map(({ method, url }) => [method, url])).toEqual([
+    ["post", "/auth/registro"],
+    ["get", "/auth/me"],
+  ]);
   expect(
-    transporte.mock.calls.filter(([config]) => config.url === "/auth/me"),
-  ).toHaveLength(1);
+    pedidos.every(({ headers }) => headers.Authorization === "Bearer jwt-react"),
+  ).toBe(true);
+  expect(sdk.getAccessToken).toHaveBeenCalledWith("https://api.codigo-a-voluntad");
 });
 
 test("el callback espera la autenticación antes de pedir la cuenta y conserva el destino", async () => {
@@ -179,6 +186,9 @@ test("el callback espera la autenticación antes de pedir la cuenta y conserva e
     await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
   ).toBeVisible();
   expect(router.state.location.pathname).toBe("/bienvenida");
+  const rutasPedidas = transporte.mock.calls.map(([{ url }]) => url);
+  expect(rutasPedidas.slice(0, 2)).toEqual(["/auth/registro", "/auth/me"]);
+  expect(rutasPedidas.filter((url) => url === "/auth/registro")).toHaveLength(1);
   expect(sessionStorage.getItem("codigo-a-voluntad:volver-a")).toBeNull();
 });
 
@@ -191,6 +201,7 @@ test("si falla la cuenta durante el callback, reintenta la consulta y conserva e
   const responder = transporte.getMockImplementation();
   let recuperarCuenta;
   transporte
+    .mockImplementationOnce(responder)
     .mockRejectedValueOnce(
       new axios.AxiosError("error", "ERR_BAD_RESPONSE", {}, null, {
         status: 500,
@@ -211,6 +222,7 @@ test("si falla la cuenta durante el callback, reintenta la consulta y conserva e
   await user.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(await screen.findByRole("button", { name: "Reintentando…" })).toBeDisabled();
   expect(transporte.mock.calls.map(([config]) => config.url)).toEqual([
+    "/auth/registro",
     "/auth/me",
     "/auth/me",
   ]);
@@ -286,7 +298,7 @@ test("el callback del SDK funciona dentro de StrictMode", async () => {
   expect(sdk.handleSignInCallback).toHaveBeenCalled();
 });
 
-test("si falla la cuenta del backend permite reintentar sin perder la identidad de Logto", async () => {
+test("si falla el registro, reintenta antes de consultar la cuenta y conserva la identidad", async () => {
   sdk.isAuthenticated.mockResolvedValue(true);
   transporte.mockRejectedValueOnce(
     new axios.AxiosError("error", "ERR_BAD_RESPONSE", {}, null, {
@@ -299,10 +311,16 @@ test("si falla la cuenta del backend permite reintentar sin perder la identidad 
     await screen.findByRole("heading", { name: "No pudimos verificar tu sesión" }),
   ).toBeVisible();
   expect(router.state.location.pathname).toBe("/bienvenida");
+  expect(transporte.mock.calls.map(([{ url }]) => url)).toEqual(["/auth/registro"]);
   await user.click(screen.getByRole("button", { name: "Reintentar" }));
   expect(
     await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
   ).toBeVisible();
+  expect(transporte.mock.calls.map(([{ url }]) => url)).toEqual([
+    "/auth/registro",
+    "/auth/registro",
+    "/auth/me",
+  ]);
   expect(sdk.clearAllTokens).not.toHaveBeenCalled();
 });
 

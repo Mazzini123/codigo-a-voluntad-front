@@ -78,16 +78,16 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 
 ### Cuenta (`Application` + `Infrastructure`, como el resto de los módulos)
 
-- `CuentaDto` (`{ id, rol, perfilId }`), `IAuthHttpClient`, `AuthHttpClient` (`GET /auth/me`), el caso de uso `ObtenerCuentaActual` y `Presentation/Dependencies/authDependencies.js`. Se suman a `PLAN-ENTIDADES.md`.
+- `CuentaDto`, `AuthHttpClient` (`POST /auth/registro` y `GET /auth/me`), los casos de uso `RegistrarUsuario` y `ObtenerCuentaActual` y `Presentation/Dependencies/authDependencies.js`. Se suman a `PLAN-ENTIDADES.md`.
 - `rol` es `"COLECTIVO"`, `"COLABORADORA"` o `null` si la cuenta todavía no tiene perfil (enum `ROL_CUENTA` en `Domain/Enums`).
 
 ### Sesión en Presentation
 
 - **`ProveedorDeSesion`** (en `Components/App/`, con el contexto en `Context/ContextoDeSesion.js`) recibe `identidad` y `dependencies` por props para poder probarlo con dobles.
-- **Al montar:** `cargando` es `true`. Pregunta `estaAutenticado()`; si hay sesión, pide la cuenta (`ObtenerCuentaActual`) y la guarda en `usuario`.
+- **Al montar:** `cargando` es `true`. Espera la autenticación del proveedor, registra la identidad interna y luego consulta la cuenta. Las recargas de cuenta de la misma sesión consultan directamente.
 - **`configurarAuth`:** el provider lo llama con `obtenerToken` de la identidad, y con un `alExpirar` que olvida la sesión, muestra el aviso "Tu sesión venció. Iniciá sesión de nuevo." y navega a `/login` con `state.desde`. Ese aviso sale una sola vez aunque fallen varios pedidos juntos.
 - **`useSesion()`** devuelve `{ usuario, estaAutenticado, cargando, iniciarSesion, cerrarSesion, recargarCuenta }`. Fuera del provider lanza un error claro, como `useAvisos`.
-- **Si `GET /auth/me` falla** (no es un 401): en lugar de la app se ve un `EstadoDeError` "No pudimos verificar tu sesión" con "Reintentar". Nunca se muestra la app como si no hubiera sesión.
+- **Si el registro interno o la consulta de cuenta falla** (no es un 401): en lugar de la app se ve un `EstadoDeError` "No pudimos verificar tu sesión" con "Reintentar". Nunca se muestra la app como si no hubiera sesión.
 
 ### Rutas
 
@@ -120,7 +120,7 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
     - "Soy un colectivo: publico proyectos y busco colaboradoras."
     - "Soy colaboradora: me sumo a proyectos con mis habilidades."
   - Cada una lleva al alta del perfil correspondiente (`/bienvenida/colectivo` y `/bienvenida/colaboradora`), que entregan las specs 02 y 03.
-  - El tipo de cuenta no se cambia después: lo dice el texto.
+  - El usuario puede elegir entre sus contextos activos o dar de alta un perfil compatible con su modalidad.
 
 ### Cabecera
 
@@ -157,11 +157,11 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
 - Error al volver de Logto: `EstadoDeError` con "Volver a ingresar".
 - Sin permiso: `SinPermisoPage` (spec de navegación).
 
-## A acordar con el back
+## Contrato con el backend
 
-- `GET /auth/me` → `200 { id, rol, perfilId }`, con `rol: null` y `perfilId: null` si la cuenta no tiene perfil. Con un token inválido o vencido, 401.
-- El back valida el JWT de Logto (emisor `<endpoint>/oidc`, audiencia `VITE_LOGTO_API_RESOURCE`, JWKS del tenant) y toma el `sub` como identidad.
-- `POST /colectivos` y `POST /colaboradores` asocian el perfil al `sub` del token, y responden 409 si la cuenta ya tiene un perfil (el tipo no se cambia).
+- `POST /auth/registro` valida el JWT de la API, vincula `proveedor` y `sub` con un usuario interno y devuelve ese mismo usuario al repetirse.
+- `GET /auth/me` consulta el usuario, nombre, contexto actual y contextos disponibles. `rol` y `perfilId` son nulos cuando no hay contexto actual. Un token inválido o vencido devuelve 401.
+- El nombre propio de la aplicación se completa con `PUT /auth/usuario`. `POST /colectivos` y `POST /colaboradores` crean un contexto activo cuando la modalidad es compatible. La cuenta puede crear un perfil nuevo de colaboradora después de la baja del anterior.
 
 ## A confirmar
 

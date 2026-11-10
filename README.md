@@ -42,7 +42,7 @@ En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o
 
 ## Ingreso con Logto
 
-El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). La estructura sigue la integración de Facundo: `Infrastructure/Auth/authFactory.js` elige el proveedor y devuelve `{ Provider, usarSesion, CallbackComponent }`; `main.jsx` monta el `Provider` (un único `LogtoProvider` en `logto/`) y `Presentation/Context/AuthProvider.jsx` consume solo `usarSesion()` y expone `useAuth()`. `VITE_AUTH_PROVIDER` (`logto` o `simulada`) fuerza el proveedor; vacío elige solo según las variables. La app nunca ve contraseñas: redirige a Logto, vuelve a `/auth/callback` y le pide al back la cuenta con `GET /auth/me`. El rol de la plataforma sale del backend.
+El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). La estructura sigue la integración de Facundo: `Infrastructure/Auth/authFactory.js` elige el proveedor y devuelve `{ Provider, usarSesion, CallbackComponent }`; `main.jsx` monta el `Provider` (un único `LogtoProvider` en `logto/`) y `Presentation/Context/AuthProvider.jsx` consume solo `usarSesion()` y expone `useAuth()`. `VITE_AUTH_PROVIDER` (`logto` o `simulada`) fuerza el proveedor; vacío elige solo según las variables. La app redirige a Logto para el ingreso. Al volver a `/auth/callback`, pide un access token para la API, envía `POST /auth/registro` y espera el resultado antes de consultar `GET /auth/me`. El rol de la plataforma sale del backend.
 
 «Ingresar» y «Crear una cuenta» en el header abren directamente la pantalla correspondiente de Logto y conservan el destino de origen. `/login` y `/registro` siguen disponibles para enlaces existentes, rutas protegidas y recuperación de errores.
 
@@ -59,7 +59,9 @@ Las tres variables de Logto son necesarias para autenticar. Con configuración i
 
 La sesión se adaptó a la estructura de esa rama (`authFactory`, `Provider`, `usarSesion`, `CallbackComponent`, `AuthProvider`, `useAuth`), no al revés. Se adoptan los nombres de la integración de Facundo: `/auth/callback` como ruta de retorno (`Infrastructure/Auth/authRoutes.js`) y `VITE_LOGTO_API_RESOURCE` para el identificador del recurso. El equipo debe registrar las URI de cada origen real (el puerto también forma parte del origen).
 
-Conservar el router, el cliente HTTP y la consulta de cuenta actuales. No agregar un segundo provider ni considerar que `isAuthenticated` ya define el rol o el perfil. El contrato pendiente con el back es `GET /auth/me` → `{ id, rol, perfilId }`, valores nulos de rol y perfil para cuentas nuevas, y 401 para tokens inválidos. Las altas asocian el perfil al `sub` de Logto y responden 409 si ya existe uno. Scopes y roles en Logto se configuran cuando el backend acuerde qué permisos requiere. Ver `specs/active/integracion-logto-react.md`.
+El registro interno se confirma una vez al iniciar o restaurar la sesión en el frontend. `POST /auth/registro` es idempotente y la consulta posterior `GET /auth/me` trae el usuario interno, el contexto actual y los contextos disponibles con sus permisos. Si el nombre está pendiente, el frontend lo pide y lo guarda con `PUT /auth/usuario`. Después permite crear o elegir un contexto y envía su ID en `X-Context-Id` en las operaciones que lo requieren. Una recarga de la cuenta durante la misma sesión consulta `/auth/me` directamente. [Integración con Logto React](specs/active/integracion-logto-react.md)
+
+Después de dar de baja su perfil de colaboradora, la persona puede crear un perfil nuevo con la misma cuenta. El historial queda asociado al perfil anterior. [Baja del perfil de colaboradora](specs/active/15-baja-del-perfil-de-colaboradora.md)
 
 ### Modo demo sin backend
 

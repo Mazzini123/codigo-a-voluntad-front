@@ -17,7 +17,7 @@ Dado un liderazgo en «Solicitudes», cuando acepta o rechaza una pendiente y co
 
 ## Requisitos
 
-- Rutas `/colectivo/miembros` y `/colectivo/solicitudes` dentro del panel; «Solicitudes» solo aparece con `MEMBRESIA_SOLICITUD_RESOLVER`.
+- Rutas `/colectivo/miembros` y `/colectivo/solicitudes` dentro del panel; «Miembros» y «Solicitudes» se consultan con `COLECTIVO_MIEMBROS_VER` en el contexto actual. Resolver solicitudes requiere `MEMBRESIA_SOLICITUD_RESOLVER`.
 - Nombre de cada persona tal como lo da el back; si falta, «Persona sin nombre».
 - El filtro de estado de las solicitudes va en la URL (`?estado=`), por defecto pendientes.
 - Quitar y pasar el liderazgo no aparecen sobre la propia fila ni sobre la del liderazgo.

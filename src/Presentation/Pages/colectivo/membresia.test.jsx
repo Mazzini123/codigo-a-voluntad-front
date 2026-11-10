@@ -9,6 +9,7 @@ import MiembrosPage from "./MiembrosPage.jsx";
 import SolicitudesDeIngresoPage from "./SolicitudesDeIngresoPage.jsx";
 
 const PERMISOS_DE_LIDER = [
+  PERMISO.COLECTIVO_MIEMBROS_VER,
   PERMISO.MEMBRESIA_SOLICITUD_RESOLVER,
   PERMISO.MIEMBRO_ELIMINAR,
   PERMISO.LIDER_ASIGNAR,
@@ -175,11 +176,32 @@ test("una solicitud ya resuelta muestra un mensaje claro", async () => {
   expect(await screen.findByText("Esa solicitud ya había sido resuelta.")).toBeVisible();
 });
 
-test("sin liderazgo, la pantalla de solicitudes no consulta al back", async () => {
+test("un miembro puede consultar solicitudes con el contexto actual y el permiso de lectura", async () => {
+  montar(
+    "/colectivo/solicitudes",
+    cuentaCon("MIEMBRO", [PERMISO.COLECTIVO_MIEMBROS_VER]),
+  );
+  expect(await screen.findByText("Grace")).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Aceptar a Grace" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Rechazar a Grace" }),
+  ).not.toBeInTheDocument();
+  expect(transporte).toHaveBeenCalledWith(
+    expect.objectContaining({
+      method: "get",
+      url: "/colectivos/c1/solicitudes-ingreso",
+      headers: expect.objectContaining({ "X-Context-Id": "yo" }),
+    }),
+  );
+});
+
+test("sin permiso de lectura, la pantalla de solicitudes no consulta al back", async () => {
   montar("/colectivo/solicitudes", cuentaCon("MIEMBRO", []));
   expect(
     await screen.findByText(
-      "Solo quien tiene el liderazgo del colectivo puede revisar las solicitudes.",
+      "Necesitás permiso para consultar las solicitudes de este colectivo.",
     ),
   ).toBeVisible();
   expect(transporte).not.toHaveBeenCalled();

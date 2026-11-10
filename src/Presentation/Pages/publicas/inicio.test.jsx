@@ -78,7 +78,10 @@ function montar({
           <Raiz
             usarSesion={sesion.usarSesion}
             CallbackComponent={sesion.CallbackComponent}
-            dependencies={{ obtenerCuentaActual }}
+            dependencies={{
+              obtenerCuentaActual,
+              registrarUsuario: async () => ({ creado: false }),
+            }}
           />
         ),
       },

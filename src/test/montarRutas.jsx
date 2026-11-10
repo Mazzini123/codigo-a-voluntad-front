@@ -14,7 +14,11 @@ export function montarRutas(
   { ruta = "/", cuenta = null, sesion, dependencies } = {},
 ) {
   const sesionUsada = sesion ?? crearSesionFalsa({ autenticado: Boolean(cuenta) });
-  const dependenciasUsadas = dependencies ?? { obtenerCuentaActual: async () => cuenta };
+  const dependenciasUsadas = {
+    registrarUsuario: async () => ({ creado: false }),
+    obtenerCuentaActual: async () => cuenta,
+    ...dependencies,
+  };
   const router = createMemoryRouter(
     createRoutesFromElements(
       <Route

@@ -17,7 +17,7 @@ Estado al 09/11/2026. Entre paréntesis, la spec de donde sale. El detalle está
 - [x] Bandeja: `?leida=true|false` y `meta.unread`. (11)
 - [x] `GET /catalogos/provincias` (23, sin tildes); la ubicación acepta variantes con tildes. Largos máximos y `cuentaGit` como usuario (no URL). (02, 03)
 - [x] Fechas de cierre sin hora = fin del día en Argentina; «hoy» cuenta como futura. (04, 04b)
-- [x] Auth: validación del JWT de Logto, `GET /auth/me`, perfil asociado al `sub` con 409 si ya hay uno, autorización por rol y dueño en las escrituras. (01, 04b, 09, 10, 11)
+- [x] Auth: validación del JWT de Logto, registro idempotente antes de `GET /auth/me`, perfiles vinculados al usuario interno y autorización por rol y contexto. (01, 04b, 09, 10, 11)
 - [x] `GET /proyectos/:id/colaboradores/:colaboradorId/contacto` habilitada con auth, solo colectivo dueño y solo postulaciones aceptadas y públicas. (12)
 - [x] Medios de contacto privados: `GET /colaboradores/:id/medios-de-contacto` y `GET`/`POST`/`DELETE /colectivos/:id/medios-de-contacto`, solo el propio dueño. (02, 03)
 - [x] Las postulaciones anónimas propias aparecen en el listado de la propia persona. (06, 10)

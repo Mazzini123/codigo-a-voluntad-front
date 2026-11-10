@@ -111,7 +111,7 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 ### 5.3 Sesión y rutas (§22.4)
 
 - **Proveedor de identidad externo: Logto** (`@logto/react`, migración aprobada el 06/11). Su provider y hooks se encapsulan en `Infrastructure/Auth/logto/`; `authFactory.js` devuelve `{ Provider, usarSesion, CallbackComponent }` y `usarSesion()` cumple el contrato `{ autenticado, cargando, error, iniciar, cerrar, limpiar, obtenerToken }`. El callback real lo completa `LogtoCallback` (`useHandleSignInCallback`); `AuthProvider` conserva la consulta de cuenta y los permisos del dominio. Cambiar de proveedor es cambiar ese adaptador.
-- **El rol y el perfil vienen del back** (`GET /auth/me`, pendiente en el back), no del proveedor: el proveedor dice quién es la persona; el back, qué es en la plataforma.
+- **El rol y el perfil vienen del backend** (`GET /auth/me`). Logto autentica y el backend resuelve el usuario interno y su contexto.
 - **`AuthProvider` + `useAuth()`** en Presentation: `usuario` (`{ id, rol, perfilId }`), `estaAutenticado`, `cargando`, `iniciarSesion`, `cerrarSesion`. Recibe `usarSesion` y `CallbackComponent` por parámetro para poder probarlo con una sesión falsa (`crearSesionFalsa`).
 - **Almacenamiento a cargo del SDK de Logto en `localStorage`**, según la decisión aprobada del 05/11 que revisa la preferencia inicial por memoria (§22.4.3). El frontend no copia tokens a otro almacenamiento. Mantener la mitigación de vencimiento corto, rotación del refresh token y CSP en el despliegue.
 - **Contexto en vez de Zustand o Redux:** en una aplicación mediana el contexto alcanza (§21.4.12).
@@ -192,6 +192,6 @@ La identidad está definida en `DESIGN.md`, con los tokens, los contrastes verif
 ## 8. Próximos pasos
 
 1. Confirmar con el docente: Vite o CRA/Next, parámetros `:id` en las rutas y los requerimientos adicionales que asigne.
-2. Elegir el proveedor de identidad (Auth0 o Logto) y coordinar con el back `GET /auth/me` y la validación de tokens.
+2. Autenticar con Logto y confirmar `POST /auth/registro` con el access token antes de consultar `GET /auth/me`.
 3. Armar la base transversal (sección 5.1).
 4. Implementar pantalla por pantalla desde `specs/`, revisando con el checklist de `criterios-pantallas-web.md`.

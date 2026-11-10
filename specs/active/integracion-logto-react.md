@@ -9,8 +9,8 @@ Usar el mismo SDK de React que la integración de Facundo, conservando la consul
 ## Escenarios
 
 - Sin sesión, «Ingresar» abre Logto con `firstScreen: "signIn"`; «Crear una cuenta», con `firstScreen: "register"`. Ambos conservan ruta, filtros y fragmento de origen.
-- Al volver a `/auth/callback`, el SDK completa la autenticación y recién entonces se consulta `/auth/me`. La cuenta del backend determina el rol y el perfil; una cuenta nueva llega a Bienvenida.
-- Al recargar una ruta privada, se espera la inicialización del SDK y la consulta de cuenta antes de resolver los permisos.
+- Al volver a `/auth/callback`, el SDK completa la autenticación y obtiene un access token para la API. El frontend confirma `POST /auth/registro` antes de consultar `GET /auth/me`. Si falta el nombre, solicita completarlo antes de ir a Bienvenida o al destino previsto.
+- Al recargar una ruta privada, se espera la inicialización del SDK, el registro interno y la consulta de cuenta antes de resolver los permisos.
 - Una falla al abrir el ingreso muestra un aviso genérico y habilita el reintento. Un callback inválido ofrece volver a ingresar.
 - Con sesión, se mantiene Mi cuenta y el cierre con confirmación.
 
@@ -37,7 +37,7 @@ Credenciales del tenant, cambios en el backend, asignación de roles o scopes en
 
 ## Criterio de aceptación
 
-- Tests del SDK de React con cliente simulado: recurso y token, inicialización, callback antes de `/auth/me`, retorno, errores y salida.
+- Tests del SDK de React con cliente simulado: recurso y token, inicialización, registro confirmado antes de `/auth/me`, retorno, errores y salida.
 - Tests de los accesos: pantalla correcta, conservación de contexto, espera sin duplicados y reintento.
 - Tests existentes de rutas protegidas, sesión simulada, 401 y menú de cuenta en verde.
 - Navegador en escritorio y a 320px, teclado y error de ingreso sin tenant.
@@ -48,8 +48,8 @@ Credenciales del tenant, cambios en el backend, asignación de roles o scopes en
 
 - Configurar el tenant y registrar `/auth/callback` y `/` para cada origen usado.
 - Usar en `VITE_LOGTO_API_RESOURCE` el mismo identificador que valida el backend como audiencia.
-- Hecho en el back (09/11/2026, probado con un JWKS local, no con un tenant real): validación del JWT (emisor, audiencia y JWKS), asociación por `sub`, `/auth/me` → `{ id, rol, perfilId }` y 401 si el token no es válido.
-- Hecho en el back: `rol` y `perfilId` nulos para cuentas sin perfil; altas de perfil asociadas al `sub` y conflicto 409 si ya existe uno; tras la baja de un colectivo la cuenta queda sin perfil.
+- Hecho en el back (09/11/2026, probado con un JWKS local, no con un tenant real): validación del JWT (emisor, audiencia y JWKS), asociación por `proveedor` y `sub`, registro idempotente, `/auth/me` de solo lectura y 401 si el token es inválido.
+- Hecho en el back: `rol` y `perfilId` nulos para cuentas sin perfil; altas de perfil asociadas al usuario interno y conflicto 409 ante un perfil activo incompatible. Una cuenta con un perfil de colaboradora dado de baja puede crear uno nuevo.
 - Acordar scopes y roles en Logto solo si el backend los requiere. El frontend continúa usando el rol de la cuenta que responde el backend.
 - Probar ingreso, registro, recarga, cierre y expiración con tenant y backend reales.
 

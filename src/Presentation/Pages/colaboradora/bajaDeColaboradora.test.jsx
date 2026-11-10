@@ -3,6 +3,7 @@ import axios from "axios";
 import { Route } from "react-router-dom";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 import { RutaProtegida } from "@/Presentation/Routes/RutaProtegida.jsx";
+import { BienvenidaPage } from "@/Presentation/Pages/ingreso/BienvenidaPage.jsx";
 import { AltaColaboradoraPage } from "@/Presentation/Pages/ingreso/AltaColaboradoraPage.jsx";
 import { PerfilColaboradoraPage } from "./PerfilColaboradoraPage.jsx";
 import { montarRutas } from "@/test/montarRutas.jsx";
@@ -21,7 +22,6 @@ const adaptador = axiosClient.defaults.adapter;
 let cuenta;
 let transporte;
 let respuestaDeBaja;
-let respuestaDeAlta;
 
 function responder(config, data, status = 200) {
   return { config, data: structuredClone(data), status, statusText: "", headers: {} };
@@ -44,7 +44,6 @@ beforeEach(() => {
     contextos: [],
   };
   respuestaDeBaja = null;
-  respuestaDeAlta = null;
   transporte = vi.fn(async (config) => {
     const { method, url } = config;
     if (method === "get" && url === "/habilidades") {
@@ -62,11 +61,24 @@ beforeEach(() => {
       cuenta = { ...cuenta, rol: null, perfilId: null, contextoActual: null };
       return responder(config, { ...COLABORADORA, fechaBaja: "2026-11-10" });
     }
-    if (method === "post" && url === "/colaboradores")
-      return fallar(config, 409, respuestaDeAlta);
-    if (method === "post" && url === "/colaboradores/co1/reactivacion") {
-      cuenta = { ...cuenta, rol: "COLABORADORA", perfilId: "co1" };
-      return responder(config, COLABORADORA);
+    if (method === "post" && url === "/colaboradores") {
+      const { nombreFantasia } = JSON.parse(config.data);
+      const nuevo = { ...COLABORADORA, id: "co2", nombreFantasia };
+      const contexto = {
+        id: "k2",
+        tipo: "COLABORADOR",
+        rol: "COLABORADOR",
+        colaborador: { id: nuevo.id, nombre: nuevo.nombreFantasia },
+        permisos: ["COLABORADOR_BAJA"],
+      };
+      cuenta = {
+        ...cuenta,
+        rol: "COLABORADORA",
+        perfilId: nuevo.id,
+        contextoActual: contexto,
+        contextos: [contexto],
+      };
+      return responder(config, nuevo, 201);
     }
     throw new Error(`Pedido inesperado: ${method} ${url}`);
   });
@@ -81,7 +93,7 @@ function montar(ruta) {
   return montarRutas(
     <>
       <Route element={<RutaProtegida permitirSinPerfil />}>
-        <Route path="/bienvenida" element={<h1>Bienvenida</h1>} />
+        <Route path="/bienvenida" element={<BienvenidaPage />} />
         <Route path="/bienvenida/colaboradora" element={<AltaColaboradoraPage />} />
       </Route>
       <Route element={<RutaProtegida roles={["COLABORADORA"]} />}>
@@ -125,7 +137,9 @@ test("con actividad en curso explica qué resolver y no da de baja", async () =>
 test("sin actividad en curso da de baja y vuelve a la bienvenida", async () => {
   const { user } = montar("/colaboradora/perfil");
   await pedirBaja(user);
-  expect(await screen.findByRole("heading", { name: "Bienvenida" })).toBeVisible();
+  expect(
+    await screen.findByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
+  ).toBeVisible();
   expect(screen.getByText("Diste de baja tu perfil de colaboradora.")).toBeVisible();
 });
 
@@ -138,23 +152,35 @@ test("sin el permiso de baja no muestra la acción", async () => {
   ).not.toBeInTheDocument();
 });
 
-test("al crear un perfil que estaba dado de baja ofrece reactivarlo", async () => {
-  cuenta = { ...cuenta, rol: null, perfilId: null, contextoActual: null };
-  respuestaDeAlta = {
-    codigo: "PERFIL_COLABORADOR_DADO_DE_BAJA",
-    detalle: { colaboradorId: "co1" },
-  };
-  const { user } = montar("/bienvenida/colaboradora");
+test("después de la baja puede dar de alta un perfil distinto con la misma cuenta", async () => {
+  const { user } = montar("/colaboradora/perfil");
+  const dialogo = await pedirBaja(user);
+  expect(dialogo).toHaveTextContent(
+    /se creará un perfil nuevo y se conservará el historial del anterior/i,
+  );
+  expect(dialogo).not.toHaveTextContent(/reactivar/i);
+  await user.click(await screen.findByRole("link", { name: /Soy colaboradora/ }));
   await user.click(
     await screen.findByRole("radio", { name: "Con un nombre de fantasía" }),
   );
-  await user.type(screen.getByLabelText(/^Nombre de fantasía/), "Pixel");
+  await user.type(screen.getByLabelText(/^Nombre de fantasía/), "Nuevo Pixel");
   await user.type(screen.getByRole("searchbox", { name: "Buscar habilidad" }), "rea");
   await user.click(screen.getByRole("checkbox", { name: "React" }));
+  expect(screen.queryByRole("button", { name: /reactivar/i })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Crear perfil" }));
-  await user.click(await screen.findByRole("button", { name: "Reactivar mi perfil" }));
+
   expect(await screen.findByRole("heading", { name: "Proyectos" })).toBeVisible();
-  expect(transporte).toHaveBeenCalledWith(
-    expect.objectContaining({ url: "/colaboradores/co1/reactivacion" }),
-  );
+  expect(
+    transporte.mock.calls
+      .map(([{ method, url }]) => [method, url])
+      .filter(([method]) => method === "post"),
+  ).toEqual([
+    ["post", "/colaboradores/co1/baja"],
+    ["post", "/colaboradores"],
+  ]);
+  expect(cuenta).toMatchObject({
+    usuarioId: "u1",
+    perfilId: "co2",
+    contextoActual: { id: "k2" },
+  });
 });

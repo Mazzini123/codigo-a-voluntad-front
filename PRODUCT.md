@@ -38,7 +38,8 @@ Voluntariado de software orientado a organizaciones sociales, con la privacidad 
 - Contrato con el back: `docs/PLAN-ENTIDADES.md` y el Swagger del back. Pantallas, rutas y base transversal: `docs/plan-front.md`. Specs por pantalla en `specs/`.
 - Sin librería de componentes; sin dependencias nuevas sin consultarlo.
 - Las opciones de filtros salen de los catálogos del back (habilidades, tipos de colectivo, provincias).
-- Pendientes: proveedor de identidad (Auth0 o Logto), `GET /auth/me` en el back, rutas con `:id` o `?id=` según el docente, convención de archivos de estilos.
+- La identidad usa Logto. El frontend llama a `POST /auth/registro` antes de `GET /auth/me`.
+- Pendientes: rutas con `:id` o `?id=` según el docente y convención de archivos de estilos.
 
 ## Brand Commitments
 

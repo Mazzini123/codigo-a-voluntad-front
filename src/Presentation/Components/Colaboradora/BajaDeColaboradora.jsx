@@ -35,10 +35,7 @@ export function BajaDeColaboradora({ colaboradorId }) {
   return (
     <section className={estilos.seccion} aria-labelledby="baja-colaboradora">
       <h2 id="baja-colaboradora">Dar de baja mi perfil</h2>
-      <p>
-        Tu perfil deja de aparecer en las búsquedas. Tu historial se conserva y podés
-        reactivarlo más adelante.
-      </p>
+      <p>Tu perfil deja de aparecer en las búsquedas y su historial se conserva.</p>
       <Boton
         variante="peligroso"
         onClick={() => {
@@ -51,7 +48,7 @@ export function BajaDeColaboradora({ colaboradorId }) {
       <DialogoDeConfirmacion
         abierto={abierto}
         titulo="¿Dar de baja tu perfil de colaboradora?"
-        descripcion="Solo se puede si no tenés postulaciones pendientes ni colaboraciones activas. Nada se cancela automáticamente."
+        descripcion="Solo se puede si no tenés postulaciones pendientes ni colaboraciones activas. Si volvés a darte de alta con la misma cuenta, se creará un perfil nuevo y se conservará el historial del anterior."
         textoConfirmar="Dar de baja mi perfil"
         textoEnviando="Dando de baja…"
         permanente={false}

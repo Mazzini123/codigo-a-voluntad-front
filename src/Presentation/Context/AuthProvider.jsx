@@ -18,7 +18,6 @@ import {
 import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { RUTA_CALLBACK, RUTA_INICIO, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
-import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
 
 const AVISO_VENCIDA = "Tu sesión venció. Iniciá sesión de nuevo.";
 const AVISO_CONTEXTO =
@@ -70,6 +69,7 @@ export function AuthProvider({
   const descartada = useRef(false);
   const actual = useRef({ autenticado, tokenDelProveedor });
   const contextoActualId = useRef(null);
+  const registroConfirmado = useRef(null);
   const manejarCambioDeContexto = useRef(() => {});
   const claveSesionHttp = useMemo(() => ({ autenticada: autenticado }), [autenticado]);
 
@@ -106,14 +106,23 @@ export function AuthProvider({
       try {
         const autenticada =
           !vencimientoAvisado.current && !descartada.current && autenticado;
-        const cuenta = autenticada ? await cuentaRegistrada(dependencies, signal) : null;
-        return { cuenta };
+        if (!autenticada) return { cuenta: null };
+
+        if (
+          registroConfirmado.current?.clave !== claveSesionHttp ||
+          registroConfirmado.current?.dependencies !== dependencies
+        ) {
+          await dependencies.registrarUsuario({ signal });
+          signal.throwIfAborted();
+          registroConfirmado.current = { clave: claveSesionHttp, dependencies };
+        }
+        return { cuenta: await dependencies.obtenerCuentaActual({ signal }) };
       } catch (error) {
         if (desdeAlta) throw new ErrorAlRecargarCuentaDelAlta(error);
         throw error;
       }
     },
-    [autenticado, dependencies],
+    [autenticado, claveSesionHttp, dependencies],
   );
   const { datos, error, cargando, ejecutar, reintentar } = useConsulta(buscarCuenta, {
     inmediato: !esperandoIdentidad && !enCallback,
@@ -184,6 +193,7 @@ export function AuthProvider({
 
   const completarIngreso = useCallback(async () => {
     setPerfilDadoDeBaja(false);
+    registroConfirmado.current = null;
     vencimientoAvisado.current = false;
     descartada.current = false;
     cambiarSesionHttp(claveSesionHttp, true);
@@ -288,19 +298,4 @@ export function AuthProvider({
   );
 
   return <ContextoDeSesion.Provider value={valor}>{children}</ContextoDeSesion.Provider>;
-}
-
-async function cuentaRegistrada(dependencies, signal) {
-  try {
-    return await dependencies.obtenerCuentaActual({ signal });
-  } catch (error) {
-    if (
-      error?.codigo !== CODIGO_ERROR.USUARIO_NO_REGISTRADO ||
-      !dependencies.registrarUsuario
-    ) {
-      throw error;
-    }
-    await dependencies.registrarUsuario({ signal });
-    return dependencies.obtenerCuentaActual({ signal });
-  }
 }

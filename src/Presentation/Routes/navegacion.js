@@ -52,7 +52,7 @@ export const SECCIONES_DEL_PANEL = Object.freeze([
     ruta: RUTA_SOLICITUDES_COLECTIVO,
     texto: "Solicitudes",
     icono: "personas",
-    permiso: PERMISO.MEMBRESIA_SOLICITUD_RESOLVER,
+    permiso: PERMISO.COLECTIVO_MIEMBROS_VER,
   }),
 ]);
 

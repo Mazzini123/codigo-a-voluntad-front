@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import { Route } from "react-router-dom";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 import { montarRutas } from "@/test/montarRutas.jsx";
@@ -79,20 +79,22 @@ function dependenciasCon(estado, extra = {}) {
   };
 }
 
-test("registra al usuario cuando el back todavía no lo conoce", async () => {
+test("espera el registro explícito antes de consultar la cuenta", async () => {
   const estado = { cuenta: cuenta() };
-  const dependencies = dependenciasCon(estado);
-  dependencies.obtenerCuentaActual.mockRejectedValueOnce(
-    Object.assign(new Error("no"), { codigo: "USUARIO_NO_REGISTRADO" }),
-  );
+  const { promise, resolve } = Promise.withResolvers();
+  const dependencies = dependenciasCon(estado, {
+    registrarUsuario: vi.fn(() => promise),
+  });
 
   montarRutas(rutas, { ruta: "/colectivo/resumen", cuenta: estado.cuenta, dependencies });
+  await waitFor(() => expect(dependencies.registrarUsuario).toHaveBeenCalledTimes(1));
+  expect(dependencies.obtenerCuentaActual).not.toHaveBeenCalled();
+  await act(async () => resolve({ creado: true }));
 
   expect(
     await screen.findByRole("heading", { name: "Resumen del colectivo" }),
   ).toBeInTheDocument();
-  expect(dependencies.registrarUsuario).toHaveBeenCalledTimes(1);
-  expect(dependencies.obtenerCuentaActual).toHaveBeenCalledTimes(2);
+  expect(dependencies.obtenerCuentaActual).toHaveBeenCalledTimes(1);
 });
 
 test("pide el nombre antes de una ruta protegida y después vuelve a donde iba", async () => {
@@ -118,6 +120,7 @@ test("pide el nombre antes de una ruta protegida y después vuelve a donde iba",
     await screen.findByRole("heading", { name: "Resumen del colectivo" }),
   ).toBeInTheDocument();
   expect(dependencies.cambiarNombreDeUsuario).toHaveBeenCalledWith("Ana Diaz");
+  expect(dependencies.registrarUsuario).toHaveBeenCalledTimes(1);
 });
 
 test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
@@ -191,4 +194,5 @@ test("manda el contexto actual y recarga la cuenta si quedó desactualizado", as
   expect(pedidos[0].headers["X-Context-Id"]).toBe("ctx-colectivo");
   expect(await screen.findByText(/Tu sesión cambió en otra ventana/)).toBeInTheDocument();
   await waitFor(() => expect(dependencies.obtenerCuentaActual).toHaveBeenCalledTimes(2));
+  expect(dependencies.registrarUsuario).toHaveBeenCalledTimes(1);
 });

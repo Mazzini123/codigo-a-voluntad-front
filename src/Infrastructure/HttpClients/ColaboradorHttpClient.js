@@ -69,11 +69,5 @@ export function crearColaboradorHttpClient(http) {
         requiereSesion: true,
       });
     },
-    async reactivar(colaboradorId, { signal } = {}) {
-      return api.post(ruta`/colaboradores/${colaboradorId}/reactivacion`, undefined, {
-        signal,
-        requiereSesion: true,
-      });
-    },
   };
 }

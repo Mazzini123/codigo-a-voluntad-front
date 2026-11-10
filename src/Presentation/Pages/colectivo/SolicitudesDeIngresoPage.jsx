@@ -55,21 +55,27 @@ function estadoDeLaUrl(valor) {
 
 export default function SolicitudesDeIngresoPage() {
   const { usuario } = useAuth();
-  if (!tienePermiso(usuario, PERMISO.MEMBRESIA_SOLICITUD_RESOLVER)) {
+  if (!tienePermiso(usuario, PERMISO.COLECTIVO_MIEMBROS_VER)) {
     return (
       <section className={estilos.pagina} aria-labelledby="titulo-solicitudes">
         <TituloDePagina>Solicitudes de ingreso</TituloDePagina>
         <h1 id="titulo-solicitudes" tabIndex={-1}>
           Solicitudes de ingreso
         </h1>
-        <p>Solo quien tiene el liderazgo del colectivo puede revisar las solicitudes.</p>
+        <p>Necesitás permiso para consultar las solicitudes de este colectivo.</p>
       </section>
     );
   }
-  return <Solicitudes key={usuario.perfilId} colectivoId={usuario.perfilId} />;
+  return (
+    <Solicitudes
+      key={usuario.perfilId}
+      colectivoId={usuario.perfilId}
+      puedeResolver={tienePermiso(usuario, PERMISO.MEMBRESIA_SOLICITUD_RESOLVER)}
+    />
+  );
 }
 
-function Solicitudes({ colectivoId }) {
+function Solicitudes({ colectivoId, puedeResolver }) {
   const [parametros, setParametros] = useSearchParams();
   const estado = estadoDeLaUrl(parametros.get("estado"));
   const consulta = useSolicitudesDeIngreso(colectivoId, estado);
@@ -77,7 +83,7 @@ function Solicitudes({ colectivoId }) {
   const [confirmacion, setConfirmacion] = useState(null);
   const refTitulo = useRef(null);
   const enfocarTitulo = useCallback(() => refTitulo.current, []);
-  const accion = confirmacion && ACCIONES[confirmacion.tipo];
+  const accion = puedeResolver && confirmacion ? ACCIONES[confirmacion.tipo] : null;
 
   function cambiarEstado(evento) {
     const siguientes = new URLSearchParams(parametros);
@@ -117,7 +123,9 @@ function Solicitudes({ colectivoId }) {
       <Listado
         consulta={consulta}
         estado={estado}
-        alElegir={(tipo, solicitud) => setConfirmacion({ tipo, solicitud })}
+        alElegir={
+          puedeResolver ? (tipo, solicitud) => setConfirmacion({ tipo, solicitud }) : null
+        }
       />
       <DialogoDeConfirmacion
         abierto={Boolean(accion)}
@@ -181,7 +189,7 @@ function Listado({ consulta, estado, alElegir }) {
                 </>
               )}
             </p>
-            {solicitud.estado === ESTADO_SOLICITUD.PENDIENTE && (
+            {alElegir && solicitud.estado === ESTADO_SOLICITUD.PENDIENTE && (
               <div className={estilos.acciones}>
                 <Boton
                   disabled={consulta.procesando}

@@ -194,6 +194,7 @@ test("si no se puede verificar la sesión ofrece Reintentar", async () => {
 
 test("ante un 401 avisa una sola vez, olvida la sesión y lleva a /login", async () => {
   transporte.mockImplementation(async (config) => {
+    if (config.url === "/auth/registro") return respuesta(config, { creado: false });
     if (config.url === "/auth/me") return respuesta(config, cuenta);
     return falla(config, 401);
   });
@@ -210,6 +211,7 @@ test("ante un 401 avisa una sola vez, olvida la sesión y lleva a /login", async
 
 test("un 401 lleva al ingreso aunque falle la limpieza de la identidad", async () => {
   transporte.mockImplementation(async (config) => {
+    if (config.url === "/auth/registro") return respuesta(config, { creado: false });
     if (config.url === "/auth/me") return respuesta(config, cuenta);
     return falla(config, 401);
   });

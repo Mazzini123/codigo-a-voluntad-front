@@ -14,9 +14,11 @@ export function Proveedores({
   const [sesionDePrueba] = useState(
     () => sesion ?? crearSesionFalsa({ autenticado: Boolean(cuenta) }),
   );
-  const [dependenciasDePrueba] = useState(
-    () => dependencies ?? { obtenerCuentaActual: async () => cuenta },
-  );
+  const [dependenciasDePrueba] = useState(() => ({
+    registrarUsuario: async () => ({ creado: false }),
+    obtenerCuentaActual: async () => cuenta,
+    ...dependencies,
+  }));
   return (
     <MemoryRouter initialEntries={[ruta]}>
       <ProveedorDeAvisos>
