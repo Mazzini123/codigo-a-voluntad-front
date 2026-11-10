@@ -8,11 +8,13 @@ import { crearRechazarSolicitudDeIngreso } from "@/Application/UseCases/Membresi
 import { crearSolicitarIngreso } from "@/Application/UseCases/Membresia/SolicitarIngreso.js";
 import { crearCancelarSolicitudDeIngreso } from "@/Application/UseCases/Membresia/CancelarSolicitudDeIngreso.js";
 import { crearListarMisSolicitudesDeIngreso } from "@/Application/UseCases/Membresia/ListarMisSolicitudesDeIngreso.js";
+import { crearColectivoHttpClient } from "@/Infrastructure/HttpClients/ColectivoHttpClient.js";
 import { crearMembresiaHttpClient } from "@/Infrastructure/HttpClients/MembresiaHttpClient.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 
 export function crearMembresiaDependencies(http = axiosClient) {
   const httpClient = crearMembresiaHttpClient(http);
+  const colectivoHttpClient = crearColectivoHttpClient(http);
   return {
     listarMiembros: crearListarMiembros(httpClient),
     quitarMiembro: crearQuitarMiembro(httpClient),
@@ -23,7 +25,10 @@ export function crearMembresiaDependencies(http = axiosClient) {
     rechazarSolicitudDeIngreso: crearRechazarSolicitudDeIngreso(httpClient),
     solicitarIngreso: crearSolicitarIngreso(httpClient),
     cancelarSolicitudDeIngreso: crearCancelarSolicitudDeIngreso(httpClient),
-    listarMisSolicitudesDeIngreso: crearListarMisSolicitudesDeIngreso(httpClient),
+    listarMisSolicitudesDeIngreso: crearListarMisSolicitudesDeIngreso(
+      httpClient,
+      colectivoHttpClient,
+    ),
   };
 }
 

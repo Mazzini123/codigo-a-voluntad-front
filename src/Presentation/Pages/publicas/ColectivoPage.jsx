@@ -1,4 +1,5 @@
 import { useLocation, useParams } from "react-router-dom";
+import { PedirIngreso } from "@/Presentation/Components/Membresia/PedirIngreso.jsx";
 import { HistoriaDelColectivo } from "@/Presentation/Components/Colectivo/HistoriaDelColectivo.jsx";
 import { ValoracionesRecibidas } from "@/Presentation/Components/Valoracion/ValoracionesRecibidas.jsx";
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
@@ -105,6 +106,7 @@ function PerfilPublico({ colectivo }) {
             </p>
           )}
           <TextoConFormato texto={colectivo.descripcion} nivel={2} />
+          <PedirIngreso colectivo={colectivo} />
           {colectivo.etiquetas?.length > 0 && (
             <ul className={compartidos.etiquetas} aria-label="Etiquetas">
               {colectivo.etiquetas.map((etiqueta) => (

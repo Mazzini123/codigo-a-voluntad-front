@@ -17,6 +17,7 @@ export const RUTA_BIENVENIDA = "/bienvenida";
 export const RUTA_ALTA_COLECTIVO = "/bienvenida/colectivo";
 export const RUTA_ALTA_COLABORADORA = "/bienvenida/colaboradora";
 export const RUTA_NOMBRE = "/cuenta/nombre";
+export const RUTA_MIS_SOLICITUDES = "/cuenta/solicitudes";
 export const RUTA_PERFIL_COLECTIVO = "/colectivo/perfil";
 export const RUTA_PERFIL_COLABORADORA = "/colaboradora/perfil";
 export const RUTA_POSTULACIONES_COLABORADORA = "/colaboradora/postulaciones";

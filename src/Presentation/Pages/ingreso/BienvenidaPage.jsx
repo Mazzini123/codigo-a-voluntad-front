@@ -10,6 +10,8 @@ import {
   inicioPorRol,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
+  RUTA_MIS_SOLICITUDES,
+  RUTA_PROYECTOS,
 } from "@/Presentation/Routes/rutas.js";
 import estilos from "./BienvenidaPage.module.css";
 
@@ -25,6 +27,12 @@ const OPCIONES = [
     nombre: "Soy colaboradora",
     detalle: "Me sumo a proyectos con mis habilidades.",
     incompatibleCon: TIPO_CONTEXTO.COLECTIVO,
+  },
+  {
+    ruta: RUTA_PROYECTOS,
+    nombre: "Quiero sumarme a un colectivo",
+    detalle: "Buscá el colectivo desde sus proyectos y pedí el ingreso en su perfil.",
+    incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
   },
 ];
 
@@ -93,6 +101,12 @@ export function BienvenidaPage() {
           </li>
         ))}
       </ul>
+      {!tipos.has(TIPO_CONTEXTO.COLABORADOR) && (
+        <p className={estilos.bajada}>
+          ¿Ya pediste sumarte? Seguila en{" "}
+          <Link to={RUTA_MIS_SOLICITUDES}>Mis solicitudes</Link>.
+        </p>
+      )}
     </section>
   );
 }

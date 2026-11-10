@@ -1,0 +1,5 @@
+.pedido {
+  display: grid;
+  gap: var(--espacio-3);
+  justify-items: start;
+}

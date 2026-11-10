@@ -10,7 +10,11 @@ import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/Di
 import { BloqueEsqueleto } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { AccesosDeCuenta } from "./AccesosDeCuenta.jsx";
 import estilos from "./MenuDeCuenta.module.css";
-import { RUTA_CALLBACK, RUTA_NOMBRE } from "@/Presentation/Routes/rutas.js";
+import {
+  RUTA_CALLBACK,
+  RUTA_MIS_SOLICITUDES,
+  RUTA_NOMBRE,
+} from "@/Presentation/Routes/rutas.js";
 import { SelectorDeContexto } from "@/Presentation/Components/App/sesion/SelectorDeContexto.jsx";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 
@@ -128,6 +132,17 @@ export function MenuDeCuenta() {
               onClick={() => setAbierto(false)}
             >
               Tu nombre
+            </NavLink>
+          </li>
+        )}
+        {usuario.usuarioId && (
+          <li>
+            <NavLink
+              to={RUTA_MIS_SOLICITUDES}
+              className={estilos.opcion}
+              onClick={() => setAbierto(false)}
+            >
+              Mis solicitudes
             </NavLink>
           </li>
         )}
