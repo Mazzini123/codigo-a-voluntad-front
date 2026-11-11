@@ -2,7 +2,6 @@ import { useSyncExternalStore } from "react";
 import { RUTA_CALLBACK } from "../authRoutes.js";
 import {
   ETIQUETAS_SIMULADAS,
-  asociarPerfilSimulado,
   recordarSesion,
   suscribirseALaSesion,
   tieneSesion,
@@ -26,9 +25,6 @@ export function crearSesionSimulada(tipo, ubicacion = window.location) {
       recordarSesion(false);
     },
     obtenerToken: async () => null,
-    async asociarPerfil(rol, perfilId) {
-      asociarPerfilSimulado(rol, perfilId);
-    },
   };
   const acciones = {
     simulada: sesion.simulada,
@@ -38,7 +34,6 @@ export function crearSesionSimulada(tipo, ubicacion = window.location) {
     cerrar: () => sesion.cerrar(),
     limpiar: () => sesion.limpiar(),
     obtenerToken: () => sesion.obtenerToken(),
-    asociarPerfil: (rol, perfilId) => sesion.asociarPerfil(rol, perfilId),
   };
   sesion.usarSesion = function useSesionSimulada() {
     const autenticado = useSyncExternalStore(suscribirseALaSesion, tieneSesion);

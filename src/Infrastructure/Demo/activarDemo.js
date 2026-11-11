@@ -1,7 +1,7 @@
 import axios from "axios";
 import { crearBackendDemo } from "./crearBackendDemo.js";
 import {
-  asociarPerfilSimulado,
+  recordarCuentaSimulada,
   recordarSesion,
 } from "@/Infrastructure/Auth/sesionSimulada.js";
 
@@ -11,7 +11,7 @@ export function elegirRolDemo(rol) {
   sessionStorage.setItem(CLAVE_ROL, rol);
   recordarSesion(rol !== "VISITANTE");
   if (rol !== "VISITANTE")
-    asociarPerfilSimulado(
+    recordarCuentaSimulada(
       rol === "SIN_PERFIL" ? null : rol,
       rol === "COLECTIVO"
         ? "colectivo-simulado"

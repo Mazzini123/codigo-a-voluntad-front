@@ -41,6 +41,9 @@ test("la demo permite recorrer los roles sin hacer pedidos al backend y conserva
     "Publicó un proyecto.",
   );
   await barra.getByLabel("Ver como").selectOption("COLABORADORA");
+  await expect(
+    page.getByRole("heading", { name: "Mis postulaciones", exact: true }),
+  ).toBeVisible();
   await page.goto("/mensajes");
   await expect(page.getByText("Te invitamos a sumarte a la huerta")).toBeVisible();
   await esperarSinViolaciones(page);

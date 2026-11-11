@@ -1,5 +1,7 @@
 import { crearAuthHttpClientSimulado, leerSesionSimulada } from "./sesionSimulada.js";
 import { crearSesionSimulada } from "./simulada/crearSesionSimulada.js";
+import { observarAltasSimuladas } from "./simulada/observarAltasSimuladas.js";
+import axios from "axios";
 
 beforeEach(() => sessionStorage.clear());
 
@@ -65,7 +67,13 @@ test("la cuenta simulada usa el perfil configurado y adopta el que se crea", asy
 
   const sesion = crearSesionSimulada("SIN_PERFIL", { assign: () => {} });
   await sesion.iniciar();
-  await sesion.asociarPerfil("COLECTIVO", "c-nuevo");
+  const http = axios.create({
+    adapter: async (config) => ({ config, status: 201, data: { id: "c-nuevo" } }),
+  });
+  const dejarDeObservar = observarAltasSimuladas(http);
+  await http.post("/colectivos");
+  dejarDeObservar();
+  expect(sesion).not.toHaveProperty("asociarPerfil");
   expect(await sinPerfil.obtenerCuentaActual()).toMatchObject({
     id: "cuenta-simulada",
     rol: "COLECTIVO",
@@ -75,6 +83,27 @@ test("la cuenta simulada usa el perfil configurado y adopta el que se crea", asy
   await sesion.cerrar();
   expect((await sinPerfil.obtenerCuentaActual()).rol).toBeNull();
 });
+
+test.each([
+  ["post", "/colectivos", 409, { id: "no-creado" }],
+  ["put", "/colectivos", 200, { id: "editado" }],
+  ["post", "/colectivos/c1/proyectos", 201, { id: "proyecto" }],
+  ["post", "/colaboradores", 201, {}],
+])(
+  "el adaptador no adopta una respuesta ajena al alta: %s %s %s",
+  async (method, url, status, data) => {
+    const http = axios.create({ adapter: async (config) => ({ config, status, data }) });
+    const dejarDeObservar = observarAltasSimuladas(http);
+    await http.request({ method, url });
+    dejarDeObservar();
+    expect(
+      await crearAuthHttpClientSimulado("SIN_PERFIL").obtenerCuentaActual(),
+    ).toMatchObject({
+      rol: null,
+      perfilId: null,
+    });
+  },
+);
 
 test("la sesión simulada guarda el nombre que se carga", async () => {
   const cliente = crearAuthHttpClientSimulado("COLECTIVO");

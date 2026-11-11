@@ -5,6 +5,7 @@ import { crearSeleccionarContexto } from "@/Application/UseCases/Auth/Selecciona
 import { crearLimpiarContexto } from "@/Application/UseCases/Auth/LimpiarContexto.js";
 import { crearAuthHttpClient } from "@/Infrastructure/HttpClients/AuthHttpClient.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
+import { observarAltasSimuladas } from "@/Infrastructure/Auth/simulada/observarAltasSimuladas.js";
 import {
   crearAuthHttpClientSimulado,
   sesionSimuladaActiva,
@@ -24,6 +25,7 @@ export function crearAuthDependencies(
 }
 
 const simulada = sesionSimuladaActiva(import.meta.env);
+if (simulada) observarAltasSimuladas(axiosClient);
 
 export const authDependencies = crearAuthDependencies(
   axiosClient,

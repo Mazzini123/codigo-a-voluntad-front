@@ -55,7 +55,6 @@ export function AuthProvider({
     cerrar,
     limpiar,
     obtenerToken: tokenDelProveedor,
-    asociarPerfil: asociarEnElProveedor,
     simulada = null,
     sinConfigurar = false,
   } = sesion;
@@ -201,13 +200,6 @@ export function AuthProvider({
     return tomarVolverA();
   }, [claveSesionHttp, ejecutar]);
 
-  const asociarPerfil = useCallback(
-    async (rol, perfilId) => {
-      await asociarEnElProveedor?.(rol, perfilId);
-    },
-    [asociarEnElProveedor],
-  );
-
   const seleccionarContexto = useCallback(
     async (contextoId) => {
       await dependencies.seleccionarContexto(contextoId);
@@ -269,7 +261,6 @@ export function AuthProvider({
       cerrarSesion,
       invalidarPerfil,
       perfilDadoDeBaja,
-      asociarPerfil,
       seleccionarContexto,
       cambiarNombre,
       recargarCuenta: ejecutar,
@@ -289,7 +280,6 @@ export function AuthProvider({
       cerrarSesion,
       invalidarPerfil,
       perfilDadoDeBaja,
-      asociarPerfil,
       seleccionarContexto,
       cambiarNombre,
       ejecutar,

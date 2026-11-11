@@ -5,6 +5,8 @@ import {
   recordarSesion,
 } from "@/Infrastructure/Auth/sesionSimulada.js";
 import { crearSesionSimulada } from "@/Infrastructure/Auth/simulada/crearSesionSimulada.js";
+import { crearSesionFalsa } from "@/Infrastructure/Auth/crearSesionFalsa.js";
+import { observarAltasSimuladas } from "@/Infrastructure/Auth/simulada/observarAltasSimuladas.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 import { montarRutas } from "@/test/montarRutas.jsx";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
@@ -14,6 +16,7 @@ import { AltaColectivoPage } from "@/Presentation/Pages/ingreso/AltaColectivoPag
 
 const adaptadorOriginal = axiosClient.defaults.adapter;
 const TEXTO_PENDIENTE = "Tu perfil se creó. Falta actualizar tu cuenta.";
+let dejarDeObservar;
 
 const COLECTIVO = {
   rol: "COLECTIVO",
@@ -47,20 +50,33 @@ const COLABORADORA = {
 
 beforeEach(() => sessionStorage.clear());
 afterEach(() => {
+  dejarDeObservar?.();
+  dejarDeObservar = null;
+  recordarSesion(false);
   axiosClient.defaults.adapter = adaptadorOriginal;
   vi.restoreAllMocks();
   sessionStorage.clear();
 });
 
-async function montar(caso) {
-  const sesion = crearSesionSimulada("SIN_PERFIL", { assign: () => {} });
+async function montar(caso, { simulada = true } = {}) {
+  const sesion = simulada
+    ? crearSesionSimulada("SIN_PERFIL", { assign: () => {} })
+    : crearSesionFalsa({ autenticado: true });
   recordarSesion(true);
-  const asociarPerfil = vi.spyOn(sesion, "asociarPerfil");
+  if (simulada) dejarDeObservar = observarAltasSimuladas(axiosClient);
   const cliente = crearAuthHttpClientSimulado("SIN_PERFIL");
   const cuentaSinPerfil = await cliente.obtenerCuentaActual();
-  const obtenerCuentaActual = vi.fn(cliente.obtenerCuentaActual);
+  let cuentaDelBackend = cuentaSinPerfil;
+  const obtenerCuentaActual = vi.fn(
+    simulada ? cliente.obtenerCuentaActual : async () => cuentaDelBackend,
+  );
   const transporte = vi.fn(async (config) => {
     if (config.method === "post" && config.url === caso.endpoint) {
+      cuentaDelBackend = {
+        ...cuentaSinPerfil,
+        rol: caso.rol,
+        perfilId: caso.perfilId,
+      };
       return { config, status: 201, data: { id: caso.perfilId } };
     }
     if (config.url === "/habilidades") {
@@ -88,14 +104,13 @@ async function montar(caso) {
   );
   const pedidosDeAlta = () =>
     transporte.mock.calls.filter(([config]) => config.method === "post");
-  return { ...vista, asociarPerfil, obtenerCuentaActual, cuentaSinPerfil, pedidosDeAlta };
+  return { ...vista, obtenerCuentaActual, cuentaSinPerfil, pedidosDeAlta };
 }
 
 test.each([COLECTIVO, COLABORADORA])(
   "el alta de $rol conserva el perfil creado si falla la consulta de cuenta",
   async (caso) => {
-    const { user, router, asociarPerfil, obtenerCuentaActual, pedidosDeAlta } =
-      await montar(caso);
+    const { user, router, obtenerCuentaActual, pedidosDeAlta } = await montar(caso);
     await caso.completar(user);
     obtenerCuentaActual.mockRejectedValueOnce({ status: 500 });
     await user.click(screen.getByRole("button", { name: "Crear perfil" }));
@@ -115,9 +130,20 @@ test.each([COLECTIVO, COLABORADORA])(
     expect(router.state.location.pathname).toBe(caso.destino);
     expect(pedidosDeAlta()).toHaveLength(1);
     expect(obtenerCuentaActual).toHaveBeenCalledTimes(3);
-    expect(asociarPerfil).toHaveBeenCalledExactlyOnceWith(caso.rol, caso.perfilId);
   },
 );
+
+test("un fallo de almacenamiento simulado no repite el alta confirmada por el backend", async () => {
+  const { user, pedidosDeAlta } = await montar(COLABORADORA);
+  await COLABORADORA.completar(user);
+  vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+    throw new Error("Almacenamiento no disponible");
+  });
+  await user.click(screen.getByRole("button", { name: "Crear perfil" }));
+
+  expect(await screen.findByRole("heading", { name: COLABORADORA.titulo })).toBeVisible();
+  expect(pedidosDeAlta()).toHaveLength(1);
+});
 
 test("la redirección espera el rol y el ID del perfil que se creó", async () => {
   const { user, router, obtenerCuentaActual, cuentaSinPerfil, pedidosDeAlta } =
@@ -139,24 +165,18 @@ test("la redirección espera el rol y el ID del perfil que se creó", async () =
   expect(pedidosDeAlta()).toHaveLength(1);
 });
 
-test("si falla la asociación simulada, la reintenta con el mismo perfil antes de consultar", async () => {
-  const { user, asociarPerfil, obtenerCuentaActual, pedidosDeAlta } =
-    await montar(COLABORADORA);
-  await COLABORADORA.completar(user);
-  vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
-    throw new Error("Almacenamiento no disponible");
-  });
-  await user.click(screen.getByRole("button", { name: "Crear perfil" }));
+test.each([COLECTIVO, COLABORADORA])(
+  "el alta de $rol obtiene el perfil del backend con una sesión que solo autentica",
+  async (caso) => {
+    const { user, sesion, obtenerCuentaActual, pedidosDeAlta } = await montar(caso, {
+      simulada: false,
+    });
+    await caso.completar(user);
+    await user.click(screen.getByRole("button", { name: "Crear perfil" }));
 
-  expect(await screen.findByText(TEXTO_PENDIENTE)).toBeVisible();
-  expect(obtenerCuentaActual).toHaveBeenCalledTimes(1);
-  await user.click(screen.getByRole("button", { name: "Actualizar cuenta" }));
-
-  expect(await screen.findByRole("heading", { name: COLABORADORA.titulo })).toBeVisible();
-  expect(pedidosDeAlta()).toHaveLength(1);
-  expect(asociarPerfil.mock.calls).toEqual([
-    [COLABORADORA.rol, COLABORADORA.perfilId],
-    [COLABORADORA.rol, COLABORADORA.perfilId],
-  ]);
-  expect(obtenerCuentaActual).toHaveBeenCalledTimes(2);
-});
+    expect(await screen.findByRole("heading", { name: caso.titulo })).toBeVisible();
+    expect(pedidosDeAlta()).toHaveLength(1);
+    expect(obtenerCuentaActual).toHaveBeenCalledTimes(2);
+    expect(sesion).not.toHaveProperty("asociarPerfil");
+  },
+);

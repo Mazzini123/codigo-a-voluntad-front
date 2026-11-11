@@ -2,6 +2,7 @@ import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 
 const CLAVE = "codigo-a-voluntad:sesion-simulada";
 const CLAVE_PERFIL = "codigo-a-voluntad:sesion-simulada:perfil";
+let cuentaSinPersistir = null;
 
 const CUENTAS = {
   COLECTIVO: {
@@ -55,6 +56,7 @@ export function suscribirseALaSesion(oyente) {
 }
 
 export function recordarSesion(activa) {
+  if (!activa) cuentaSinPersistir = null;
   try {
     if (activa) sessionStorage.setItem(CLAVE, "1");
     else {
@@ -69,6 +71,7 @@ export function recordarSesion(activa) {
 }
 
 function perfilAsociado() {
+  if (cuentaSinPersistir) return cuentaSinPersistir;
   try {
     return JSON.parse(sessionStorage.getItem(CLAVE_PERFIL)) ?? null;
   } catch {
@@ -76,8 +79,15 @@ function perfilAsociado() {
   }
 }
 
-export function asociarPerfilSimulado(rol, perfilId) {
-  sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify({ rol, perfilId }));
+export function recordarCuentaSimulada(rol, perfilId) {
+  const cuenta = { rol, perfilId };
+  try {
+    sessionStorage.setItem(CLAVE_PERFIL, JSON.stringify(cuenta));
+    cuentaSinPersistir = null;
+  } catch {
+    // Un fallo local no puede convertir un alta confirmada en un alta fallida.
+    cuentaSinPersistir = cuenta;
+  }
 }
 
 const CLAVE_NOMBRE = "codigo-a-voluntad:sesion-simulada:nombre";
