@@ -13,6 +13,8 @@ export function crearProyectoDependencies(http = axiosClient) {
   return {
     listarProyectos: crearListarProyectos(httpClient),
     obtenerProyecto: crearObtenerProyecto(httpClient),
+    listarParticipaciones: (id, opciones) =>
+      httpClient.listarParticipaciones(id, opciones),
     crearProyecto: crearCrearProyecto(httpClient),
     listarProyectosDeColectivo: crearListarProyectosDeColectivo(httpClient),
     actualizarProyecto: crearActualizarProyecto(httpClient),

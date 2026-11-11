@@ -55,7 +55,12 @@ beforeEach(() => {
     };
     if (url === "/colectivos/c1")
       return responder({ proyectos: dueño ? [{ id: "p1" }] : [] });
-    if (url === "/proyectos/p1") return responder(proyecto);
+    if (url === "/proyectos/p1")
+      return responder({
+        ...proyecto,
+        id: "p1",
+        colectivo: { id: dueño ? "c1" : "otro" },
+      });
     if (url === base) return falloDeConsulta ? fallar(500) : responder(filas);
     if (method === "post" && url.startsWith(base)) {
       const [, id, accion] = url.slice(base.length).split("/");

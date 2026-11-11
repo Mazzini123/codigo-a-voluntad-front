@@ -14,6 +14,8 @@ export function crearColaboracionDependencies(http = axiosClient) {
   return {
     registrarColaboracion: crearRegistrarColaboracion(httpClient),
     listarColaboracionesDeProyecto: crearListarColaboracionesDeProyecto(httpClient),
+    listarPendientesDeColectivo: (id, opciones) =>
+      httpClient.listarPendientesDeColectivo(id, opciones),
     listarColaboracionesDeColaborador: crearListarColaboracionesDeColaborador(httpClient),
     aceptarPostulacion: crearAceptarPostulacion(httpClient),
     rechazarPostulacion: crearRechazarPostulacion(httpClient),

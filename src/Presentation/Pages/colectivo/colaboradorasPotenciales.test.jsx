@@ -73,7 +73,8 @@ beforeEach(() => {
     };
     if (url === "/colectivos/c1")
       return responder({ proyectos: dueño ? [{ id: "p1" }] : [] });
-    if (url === "/proyectos/p1") return responder(proyecto);
+    if (url === "/proyectos/p1")
+      return responder({ ...proyecto, colectivo: { id: dueño ? "c1" : "otro" } });
     if (url === URL_CANDIDATAS) {
       if (falloDeLista) fallar(falloDeLista);
       const pagina = config.params?.page ?? 1;

@@ -65,6 +65,7 @@ function falla(config, status, data = {}) {
 function proyectoCreado() {
   return {
     id: "pn",
+    colectivo: { id: "c1", nombre: "Asamblea de Fiorito" },
     titulo: PEDIDO_ESPERADO.titulo,
     descripcion: PEDIDO_ESPERADO.descripcion,
     estado: "ABIERTO",

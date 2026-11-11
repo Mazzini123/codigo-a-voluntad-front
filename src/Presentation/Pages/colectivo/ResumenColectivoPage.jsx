@@ -1,3 +1,4 @@
+import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { EstadisticasDelColectivo } from "@/Presentation/Components/Estadistica/EstadisticasDelColectivo.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
@@ -6,7 +7,6 @@ import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloD
 import { CuerpoDelPanel } from "@/Presentation/Components/Colectivo/CuerpoDelPanel.jsx";
 import {
   filasParaElResumen,
-  postulacionesPorRevisar,
   totalSiCompleto,
 } from "@/Presentation/Formatos/datosDelPanel.js";
 import { FilaDeProyecto } from "@/Presentation/Components/Colectivo/FilaDeProyecto.jsx";
@@ -47,7 +47,7 @@ export function ResumenColectivoPage() {
             <Indicadores filas={filas} />
             <div className={estilos.columnas}>
               <ProyectosDelResumen filas={filas} />
-              <PostulacionesDelResumen filas={filas} />
+              <PostulacionesDelResumen />
             </div>
           </>
         )}
@@ -75,10 +75,12 @@ export function ResumenColectivoPage() {
 }
 
 function Indicadores({ filas }) {
+  const { paginacionProyectos } = usePanelDelColectivo();
   const indicadores = [
     {
       titulo: "Perfiles abiertos",
-      valor: totalSiCompleto(filas, "abiertos"),
+      valor:
+        paginacionProyectos.meta?.perfiles_abiertos ?? totalSiCompleto(filas, "abiertos"),
       icono: "personas",
     },
   ];
@@ -128,8 +130,10 @@ function ProyectosDelResumen({ filas }) {
   );
 }
 
-function PostulacionesDelResumen({ filas }) {
-  const { completo, postulaciones } = postulacionesPorRevisar(filas);
+function PostulacionesDelResumen() {
+  const { postulacionesRecibidas } = usePanelDelColectivo();
+  const postulaciones = postulacionesRecibidas.items ?? [];
+  const completo = Boolean(postulacionesRecibidas.items) && !postulacionesRecibidas.error;
   return (
     <section className={panel.panel} aria-labelledby="titulo-postulaciones-resumen">
       <div className={panel.cabeceraDePanel}>
@@ -137,7 +141,9 @@ function PostulacionesDelResumen({ filas }) {
           <h2 id="titulo-postulaciones-resumen">Postulaciones pendientes</h2>
           {completo && postulaciones.length > 0 && (
             <p className={panel.bajada}>
-              {textoPostulacionesPorRevisar(postulaciones.length)}
+              {textoPostulacionesPorRevisar(
+                postulacionesRecibidas.meta?.total ?? postulaciones.length,
+              )}
             </p>
           )}
         </div>
@@ -147,11 +153,19 @@ function PostulacionesDelResumen({ filas }) {
           </EnlaceBoton>
         )}
       </div>
-      <PostulacionesPorRevisar
-        completo={completo}
-        postulaciones={postulaciones}
-        maximo={MAXIMO_POSTULACIONES}
-      />
+      {postulacionesRecibidas.error ? (
+        <EstadoDeError
+          titulo="No pudimos cargar las postulaciones"
+          error={postulacionesRecibidas.error}
+          alReintentar={postulacionesRecibidas.reintentar}
+        />
+      ) : (
+        <PostulacionesPorRevisar
+          completo={completo}
+          postulaciones={postulaciones}
+          maximo={MAXIMO_POSTULACIONES}
+        />
+      )}
     </section>
   );
 }

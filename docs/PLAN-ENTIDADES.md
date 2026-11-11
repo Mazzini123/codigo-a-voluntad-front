@@ -360,18 +360,18 @@ Colaborador también expone `DarDeBajaColaborador` (`POST /colaboradores/:id/baj
 
 Composición: `Presentation/Dependencies/membresiaDependencies.js`. Todas llevan sesión.
 
-| Caso de uso                     | Verbo y endpoint                                                  | Request / query     | Respuesta                                  |
-| ------------------------------- | ----------------------------------------------------------------- | ------------------- | ------------------------------------------ |
-| `ListarMiembros`                | `GET /colectivos/:id/miembros`                                    | Sin body            | `MiembroDto[]` (`contextoId`, `nombre`, `rol`) |
-| `QuitarMiembro`                 | `DELETE /colectivos/:id/miembros/:contextoId`                     | Sin body            | 204                                        |
-| `AbandonarColectivo`            | `POST /colectivos/:id/abandono`                                   | Sin body            | 204                                        |
-| `TransferirLiderazgo`           | `POST /colectivos/:id/lider`                                      | `{ contextoId }`    | Liderazgo nuevo                            |
-| `ListarSolicitudesDeIngreso`    | `GET /colectivos/:id/solicitudes-ingreso`                         | `estado` (opcional) | `SolicitudDeIngresoDto[]` con `usuario`    |
-| `AceptarSolicitudDeIngreso`     | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/aceptacion` | Sin body            | `{ solicitud, miembro }`                   |
-| `RechazarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/rechazo`   | Sin body            | `SolicitudDeIngresoDto`                    |
-| `SolicitarIngreso`              | `POST /colectivos/:id/solicitudes-ingreso`                        | Sin body            | `SolicitudDeIngresoDto` (201)              |
-| `CancelarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/cancelacion` | Sin body          | `SolicitudDeIngresoDto`                    |
-| `ListarMisSolicitudesDeIngreso` | `GET /auth/solicitudes-ingreso`                                   | Sin body            | `SolicitudDeIngresoDto[]` (pendientes primero) |
+| Caso de uso                     | Verbo y endpoint                                                    | Request / query     | Respuesta                                      |
+| ------------------------------- | ------------------------------------------------------------------- | ------------------- | ---------------------------------------------- |
+| `ListarMiembros`                | `GET /colectivos/:id/miembros`                                      | Sin body            | `MiembroDto[]` (`contextoId`, `nombre`, `rol`) |
+| `QuitarMiembro`                 | `DELETE /colectivos/:id/miembros/:contextoId`                       | Sin body            | 204                                            |
+| `AbandonarColectivo`            | `POST /colectivos/:id/abandono`                                     | Sin body            | 204                                            |
+| `TransferirLiderazgo`           | `POST /colectivos/:id/lider`                                        | `{ contextoId }`    | Liderazgo nuevo                                |
+| `ListarSolicitudesDeIngreso`    | `GET /colectivos/:id/solicitudes-ingreso`                           | `estado` (opcional) | `SolicitudDeIngresoDto[]` con `usuario`        |
+| `AceptarSolicitudDeIngreso`     | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/aceptacion`  | Sin body            | `{ solicitud, miembro }`                       |
+| `RechazarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/rechazo`     | Sin body            | `SolicitudDeIngresoDto`                        |
+| `SolicitarIngreso`              | `POST /colectivos/:id/solicitudes-ingreso`                          | Sin body            | `SolicitudDeIngresoDto` (201)                  |
+| `CancelarSolicitudDeIngreso`    | `POST /colectivos/:id/solicitudes-ingreso/:solicitudId/cancelacion` | Sin body            | `SolicitudDeIngresoDto`                        |
+| `ListarMisSolicitudesDeIngreso` | `GET /auth/solicitudes-ingreso`                                     | Sin body            | `SolicitudDeIngresoDto[]` (pendientes primero) |
 
 Los permisos del contexto actual (`contextoActual.permisos`) deciden qué acciones se muestran (`Domain/Reglas/permisos.js`); el back vuelve a validarlos. Los 409 traen `codigo` (`LIDER_DEBE_TRANSFERIR`, `LIDER_UNICO_MIEMBRO`, `SOLICITUD_YA_RESUELTA`, `SOLICITUD_PENDIENTE`, `YA_ES_MIEMBRO`...) y `Formatos/membresia.js` los traduce.
 

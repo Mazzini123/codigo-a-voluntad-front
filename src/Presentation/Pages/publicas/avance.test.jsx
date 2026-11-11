@@ -79,7 +79,8 @@ beforeEach(() => {
     const cuerpo = config.data ? JSON.parse(config.data) : null;
     if (url === "/colectivos/c1")
       return responder({ proyectos: esDueno ? [{ id: "p1" }] : [] });
-    if (clave === "get /proyectos/p1") return responder(proyecto);
+    if (clave === "get /proyectos/p1")
+      return responder({ ...proyecto, colectivo: { id: esDueno ? "c1" : "otro" } });
     if (clave === "get /proyectos/p1/logros") return responder(logros);
     if (clave === "get /proyectos/p1/avances") return responder(avances);
     if (clave === "post /proyectos/p1/logros") {
@@ -268,7 +269,7 @@ describe("quién puede cambiar algo", () => {
     montar(DUENO);
     await esperarLaPagina();
     await waitFor(() =>
-      expect(transporte.mock.calls.some(([{ url }]) => url === "/colectivos/c1")).toBe(
+      expect(transporte.mock.calls.some(([{ url }]) => url === "/proyectos/p1")).toBe(
         true,
       ),
     );

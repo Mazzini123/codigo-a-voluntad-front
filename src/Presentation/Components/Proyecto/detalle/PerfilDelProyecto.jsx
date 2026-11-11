@@ -45,7 +45,7 @@ export function PerfilDelProyecto({
     estado.tipo === ESTADO_BUSQUEDA.ABIERTA &&
     Number.isInteger(perfil.limiteColaboraciones) &&
     Array.isArray(proyecto.colaboraciones)
-      ? perfil.limiteColaboraciones - aceptadas.length
+      ? perfil.limiteColaboraciones - (perfil.cantidadAceptadas ?? aceptadas.length)
       : null;
   const datos = [
     ["Compromiso", textoCompromiso(perfil.compromiso)],

@@ -1,3 +1,4 @@
+import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.jsx";
 import { useCallback, useRef, useState } from "react";
 import { AccionesDeColaboracion } from "@/Presentation/Components/Valoracion/AccionesDeColaboracion.jsx";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
@@ -95,10 +96,19 @@ function Postulaciones({ id }) {
   const avisar = useAvisos();
   const refTitulo = useRef(null);
   const enfocarTitulo = useCallback(() => refTitulo.current, []);
-  const { datos, error, cargando, reintentar, resolver, procesando } =
-    usePostulacionesRecibidas(id);
   const solicitado = parametros.get("estado");
   const filtro = ESTADOS.some(({ valor }) => valor === solicitado) ? solicitado : "";
+  const {
+    datos,
+    error,
+    cargando,
+    reintentar,
+    resolver,
+    procesando,
+    meta,
+    pagina,
+    cambiarPagina,
+  } = usePostulacionesRecibidas(id, filtro);
   const [proyecto, filas] = datos ?? [null, []];
   const accion = confirmacion && ACCIONES[confirmacion.tipo];
   const grupos = agrupar(proyecto?.perfiles ?? [], filas, filtro);
@@ -173,6 +183,12 @@ function Postulaciones({ id }) {
           ))}
         </>
       )}
+      <Paginacion
+        pagina={pagina}
+        totalPaginas={meta?.total_pages ?? 0}
+        etiqueta="Páginas de postulaciones recibidas"
+        alCambiar={cambiarPagina}
+      />
       <DialogoDeConfirmacion
         abierto={Boolean(accion)}
         titulo={accion?.titulo}
@@ -192,7 +208,8 @@ function Postulaciones({ id }) {
 function Grupo({ proyectoId, grupo, editable, ocupado, alElegir, alActualizar }) {
   const { perfil, aceptadas } = grupo;
   const sinCupo =
-    perfil?.limiteColaboraciones != null && aceptadas >= perfil.limiteColaboraciones;
+    perfil?.limiteColaboraciones != null &&
+    (perfil.cantidadAceptadas ?? aceptadas) >= perfil.limiteColaboraciones;
   const motivo = !perfil
     ? "El perfil ya no existe."
     : sinCupo

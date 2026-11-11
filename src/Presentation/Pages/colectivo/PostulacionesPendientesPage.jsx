@@ -1,11 +1,12 @@
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { CuerpoDelPanel } from "@/Presentation/Components/Colectivo/CuerpoDelPanel.jsx";
-import { postulacionesPorRevisar } from "@/Presentation/Formatos/datosDelPanel.js";
-import panel from "@/Presentation/Components/Colectivo/PanelDelColectivo.module.css";
+import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.jsx";
+import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { PostulacionesPorRevisar } from "@/Presentation/Components/Colectivo/PostulacionesPorRevisar.jsx";
 import { textoPostulacionesPorRevisar } from "@/Presentation/Formatos/proyecto.js";
-
+import { usePanelDelColectivo } from "@/Presentation/Hooks/colectivo/usePanelDelColectivo.js";
+import panel from "@/Presentation/Components/Colectivo/PanelDelColectivo.module.css";
 export function PostulacionesPendientesPage() {
+  const { postulacionesRecibidas: consulta } = usePanelDelColectivo();
   return (
     <div className={panel.pagina}>
       <TituloDePagina>Postulaciones pendientes</TituloDePagina>
@@ -15,23 +16,28 @@ export function PostulacionesPendientesPage() {
           Revisá las personas que se postularon a los perfiles de tus proyectos.
         </p>
       </header>
-      <CuerpoDelPanel etiquetaDeCarga="Cargando las postulaciones…">
-        {(filas) => <ListadoDePostulaciones filas={filas} />}
-      </CuerpoDelPanel>
-    </div>
-  );
-}
-
-function ListadoDePostulaciones({ filas }) {
-  const { completo, postulaciones } = postulacionesPorRevisar(filas);
-  return (
-    <section className={panel.panel} aria-label="Postulaciones por revisar">
-      {completo && postulaciones.length > 0 && (
-        <p className={panel.bajada}>
-          {textoPostulacionesPorRevisar(postulaciones.length)}
-        </p>
+      {consulta.error ? (
+        <EstadoDeError
+          titulo="No pudimos cargar las postulaciones"
+          error={consulta.error}
+          alReintentar={consulta.reintentar}
+        />
+      ) : consulta.items ? (
+        <section className={panel.panel} aria-label="Postulaciones por revisar">
+          <p className={panel.bajada}>
+            {textoPostulacionesPorRevisar(consulta.meta?.total ?? consulta.items.length)}
+          </p>
+          <PostulacionesPorRevisar completo postulaciones={consulta.items} />
+          <Paginacion
+            pagina={consulta.pagina}
+            totalPaginas={consulta.meta?.total_pages ?? 0}
+            etiqueta="Páginas de postulaciones pendientes"
+            alCambiar={consulta.cambiarPagina}
+          />
+        </section>
+      ) : (
+        <p role="status">Cargando las postulaciones…</p>
       )}
-      <PostulacionesPorRevisar completo={completo} postulaciones={postulaciones} />
-    </section>
+    </div>
   );
 }

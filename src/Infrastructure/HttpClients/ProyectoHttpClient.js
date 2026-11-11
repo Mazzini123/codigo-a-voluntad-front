@@ -24,11 +24,28 @@ export function crearProyectoHttpClient(http) {
         headers: claveIdempotencia ? { "Idempotency-Key": claveIdempotencia } : undefined,
       });
     },
-    async listarPorColectivo(colectivoId, { signal } = {}) {
+    async listarPorColectivo(
+      colectivoId,
+      { signal, page = 1, limit = 20, requiereSesion = true } = {},
+    ) {
       return api.get(ruta`/colectivos/${colectivoId}/proyectos`, {
         signal,
-        requiereSesion: true,
+        params: { page, limit },
+        requiereSesion,
       });
+    },
+    async listarParticipaciones(
+      proyectoId,
+      { signal, page = 1, limit = 20, privadas = false } = {},
+    ) {
+      return api.get(
+        ruta`/proyectos/${proyectoId}/${privadas ? "colaboraciones" : "participaciones"}`,
+        {
+          signal,
+          params: { page, limit },
+          requiereSesion: privadas,
+        },
+      );
     },
     async actualizar(proyectoId, request, { signal } = {}) {
       return api.put(ruta`/proyectos/${proyectoId}`, request, {

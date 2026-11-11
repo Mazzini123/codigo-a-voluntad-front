@@ -1,6 +1,11 @@
-dist
-coverage
 node_modules
+build
+dist
+dist-ssr
+coverage
 package-lock.json
+playwright-report
+test-results
+blob-report
 .claude
 .impeccable

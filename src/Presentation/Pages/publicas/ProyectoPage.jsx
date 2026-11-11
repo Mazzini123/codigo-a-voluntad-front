@@ -1,3 +1,4 @@
+import { MasResultados } from "@/Presentation/Components/App/navegacion/MasResultados.jsx";
 import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
@@ -56,7 +57,7 @@ export function ProyectoPage() {
 
 function ProyectoPorId({ id }) {
   const { usuario, cargando: verificandoSesion } = useAuth();
-  const { proyecto, error, recargar } = useProyecto(id);
+  const { proyecto, participaciones, error, recargar } = useProyecto(id);
   const colaboradoraId =
     usuario?.rol === ROL_CUENTA.COLABORADORA ? usuario.perfilId : null;
   const postulaciones = usePostulacionesEnProyecto(colaboradoraId, id);
@@ -100,6 +101,7 @@ function ProyectoPorId({ id }) {
       postulaciones={postulaciones}
       codigosPropios={codigosPropios}
       recargarProyecto={recargar}
+      participaciones={participaciones}
     />
   );
 }
@@ -112,10 +114,11 @@ function DetalleDelProyecto({
   postulaciones,
   codigosPropios,
   recargarProyecto,
+  participaciones,
 }) {
   const location = useLocation();
   const [hoy] = useState(() => new Date());
-  const dueno = useEsDuenoDelProyecto(proyecto.id);
+  const dueno = useEsDuenoDelProyecto(proyecto);
   const postulacion = usePostulacionEnDetalle({
     proyecto,
     colaboradoraId,
@@ -288,6 +291,7 @@ function DetalleDelProyecto({
         </div>
       </div>
 
+      <MasResultados consulta={participaciones} texto="Cargar más participaciones" />
       <DialogoDePostulacion
         perfil={postulacion.aPostular?.perfil ?? null}
         proyecto={proyecto}

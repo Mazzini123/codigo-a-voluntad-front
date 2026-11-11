@@ -23,9 +23,20 @@ export function crearColaboracionHttpClient(http) {
         requiereSesion: true,
       });
     },
-    async listarPorProyecto(proyectoId, { signal } = {}) {
+    async listarPorProyecto(proyectoId, { signal, page = 1, limit = 20, estado } = {}) {
       return api.get(ruta`/proyectos/${proyectoId}/colaboraciones`, {
         signal,
+        params: { page, limit, ...(estado ? { estado } : {}) },
+        requiereSesion: true,
+      });
+    },
+    async listarPendientesDeColectivo(
+      colectivoId,
+      { signal, page = 1, limit = 20 } = {},
+    ) {
+      return api.get(ruta`/colectivos/${colectivoId}/postulaciones`, {
+        signal,
+        params: { page, limit },
         requiereSesion: true,
       });
     },

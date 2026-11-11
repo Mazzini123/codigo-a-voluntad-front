@@ -63,6 +63,8 @@ export function esPostulacionActiva(estado) {
 }
 
 export function postulacionesPendientes(proyecto) {
+  if (Number.isInteger(proyecto.postulacionesPendientes))
+    return proyecto.postulacionesPendientes;
   if (!Array.isArray(proyecto.colaboraciones)) return null;
   return proyecto.colaboraciones.filter(
     (colaboracion) => colaboracion.estado === COLABORACION_ESTADO.PENDIENTE,

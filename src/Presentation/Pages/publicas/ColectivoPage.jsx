@@ -1,3 +1,4 @@
+import { MasResultados } from "@/Presentation/Components/App/navegacion/MasResultados.jsx";
 import { useLocation, useParams } from "react-router-dom";
 import { PedirIngreso } from "@/Presentation/Components/Membresia/PedirIngreso.jsx";
 import { HistoriaDelColectivo } from "@/Presentation/Components/Colectivo/HistoriaDelColectivo.jsx";
@@ -24,7 +25,7 @@ import { TextoConFormato } from "@/Presentation/Components/App/texto/TextoConFor
 
 export function ColectivoPage() {
   const { id } = useParams();
-  const { colectivo, error, cargando, recargar } = useColectivo(id);
+  const { colectivo, proyectos, error, cargando, recargar } = useColectivo(id);
 
   if (error?.status === 404) {
     return (
@@ -65,10 +66,10 @@ export function ColectivoPage() {
       </section>
     );
   }
-  return <PerfilPublico key={id} colectivo={colectivo} />;
+  return <PerfilPublico key={id} colectivo={colectivo} consultaProyectos={proyectos} />;
 }
 
-function PerfilPublico({ colectivo }) {
+function PerfilPublico({ colectivo, consultaProyectos }) {
   const volver = destinoDeVuelta(useLocation(), {
     a: RUTA_PROYECTOS,
     texto: "Volver a los proyectos",
@@ -156,6 +157,7 @@ function PerfilPublico({ colectivo }) {
           />
         )}
       </section>
+      <MasResultados consulta={consultaProyectos} texto="Cargar más proyectos" />
       <HistoriaDelColectivo id={colectivo.id} />
       <ValoracionesRecibidas id={colectivo.id} esColectivo />
     </article>

@@ -388,6 +388,7 @@ const cases = [
   {
     module: "Proyecto",
     operation: "listarProyectosDeColectivo",
+    query: { page: 1, limit: 20 },
     method: "get",
     url: "/colectivos/colectivoId-1/proyectos",
     args: ["colectivoId-1"],
@@ -575,6 +576,7 @@ const cases = [
   {
     module: "Colaboracion",
     operation: "listarColaboracionesDeProyecto",
+    query: { page: 1, limit: 20 },
     method: "get",
     url: "/proyectos/proyectoId-1/colaboraciones",
     args: ["proyectoId-1"],

@@ -121,7 +121,13 @@ beforeEach(() => {
     if (config.method === "get" && config.url === "/proyectos")
       return respuesta(config, pagina([proyecto]));
     if (config.method === "get" && config.url === "/proyectos/p1")
-      return respuesta(config, proyecto);
+      return respuesta(config, {
+        ...proyecto,
+        colectivo: {
+          ...proyecto.colectivo,
+          id: proyectosDelColectivo.some((p) => p.id === proyecto.id) ? "cl1" : "otro",
+        },
+      });
     if (config.method === "get" && config.url === "/colectivos/cl1")
       return respuesta(config, {
         id: "cl1",
@@ -531,7 +537,14 @@ describe("quién ve qué acción", () => {
   test("si fallan las postulaciones propias igual se muestran los botones", async () => {
     transporte.mockImplementation(async (config) => {
       if (config.url === "/colaboradores/co1/colaboraciones") return falla(config, 500);
-      if (config.url === "/proyectos/p1") return respuesta(config, proyecto);
+      if (config.url === "/proyectos/p1")
+        return respuesta(config, {
+          ...proyecto,
+          colectivo: {
+            ...proyecto.colectivo,
+            id: proyectosDelColectivo.some((p) => p.id === proyecto.id) ? "cl1" : "otro",
+          },
+        });
       return respuesta(config, { id: "co1", habilidades: [] });
     });
     montar("/proyectos/p1", COLABORADORA);

@@ -125,3 +125,8 @@ El [plan de desarrollo de entidades](docs/PLAN-ENTIDADES.md) contiene el detalle
 - `fix/<nombre>` y `chore/<nombre>`: correcciones y configuración.
 
 Cada cambio entra a `develop` por Pull Request, con al menos una revisión y con `lint`, `format:check` y `test` en verde.
+
+## Estilo de código
+
+El equipo usa el mismo formato en backend y frontend. Las reglas, la configuración
+del editor y los comandos de verificación están en [ESTILO.md](ESTILO.md).

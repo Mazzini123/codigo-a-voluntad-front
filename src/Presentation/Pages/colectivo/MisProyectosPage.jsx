@@ -1,3 +1,4 @@
+import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { CuerpoDelPanel } from "@/Presentation/Components/Colectivo/CuerpoDelPanel.jsx";
@@ -12,7 +13,7 @@ function textoCantidad(cantidad) {
 }
 
 export function MisProyectosPage() {
-  const { nombre, proyectos } = usePanelDelColectivo();
+  const { nombre, proyectos, paginacionProyectos } = usePanelDelColectivo();
   return (
     <div className={panel.pagina}>
       <TituloDePagina>Mis proyectos</TituloDePagina>
@@ -33,7 +34,9 @@ export function MisProyectosPage() {
       <CuerpoDelPanel etiquetaDeCarga="Cargando tus proyectos…">
         {(filas) => (
           <section className={estilos.listado} aria-label="Listado de proyectos">
-            <p className={estilos.cantidad}>{textoCantidad(filas.length)}</p>
+            <p className={estilos.cantidad}>
+              {textoCantidad(paginacionProyectos.meta?.total ?? filas.length)}
+            </p>
             <ul className={estilos.tarjetas}>
               {filas.map(({ proyecto, abiertos, pendientes }) => (
                 <li key={proyecto.id} className={estilos.tarjeta}>
@@ -46,6 +49,12 @@ export function MisProyectosPage() {
                 </li>
               ))}
             </ul>
+            <Paginacion
+              pagina={paginacionProyectos.pagina}
+              totalPaginas={paginacionProyectos.meta?.total_pages ?? 0}
+              etiqueta="Páginas de tus proyectos"
+              alCambiar={paginacionProyectos.cambiarPagina}
+            />
           </section>
         )}
       </CuerpoDelPanel>

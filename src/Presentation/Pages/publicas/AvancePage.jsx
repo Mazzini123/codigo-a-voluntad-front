@@ -97,7 +97,7 @@ function AvanceDelProyecto({
   const location = useLocation();
   const refTitulo = useRef(null);
   const refCargarLogro = useRef(null);
-  const dueno = useEsDuenoDelProyecto(proyecto.id);
+  const dueno = useEsDuenoDelProyecto(proyecto);
   const abierto = proyecto.estado === PROYECTO_ESTADO.ABIERTO;
   const puedeEditar = dueno.esDueno === true && abierto;
   const notaDeFinalizado = dueno.esDueno === true && !abierto;

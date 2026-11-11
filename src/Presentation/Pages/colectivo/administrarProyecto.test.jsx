@@ -58,14 +58,15 @@ beforeEach(() => {
       return responder({ proyectos: pertenece ? [{ id: "p1" }] : [] });
     if (url === "/habilidades")
       return responder({ data: [react, css], meta: { total_pages: 1 } });
-    if (url === "/proyectos/p1" && method === "get") return responder(proyecto);
+    if (url === "/proyectos/p1" && method === "get")
+      return responder({ ...proyecto, colectivo: { id: pertenece ? "c1" : "otro" } });
     if (url === "/proyectos/p1" && method === "put") {
       Object.assign(proyecto, JSON.parse(config.data));
-      return responder(proyecto);
+      return responder({ ...proyecto, colectivo: { id: pertenece ? "c1" : "otro" } });
     }
     if (url === "/proyectos/p1/finalizacion" && method === "post") {
       proyecto.estado = "FINALIZADO";
-      return responder(proyecto);
+      return responder({ ...proyecto, colectivo: { id: pertenece ? "c1" : "otro" } });
     }
     if (method === "put" && /^\/proyectos\/p1\/perfiles\/pe[12]$/.test(url)) {
       const solicitado = proyecto.perfiles.find(({ id }) => url.endsWith(`/${id}`));
@@ -257,9 +258,7 @@ test.each([
   expect(
     screen.queryByRole("button", { name: "Editar proyecto" }),
   ).not.toBeInTheDocument();
-  expect(transporte.mock.calls.some(([config]) => config.url === "/proyectos/p1")).toBe(
-    false,
-  );
+  expect(transporte.mock.calls.some(([config]) => config.method !== "get")).toBe(false);
 });
 
 test("un proyecto finalizado conserva sus datos en modo de consulta", async () => {

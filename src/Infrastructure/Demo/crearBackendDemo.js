@@ -2,14 +2,14 @@ import { prepararDatosDemo } from "./prepararDatosDemo.js";
 import { rutasDeEdicionDemo } from "./rutasDeEdicionDemo.js";
 import { CATALOGO, unColectivo, unProyecto } from "./datosDemo.js";
 
-function pagina(lista) {
+function pagina(lista, { page = 1, limit = Math.max(lista.length, 12) } = {}) {
   return {
-    data: lista,
+    data: lista.slice((page - 1) * limit, page * limit),
     meta: {
-      page: 1,
-      per_page: Math.max(lista.length, 12),
+      page: Number(page),
+      per_page: Number(limit),
       total: lista.length,
-      total_pages: 1,
+      total_pages: Math.ceil(lista.length / limit),
     },
   };
 }
@@ -33,8 +33,16 @@ function crearEstadoInicial() {
   };
 }
 
-function sinColectivo(proyecto) {
+function sinColectivo(proyecto, estado) {
   const copia = { ...proyecto };
+  copia.colectivo = {
+    ...copia.colectivo,
+    id: proyecto.colectivoId,
+    nombre:
+      estado.colectivos.get(proyecto.colectivoId)?.nombre ??
+      copia.colectivo?.nombre ??
+      "Colectivo",
+  };
   delete copia.colectivoId;
   return copia;
 }
@@ -42,7 +50,7 @@ function sinColectivo(proyecto) {
 function proyectosDe(estado, colectivoId) {
   return [...estado.proyectos.values()]
     .filter((proyecto) => proyecto.colectivoId === colectivoId)
-    .map(sinColectivo);
+    .map((proyecto) => sinColectivo(proyecto, estado));
 }
 
 function colaboracionesDe(estado, colaboradorId) {
@@ -227,13 +235,18 @@ function rutas(estado) {
     [
       "GET",
       /^\/proyectos$/,
-      () => pagina([...estado.proyectos.values()].map(sinColectivo)),
+      () =>
+        pagina(
+          [...estado.proyectos.values()].map((proyecto) =>
+            sinColectivo(proyecto, estado),
+          ),
+        ),
     ],
     [
       "GET",
       /^\/proyectos\/([^/]+)$/,
       ([id]) =>
-        estado.proyectos.has(id) ? sinColectivo(estado.proyectos.get(id)) : null,
+        estado.proyectos.has(id) ? sinColectivo(estado.proyectos.get(id), estado) : null,
     ],
     [
       "GET",
@@ -290,7 +303,30 @@ function rutas(estado) {
           ? { ...estado.colectivos.get(id), proyectos: proyectosDe(estado, id) }
           : null,
     ],
-    ["GET", /^\/colectivos\/([^/]+)\/proyectos$/, ([id]) => proyectosDe(estado, id)],
+    [
+      "GET",
+      /^\/colectivos\/([^/]+)\/proyectos$/,
+      ([id], _, query) => pagina(proyectosDe(estado, id), query),
+    ],
+    [
+      "GET",
+      /^\/colectivos\/([^/]+)\/postulaciones$/,
+      ([id], _, query) =>
+        pagina(
+          proyectosDe(estado, id).flatMap((proyecto) =>
+            proyecto.colaboraciones
+              .filter((c) => c.estado === "PENDIENTE")
+              .map((colaboracion) => ({
+                proyecto: { id: proyecto.id, titulo: proyecto.titulo },
+                perfil: proyecto.perfiles.find((p) => p.id === colaboracion.perfil),
+                colaboracion: colaboracion.esPublica
+                  ? colaboracion
+                  : { ...colaboracion, colaborador: null },
+              })),
+          ),
+          query,
+        ),
+    ],
     [
       "POST",
       /^\/colectivos$/,
@@ -328,6 +364,10 @@ function rutas(estado) {
         );
         const proyecto = unProyecto(id, {
           ...cuerpo,
+          colectivo: {
+            id: colectivoId,
+            nombre: estado.colectivos.get(colectivoId)?.nombre,
+          },
           perfiles,
           porcentajeConcrecion: 0,
           urlRepositorio: cuerpo.urlRepositorio ?? null,
@@ -346,7 +386,12 @@ function rutas(estado) {
     [
       "GET",
       /^\/colaboradores\/([^/]+)\/proyectos-potenciales$/,
-      () => pagina([...estado.proyectos.values()].map(sinColectivo)),
+      () =>
+        pagina(
+          [...estado.proyectos.values()].map((proyecto) =>
+            sinColectivo(proyecto, estado),
+          ),
+        ),
     ],
   ];
 }

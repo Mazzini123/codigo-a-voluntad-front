@@ -99,6 +99,25 @@ beforeEach(() => {
   transporte = vi.fn(async (config) => {
     if (config.method === "get" && config.url === "/colectivos/c1")
       return respuesta(config, { id: "c1", nombre: "Fundación Verde" });
+    if (config.method === "get" && config.url === "/colectivos/c1/postulaciones")
+      return respuesta(config, {
+        data: listado.flatMap((proyecto) =>
+          (proyecto.colaboraciones ?? [])
+            .filter((c) => c.estado === "PENDIENTE")
+            .map((colaboracion) => ({
+              proyecto: { id: proyecto.id, titulo: proyecto.titulo },
+              perfil: proyecto.perfiles.find((p) => p.id === colaboracion.perfil),
+              colaboracion,
+            })),
+        ),
+        meta: {
+          page: 1,
+          total_pages: 1,
+          total: listado
+            .flatMap((p) => p.colaboraciones ?? [])
+            .filter((c) => c.estado === "PENDIENTE").length,
+        },
+      });
     if (config.method === "get" && config.url === "/colectivos/c1/proyectos")
       return respuesta(config, listado);
     return falla(config, 404);
@@ -225,8 +244,8 @@ describe("resumen del colectivo", () => {
     expect(pendientes.queryByText("Identidad privada")).not.toBeInTheDocument();
     expect(pendientes.getByText("Persona c2")).toBeVisible();
     expect(
-      pendientes.getByText(/no incluye las postulaciones de todos los proyectos/),
-    ).toBeVisible();
+      pendientes.queryByText(/no incluye las postulaciones de todos los proyectos/),
+    ).not.toBeInTheDocument();
     const revisar = pendientes.getAllByRole("link", { name: /Revisar postulaciones/ });
     expect(revisar[0]).toHaveAttribute(
       "href",
@@ -317,6 +336,36 @@ describe("resumen del colectivo", () => {
 });
 
 describe("mis proyectos", () => {
+  test("navega entre resúmenes paginados sin necesitar historiales", async () => {
+    const responder = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      if (config.url !== "/colectivos/c1/proyectos") return responder(config);
+      const numero = config.params.page;
+      const { colaboraciones: _historial, ...resumen } = listado[numero === 1 ? 0 : 1];
+      return respuesta(config, {
+        data: [{ ...resumen, postulacionesPendientes: numero === 1 ? 7 : 0 }],
+        meta: {
+          page: numero,
+          per_page: 20,
+          total: 21,
+          total_pages: 2,
+          perfiles_abiertos: 12,
+        },
+      });
+    });
+    const { user } = montar("/colectivo/proyectos");
+    const primera = await tarjeta("Sistema de turnos del comedor");
+    expect(within(primera).getByText("7 postulaciones pendientes")).toBeVisible();
+    expect(screen.getByText("21 proyectos publicados")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+    await tarjeta("Huerta comunitaria");
+    expect(
+      screen.queryByRole("article", { name: "Sistema de turnos del comedor" }),
+    ).not.toBeInTheDocument();
+    expect(pedidosDeProyectos().at(-1)[0].params).toEqual({ page: 2, limit: 20 });
+    expect(screen.getByText("21 proyectos publicados")).toBeVisible();
+  });
+
   test("lista los proyectos con su estado, sin repetir indicadores ni postulaciones", async () => {
     montar("/colectivo/proyectos");
     const abierto = await tarjeta("Sistema de turnos del comedor");
@@ -524,7 +573,12 @@ describe("cargando y con error", () => {
     async (ruta) => {
       const responder = transporte.getMockImplementation();
       transporte.mockImplementation(async (config) => {
-        if (config.url === "/colectivos/c1/proyectos") {
+        if (
+          config.url ===
+          (ruta === "/colectivo/postulaciones"
+            ? "/colectivos/c1/postulaciones"
+            : "/colectivos/c1/proyectos")
+        ) {
           transporte.mockImplementation(responder);
           return falla(config, 500, { message: "MongoNetworkError: connection refused" });
         }
@@ -532,7 +586,12 @@ describe("cargando y con error", () => {
       });
       const { user } = montar(ruta);
       expect(
-        await screen.findByRole("heading", { name: "No pudimos cargar tus proyectos" }),
+        await screen.findByRole("heading", {
+          name:
+            ruta === "/colectivo/postulaciones"
+              ? "No pudimos cargar las postulaciones"
+              : "No pudimos cargar tus proyectos",
+        }),
       ).toBeInTheDocument();
       expect(
         screen.getByText(

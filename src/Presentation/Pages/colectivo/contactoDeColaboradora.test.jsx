@@ -43,6 +43,8 @@ beforeEach(() => {
         data: { message: "detalle técnico del back" },
       });
     };
+    if (url === "/proyectos/p1")
+      return responder({ id: "p1", colectivo: { id: dueño ? "c1" : "otro" } });
     if (url === "/colectivos/c1")
       return responder({ proyectos: dueño ? [{ id: "p1" }] : [] });
     if (url === URL_CONTACTO) {
