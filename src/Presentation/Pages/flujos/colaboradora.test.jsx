@@ -173,7 +173,7 @@ describe("alta", () => {
     await user.click(screen.getByRole("checkbox", { name: "React" }));
     await user.click(
       screen.getByRole("checkbox", {
-        name: /Acepto que me contacten por mensajería interna/,
+        name: /Acepto recibir notificaciones por mensajería interna/,
       }),
     );
     await user.click(screen.getByRole("button", { name: "Crear perfil" }));
@@ -233,6 +233,34 @@ describe("edición", () => {
     await user.type(screen.getByLabelText("Email"), "pixel@mail.com");
     await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
     expect(await screen.findByText("Ya cargaste ese medio de contacto.")).toBeVisible();
+  });
+
+  test("SMS muestra ayuda, rechaza numeros locales y normaliza el internacional", async () => {
+    const { user } = montar("/colaboradora/perfil");
+    await screen.findByRole("list", { name: "Medios de contacto cargados" });
+    await user.selectOptions(screen.getByLabelText("Tipo"), "SMS");
+    expect(screen.getByText(/Incluí \+ y el código de país/)).toBeVisible();
+    await user.type(screen.getByLabelText("Número"), "1155551234");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(screen.getByText(/Escribí un número internacional/)).toBeVisible();
+    expect(pedidos("post", "/colaboradores/co1/medios-de-contacto")).toHaveLength(0);
+    await user.clear(screen.getByLabelText("Número"));
+    await user.type(screen.getByLabelText("Número"), "+54 9 11-5555-1234");
+    await user.click(screen.getByRole("button", { name: "Agregar medio de contacto" }));
+    expect(await screen.findByText("Medio de contacto agregado.")).toBeVisible();
+    expect(
+      JSON.parse(pedidos("post", "/colaboradores/co1/medios-de-contacto")[0].data),
+    ).toEqual({ tipo: "SMS", valor: "+5491155551234" });
+  });
+
+  test("deja quitar un SMS local antiguo", async () => {
+    medios = [{ tipo: "SMS", valor: "1155551234" }];
+    const { user } = montar("/colaboradora/perfil");
+    await user.click(
+      await screen.findByRole("button", { name: "Quitar SMS 1155551234" }),
+    );
+    expect(await screen.findByText("Quitaste el medio de contacto.")).toBeVisible();
+    expect(screen.queryByText("1155551234")).not.toBeInTheDocument();
   });
 
   test("muestra la identidad sin dejarla editar y manda solo lo que cambió", async () => {

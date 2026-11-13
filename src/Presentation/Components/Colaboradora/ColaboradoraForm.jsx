@@ -175,7 +175,7 @@ export function ColaboradoraForm({
         <fieldset className={estilos.seccion}>
           <legend>Mensajes</legend>
           <Casilla
-            etiqueta="Acepto que me contacten por mensajería interna cuando haya proyectos para mis habilidades."
+            etiqueta="Acepto recibir notificaciones por mensajería interna y copias por los medios de contacto que registré (email, SMS o WhatsApp)."
             checked={estado.recibeMensajeriaInterna}
             onChange={(e) => actualizar({ recibeMensajeriaInterna: e.target.checked })}
           />

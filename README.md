@@ -28,6 +28,13 @@ La app queda en <http://localhost:5173>. El backend tiene que estar corriendo (p
 
 ## Variables de entorno
 
+Las notificaciones SMS y email se envían desde el backend. El frontend permite
+registrar contactos y habilitar la recepción de notificaciones; no necesita
+credenciales de SMTP ni Twilio. Para SMS se exige un número internacional, por
+ejemplo `+5491155551234`. Los contactos locales antiguos se pueden quitar y
+volver a cargar. Los proveedores se configuran con `SMTP_URL`, `SMTP_REMITENTE`
+y las variables `TWILIO_*` en el backend.
+
 | Variable                  | Descripción                                      | Ejemplo                         |
 | ------------------------- | ------------------------------------------------ | ------------------------------- |
 | `VITE_API_URL`            | Destino del proxy de Vite en desarrollo          | `http://localhost:8000`         |

@@ -116,6 +116,11 @@ export function MediosDeContactoPrivados({ medios }) {
           id={idDelCampo}
           etiqueta={tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "Email" : "Número"}
           type={tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "email" : "tel"}
+          ayuda={
+            tipo === TIPOS_MEDIOS_CONTACTO.SMS
+              ? "Incluí + y el código de país. Ejemplo: +5491155551234."
+              : undefined
+          }
           autoComplete="off"
           value={valor}
           error={error}

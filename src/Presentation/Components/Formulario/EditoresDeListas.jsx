@@ -70,6 +70,11 @@ export function MediosDeContacto({ items, errores, alCambiar, prefijoDeIds }) {
             }
             etiqueta={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "Email" : "Número"}
             type={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "email" : "tel"}
+            ayuda={
+              item.tipo === TIPOS_MEDIOS_CONTACTO.SMS
+                ? "Incluí + y el código de país. Ejemplo: +5491155551234."
+                : undefined
+            }
             autoComplete={item.tipo === TIPOS_MEDIOS_CONTACTO.EMAIL ? "email" : "tel"}
             value={item.valor}
             error={errores[`mediosDeContacto.${item.clave}.valor`]}

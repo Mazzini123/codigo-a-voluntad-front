@@ -5,6 +5,7 @@ export const LARGO_NOMBRE_RED = 40;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEFONO = /^\+?\d{8,15}$/;
+const TELEFONO_SMS = /^\+[1-9]\d{7,14}$/;
 const URL_WEB = /^https?:\/\/\S+\.\S+/i;
 
 export function idDeCampo(prefijo, clave) {
@@ -46,6 +47,10 @@ export function validarMedio({ tipo, valor }) {
     return EMAIL.test(valor.trim())
       ? null
       : "Escribí un email válido, como hola@colectivo.org.";
+  if (tipo === TIPOS_MEDIOS_CONTACTO.SMS)
+    return TELEFONO_SMS.test(limpiarTelefono(valor))
+      ? null
+      : "Escribí un número internacional con + y código de país, de 8 a 15 dígitos.";
   return TELEFONO.test(limpiarTelefono(valor))
     ? null
     : "Escribí un número de 8 a 15 dígitos, con el código de área.";
