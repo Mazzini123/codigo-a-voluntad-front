@@ -159,7 +159,9 @@ test("después de la baja puede dar de alta un perfil distinto con la misma cuen
     /se creará un perfil nuevo y se conservará el historial del anterior/i,
   );
   expect(dialogo).not.toHaveTextContent(/reactivar/i);
-  await user.click(await screen.findByRole("link", { name: /Soy colaboradora/ }));
+  await user.click(
+    await screen.findByRole("link", { name: /Registrarme como colaboradora/ }),
+  );
   await user.click(
     await screen.findByRole("radio", { name: "Con un nombre de fantasía" }),
   );

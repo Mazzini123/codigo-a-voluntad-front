@@ -15,7 +15,7 @@ test("una cuenta nueva ingresa, elige ser colectivo y crea su perfil", async ({
     page.getByRole("heading", { level: 1, name: "¿Cómo vas a usar Código a Voluntad?" }),
   ).toBeVisible();
   await esperarSinViolaciones(page);
-  await page.getByRole("link", { name: /Soy un colectivo/ }).click();
+  await page.getByRole("link", { name: /Crear un colectivo/ }).click();
 
   await expect(
     page.getByRole("heading", { level: 1, name: "Creá el perfil de tu colectivo" }),

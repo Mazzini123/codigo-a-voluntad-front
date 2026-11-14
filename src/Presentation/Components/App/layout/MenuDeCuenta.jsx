@@ -3,6 +3,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
+import {
+  PASO_DE_REGISTRO,
+  pasoDeRegistro,
+} from "@/Application/Domain/Reglas/registro.js";
 import { useColaboradora } from "@/Presentation/Hooks/colaboradora/useColaboradora.js";
 import { useColectivo } from "@/Presentation/Hooks/colectivo/useColectivo.js";
 import { enlaceDePerfilPara } from "@/Presentation/Routes/navegacion.js";
@@ -17,6 +21,15 @@ import {
 } from "@/Presentation/Routes/rutas.js";
 import { SelectorDeContexto } from "@/Presentation/Components/App/sesion/SelectorDeContexto.jsx";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
+
+const PASOS_SIN_SOLICITUDES = Object.freeze([
+  PASO_DE_REGISTRO.NOMBRE,
+  PASO_DE_REGISTRO.MODALIDAD,
+]);
+
+function puedeVerSolicitudes(cuenta) {
+  return !PASOS_SIN_SOLICITUDES.includes(pasoDeRegistro(cuenta));
+}
 
 export function MenuDeCuenta() {
   const { usuario, cargando, cerrarSesion, sesionSimulada } = useAuth();
@@ -135,7 +148,7 @@ export function MenuDeCuenta() {
             </NavLink>
           </li>
         )}
-        {usuario.usuarioId && (
+        {usuario.usuarioId && puedeVerSolicitudes(usuario) && (
           <li>
             <NavLink
               to={RUTA_MIS_SOLICITUDES}

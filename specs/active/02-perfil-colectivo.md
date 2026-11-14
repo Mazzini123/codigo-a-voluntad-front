@@ -23,7 +23,7 @@ cuando responde,
 entonces cada error aparece en su campo y lo cargado se conserva.
 
 Dado una cuenta que ya tiene perfil,
-cuando abre `/bienvenida/colectivo`,
+cuando abre `/bienvenida/colectivo/nuevo`,
 entonces va al inicio de su rol. El tipo de cuenta no se cambia.
 
 ### Edición
@@ -118,7 +118,7 @@ Los van a reusar las specs 03, 04 y 05.
 
 ### Pantallas y rutas
 
-- **`/bienvenida/colectivo`** (privada, `permitirSinPerfil`), `AltaColectivoPage`:
+- **`/bienvenida/colectivo/nuevo`** (privada, `permitirSinPerfil`), `AltaColectivoPage`:
   - Título "Creá el perfil de tu colectivo".
   - El formulario vacío y el botón primario "Crear perfil".
   - Al crear: llama a `recargarCuenta`, avisa "Perfil del colectivo creado." y navega a `/colectivo/perfil`.

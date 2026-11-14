@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
+import { registroIncompleto } from "@/Application/Domain/Reglas/registro.js";
 import {
   enlacesPrincipalesPara,
   estaActivo,
@@ -16,7 +17,7 @@ import { clases } from "@/Presentation/Components/App/ui/clases.js";
 export function Cabecera() {
   const { usuario } = useAuth();
   const { pathname } = useLocation();
-  const enlaces = enlacesPrincipalesPara(usuario?.rol);
+  const enlaces = registroIncompleto(usuario) ? [] : enlacesPrincipalesPara(usuario?.rol);
   const usaMenu = enlaces.length >= MINIMO_ENLACES_PARA_MENU;
   const [menuAbierto, setMenuAbierto] = useState(false);
   const refBoton = useRef(null);
@@ -74,41 +75,43 @@ export function Cabecera() {
           <Icono nombre="codigo" tamano={32} className={marca.simbolo} />
           Código a Voluntad
         </Link>
-        <nav ref={refNavegacion} aria-label="Principal" onBlur={cerrarAlSalirElFoco}>
-          {usaMenu && (
-            <button
-              ref={refBoton}
-              type="button"
-              className={estilos.botonMenu}
-              aria-expanded={menuAbierto}
-              aria-controls="enlaces-principales"
-              onClick={() => setMenuAbierto((abierto) => !abierto)}
-            >
-              <Icono nombre={menuAbierto ? "cruz" : "menu"} />
-              <span className={estilos.textoMenu}>Menú</span>
-            </button>
-          )}
-          <ul
-            id="enlaces-principales"
-            className={clases(
-              estilos.enlaces,
-              !usaMenu ? estilos.visible : menuAbierto && estilos.abierto,
+        {enlaces.length > 0 && (
+          <nav ref={refNavegacion} aria-label="Principal" onBlur={cerrarAlSalirElFoco}>
+            {usaMenu && (
+              <button
+                ref={refBoton}
+                type="button"
+                className={estilos.botonMenu}
+                aria-expanded={menuAbierto}
+                aria-controls="enlaces-principales"
+                onClick={() => setMenuAbierto((abierto) => !abierto)}
+              >
+                <Icono nombre={menuAbierto ? "cruz" : "menu"} />
+                <span className={estilos.textoMenu}>Menú</span>
+              </button>
             )}
-          >
-            {enlaces.map((enlace) => (
-              <li key={enlace.ruta}>
-                <Link
-                  to={enlace.ruta}
-                  className={estilos.enlace}
-                  aria-current={estaActivo(enlace, pathname) ? "page" : undefined}
-                  onClick={() => setMenuAbierto(false)}
-                >
-                  {enlace.texto}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+            <ul
+              id="enlaces-principales"
+              className={clases(
+                estilos.enlaces,
+                !usaMenu ? estilos.visible : menuAbierto && estilos.abierto,
+              )}
+            >
+              {enlaces.map((enlace) => (
+                <li key={enlace.ruta}>
+                  <Link
+                    to={enlace.ruta}
+                    className={estilos.enlace}
+                    aria-current={estaActivo(enlace, pathname) ? "page" : undefined}
+                    onClick={() => setMenuAbierto(false)}
+                  >
+                    {enlace.texto}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
         <MenuDeCuenta />
       </div>
     </header>

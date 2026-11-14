@@ -22,6 +22,21 @@ const persona = {
   contextoActual: null,
 };
 
+const conColectivo = {
+  ...persona,
+  rol: "COLECTIVO",
+  perfilId: "c9",
+  contextos: [
+    {
+      id: "ctx-c9",
+      tipo: "COLECTIVO",
+      rol: "LIDER",
+      colectivo: { id: "c9", nombre: "Huerta" },
+      colaborador: null,
+    },
+  ],
+};
+
 beforeEach(() => {
   falloAlSolicitar = null;
   solicitudes = [
@@ -136,9 +151,22 @@ test("mis solicitudes muestra primero las pendientes y permite cancelarlas", asy
 
 test("sin solicitudes invita a explorar", async () => {
   solicitudes = [];
-  montar("/cuenta/solicitudes");
+  montar("/cuenta/solicitudes", conColectivo);
   expect(
     await screen.findByText("Todavía no pediste sumarte a ningún colectivo"),
   ).toBeVisible();
   expect(screen.getByRole("link", { name: "Explorar proyectos" })).toBeVisible();
+});
+
+test("durante el registro, sin solicitudes ofrece elegir cómo registrarse", async () => {
+  solicitudes = [];
+  montar("/cuenta/solicitudes");
+  expect(
+    await screen.findByText("Todavía no pediste sumarte a ningún colectivo"),
+  ).toBeVisible();
+  expect(screen.queryByRole("link", { name: "Explorar proyectos" })).toBeNull();
+  expect(screen.getByRole("link", { name: "Elegir cómo registrarme" })).toHaveAttribute(
+    "href",
+    "/bienvenida",
+  );
 });

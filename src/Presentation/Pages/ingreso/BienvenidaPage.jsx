@@ -12,29 +12,45 @@ import {
   RUTA_ALTA_COLECTIVO,
   RUTA_MIS_SOLICITUDES,
   RUTA_PROYECTOS,
+  RUTA_UNIRME_A_COLECTIVO,
 } from "@/Presentation/Routes/rutas.js";
 import estilos from "./BienvenidaPage.module.css";
 
-const OPCIONES = [
-  {
-    ruta: RUTA_ALTA_COLECTIVO,
-    nombre: "Soy un colectivo",
-    detalle: "Publico proyectos y busco colaboradoras.",
-    incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
-  },
-  {
-    ruta: RUTA_ALTA_COLABORADORA,
-    nombre: "Soy colaboradora",
-    detalle: "Me sumo a proyectos con mis habilidades.",
-    incompatibleCon: TIPO_CONTEXTO.COLECTIVO,
-  },
-  {
-    ruta: RUTA_PROYECTOS,
-    nombre: "Quiero sumarme a un colectivo",
-    detalle: "Buscá el colectivo desde sus proyectos y pedí el ingreso en su perfil.",
-    incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
-  },
+const CREAR_UN_COLECTIVO = {
+  ruta: RUTA_ALTA_COLECTIVO,
+  nombre: "Crear un colectivo",
+  detalle: "Lo administro como líder, publico proyectos y busco colaboradoras.",
+  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
+};
+
+const UNIRME_A_UN_COLECTIVO = {
+  ruta: RUTA_UNIRME_A_COLECTIVO,
+  nombre: "Unirme a un colectivo",
+  detalle: "Pido sumarme a uno que ya existe. Entro cuando su liderazgo me acepte.",
+  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
+};
+
+const REGISTRARME_COMO_COLABORADORA = {
+  ruta: RUTA_ALTA_COLABORADORA,
+  nombre: "Registrarme como colaboradora",
+  detalle: "Me sumo a proyectos con mis habilidades, a título personal.",
+  incompatibleCon: TIPO_CONTEXTO.COLECTIVO,
+};
+
+const MODALIDADES_DE_REGISTRO = [
+  CREAR_UN_COLECTIVO,
+  UNIRME_A_UN_COLECTIVO,
+  REGISTRARME_COMO_COLABORADORA,
 ];
+
+const MODALIDADES_CON_PERFIL = [CREAR_UN_COLECTIVO, REGISTRARME_COMO_COLABORADORA];
+
+const SUMARME_A_UN_COLECTIVO = {
+  ruta: RUTA_PROYECTOS,
+  nombre: "Quiero sumarme a un colectivo",
+  detalle: "Buscá el colectivo desde sus proyectos y pedí el ingreso en su perfil.",
+  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
+};
 
 export function BienvenidaPage() {
   const { usuario, perfilDadoDeBaja, cerrarSesion } = useAuth();
@@ -64,8 +80,13 @@ export function BienvenidaPage() {
   if (usuario?.rol) return <Navigate to={inicioPorRol(usuario.rol)} replace />;
 
   const contextos = usuario?.contextos ?? [];
+  const registrando = contextos.length === 0;
   const tipos = new Set(contextos.map((contexto) => contexto.tipo));
-  const opciones = OPCIONES.filter(({ incompatibleCon }) => !tipos.has(incompatibleCon));
+  const opciones = (
+    registrando
+      ? MODALIDADES_DE_REGISTRO
+      : [...MODALIDADES_CON_PERFIL, SUMARME_A_UN_COLECTIVO]
+  ).filter(({ incompatibleCon }) => !tipos.has(incompatibleCon));
 
   return (
     <section className={estilos.bienvenida} aria-labelledby="titulo-bienvenida">
@@ -73,7 +94,7 @@ export function BienvenidaPage() {
       <h1 id="titulo-bienvenida" tabIndex={-1}>
         ¿Cómo vas a usar Código a Voluntad?
       </h1>
-      {contextos.length > 0 && (
+      {!registrando && (
         <section className={estilos.contextos} aria-labelledby="titulo-contextos">
           <h2 id="titulo-contextos">Seguí donde estabas</h2>
           <SelectorDeContexto
@@ -84,11 +105,14 @@ export function BienvenidaPage() {
         </section>
       )}
       <p className={estilos.bajada}>
-        {contextos.length > 0
-          ? "O armá un perfil nuevo. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."
-          : "Elegí una opción para armar tu perfil. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."}
+        {registrando
+          ? "Para terminar tu registro, elegí cómo te vas a registrar. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."
+          : "O armá un perfil nuevo. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."}
       </p>
-      <ul className={estilos.opciones}>
+      <ul
+        className={estilos.opciones}
+        aria-label={registrando ? "Modalidades de registro" : undefined}
+      >
         {opciones.map(({ ruta, nombre, detalle }) => (
           <li key={ruta}>
             <Link to={ruta} className={estilos.opcion}>
@@ -101,7 +125,7 @@ export function BienvenidaPage() {
           </li>
         ))}
       </ul>
-      {!tipos.has(TIPO_CONTEXTO.COLABORADOR) && (
+      {!registrando && !tipos.has(TIPO_CONTEXTO.COLABORADOR) && (
         <p className={estilos.bajada}>
           ¿Ya pediste sumarte? Seguila en{" "}
           <Link to={RUTA_MIS_SOLICITUDES}>Mis solicitudes</Link>.

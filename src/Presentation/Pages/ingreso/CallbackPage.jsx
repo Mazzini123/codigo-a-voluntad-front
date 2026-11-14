@@ -4,7 +4,11 @@ import { ErrorDeVerificacionDeCuenta } from "@/Presentation/Components/App/sesio
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
-import { inicioPorRol, RUTA_LOGIN, RUTA_NOMBRE } from "@/Presentation/Routes/rutas.js";
+import {
+  inicioPorRol,
+  RUTA_LOGIN,
+  rutaDelPasoDeRegistro,
+} from "@/Presentation/Routes/rutas.js";
 import estilos from "./CallbackPage.module.css";
 
 export function CallbackPage() {
@@ -46,10 +50,8 @@ export function CallbackPage() {
 
   if (errorDeCuenta) return <ErrorDeVerificacionDeCuenta />;
   if (resultado.listo && !cargando && usuario) {
-    const destino = resultado.volverA ?? inicioPorRol(usuario.rol);
-    if (usuario.nombrePendiente) {
-      return <Navigate to={RUTA_NOMBRE} replace state={{ volverA: destino }} />;
-    }
+    const destino =
+      rutaDelPasoDeRegistro(usuario) ?? resultado.volverA ?? inicioPorRol(usuario.rol);
     return <Navigate to={destino} replace />;
   }
 

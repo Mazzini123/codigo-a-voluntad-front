@@ -10,7 +10,8 @@ import {
   LARGO_MAXIMO_DEL_NOMBRE,
   validarNombreDeUsuario,
 } from "@/Presentation/Formularios/cuenta/nombreDeUsuario.js";
-import { inicioPorRol, rutaDe } from "@/Presentation/Routes/rutas.js";
+import { tieneModalidad } from "@/Application/Domain/Reglas/registro.js";
+import { inicioPorRol, RUTA_BIENVENIDA, rutaDe } from "@/Presentation/Routes/rutas.js";
 import estilos from "./NombrePage.module.css";
 
 export function NombrePage() {
@@ -23,10 +24,11 @@ export function NombrePage() {
   const [errorDeCampo, setErrorDeCampo] = useState(null);
   const idTitulo = useId();
   const completando = Boolean(usuario?.nombrePendiente);
-  const destino =
-    location.state?.volverA ??
-    rutaDe(location.state?.desde) ??
-    inicioPorRol(usuario?.rol);
+  const destino = tieneModalidad(usuario)
+    ? (location.state?.volverA ??
+      rutaDe(location.state?.desde) ??
+      inicioPorRol(usuario?.rol))
+    : RUTA_BIENVENIDA;
 
   if (!usuario) return <Navigate to="/" replace />;
 

@@ -124,5 +124,8 @@ export function crearAuthHttpClientSimulado(tipo, perfilId) {
     async limpiarContexto() {
       return null;
     },
+    async listarMisSolicitudes() {
+      return [];
+    },
   };
 }

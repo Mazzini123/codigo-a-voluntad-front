@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import axios from "axios";
 import { Route } from "react-router-dom";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
@@ -313,10 +313,31 @@ describe("resumen del colectivo", () => {
 
   test("sin proyectos explica qué es un proyecto y ofrece publicar el primero", async () => {
     listado = [];
+    const responder = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) =>
+      config.url === "/colectivos/c1/estadisticas"
+        ? respuesta(config, {
+            proyectos: { total: 0, abiertos: 0, finalizados: 0 },
+            colaboraciones: { total: 0, pendientes: 0, aceptadas: 0, finalizadas: 0 },
+            porProyecto: [],
+          })
+        : responder(config),
+    );
     const { user } = montar();
     expect(
       await screen.findByRole("heading", { name: "Todavía no publicaste proyectos" }),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Tus proyectos en números" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getAllByRole("heading", { name: "Todavía no publicaste proyectos" }),
+    ).toHaveLength(1);
+    expect(
+      screen.queryByRole("link", { name: "Publicar un proyecto" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText(
         "Un proyecto cuenta qué necesitan y qué perfiles de personas buscan.",

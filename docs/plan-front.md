@@ -132,7 +132,9 @@ Son piezas que usan todas las pantallas. Se construyen una vez:
 | `/proyectos/:id`                                       | pública      | 06                      |
 | `/proyectos/:id/avance`                                | pública      | 07                      |
 | `/colectivo/perfil`                                    | COLECTIVO    | 02                      |
-| `/bienvenida/colectivo`                                | sin perfil   | 02                      |
+| `/bienvenida/colectivo/nuevo`                          | sin perfil   | 02                      |
+| `/bienvenida/colectivo/unirme`                         | sin perfil   | 18                      |
+| `/cuenta/solicitudes`                                  | con nombre   | 14, 18                  |
 | `/colectivos/:id`                                      | pública      | 02                      |
 | `/bienvenida/colaboradora`                             | sin perfil   | 03                      |
 | `/colaboradoras/:id`                                   | pública      | 03                      |

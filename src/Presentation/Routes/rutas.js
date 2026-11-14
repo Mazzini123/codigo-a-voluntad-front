@@ -1,5 +1,10 @@
+import { matchPath } from "react-router-dom";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import { TIPO_CONTEXTO } from "@/Application/Domain/Enums/TIPO_CONTEXTO.js";
+import {
+  PASO_DE_REGISTRO,
+  pasoDeRegistro,
+} from "@/Application/Domain/Reglas/registro.js";
 
 export const RUTA_INICIO = "/";
 export const RUTA_COMO_EMPEZAR = "/#como-empezar";
@@ -14,7 +19,8 @@ export const RUTA_CALLBACK = "/auth/callback";
 export const RUTA_SIN_PERMISO = "/sin-permiso";
 export const RUTA_HABILIDADES = "/habilidades";
 export const RUTA_BIENVENIDA = "/bienvenida";
-export const RUTA_ALTA_COLECTIVO = "/bienvenida/colectivo";
+export const RUTA_ALTA_COLECTIVO = "/bienvenida/colectivo/nuevo";
+export const RUTA_UNIRME_A_COLECTIVO = "/bienvenida/colectivo/unirme";
 export const RUTA_ALTA_COLABORADORA = "/bienvenida/colaboradora";
 export const RUTA_NOMBRE = "/cuenta/nombre";
 export const RUTA_MIS_SOLICITUDES = "/cuenta/solicitudes";
@@ -104,6 +110,52 @@ export function inicioPorContexto(contexto) {
       ? ROL_CUENTA.COLECTIVO
       : ROL_CUENTA.COLABORADORA,
   );
+}
+
+const RUTAS_DEL_PASO = Object.freeze({
+  [PASO_DE_REGISTRO.NOMBRE]: Object.freeze([RUTA_NOMBRE]),
+  [PASO_DE_REGISTRO.MODALIDAD]: Object.freeze([
+    RUTA_BIENVENIDA,
+    RUTA_ALTA_COLECTIVO,
+    RUTA_UNIRME_A_COLECTIVO,
+    RUTA_ALTA_COLABORADORA,
+    RUTA_MIS_SOLICITUDES,
+    RUTA_NOMBRE,
+  ]),
+  [PASO_DE_REGISTRO.ESPERA]: Object.freeze([
+    RUTA_MIS_SOLICITUDES,
+    RUTA_UNIRME_A_COLECTIVO,
+    RUTA_ALTA_COLECTIVO,
+    RUTA_NOMBRE,
+  ]),
+});
+
+const PASOS_CON_PERFIL_PUBLICO_DE_COLECTIVO = Object.freeze([
+  PASO_DE_REGISTRO.MODALIDAD,
+  PASO_DE_REGISTRO.ESPERA,
+]);
+
+function esPerfilPublicoDeColectivo(pathname) {
+  return Boolean(matchPath({ path: RUTA_COLECTIVO, end: true }, pathname));
+}
+
+function pasoPermiteLaRuta(paso, pathname) {
+  if (RUTAS_DEL_PASO[paso]?.includes(pathname)) return true;
+  return (
+    PASOS_CON_PERFIL_PUBLICO_DE_COLECTIVO.includes(paso) &&
+    esPerfilPublicoDeColectivo(pathname)
+  );
+}
+
+export function rutaDelPasoDeRegistro(cuenta) {
+  return RUTAS_DEL_PASO[pasoDeRegistro(cuenta)]?.[0] ?? null;
+}
+
+export function rutaPendienteDelRegistro(cuenta, pathname) {
+  const paso = pasoDeRegistro(cuenta);
+  const permitidas = RUTAS_DEL_PASO[paso];
+  if (!permitidas || pathname === RUTA_CALLBACK) return null;
+  return pasoPermiteLaRuta(paso, pathname) ? null : permitidas[0];
 }
 
 export function estadoParaVolver(ubicacion, textoVolver) {

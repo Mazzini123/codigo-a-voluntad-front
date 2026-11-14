@@ -178,10 +178,22 @@ test("una cuenta sin perfil va a elegir el tipo de cuenta", async () => {
   cuenta = SIN_PERFIL;
   montar("/colectivo/privada");
   expect(await titulo("¿Cómo vas a usar Código a Voluntad?")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Soy un colectivo/ })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: /Crear un colectivo/ })).toHaveAttribute(
     "href",
-    "/bienvenida/colectivo",
+    "/bienvenida/colectivo/nuevo",
   );
+  expect(screen.getByRole("link", { name: /Unirme a un colectivo/ })).toHaveAttribute(
+    "href",
+    "/bienvenida/colectivo/unirme",
+  );
+  expect(
+    screen.getByRole("link", { name: /Registrarme como colaboradora/ }),
+  ).toHaveAttribute("href", "/bienvenida/colaboradora");
+  expect(
+    within(screen.getByRole("list", { name: "Modalidades de registro" })).getAllByRole(
+      "link",
+    ),
+  ).toHaveLength(3);
 });
 
 test("si no se puede verificar la sesión ofrece Reintentar", async () => {

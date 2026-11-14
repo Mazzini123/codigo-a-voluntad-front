@@ -123,8 +123,52 @@ test("pide el nombre antes de una ruta protegida y después vuelve a donde iba",
   expect(dependencies.registrarUsuario).toHaveBeenCalledTimes(1);
 });
 
-test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
+const OTRO_CONTEXTO = {
+  ...CONTEXTO_COLECTIVO,
+  id: "ctx-otro",
+  rol: "MIEMBRO",
+  colectivo: { id: "c2", nombre: "Cooperativa Sur" },
+};
+
+test("con un solo contexto y ninguno elegido lo retoma sin pasar por Bienvenida", async () => {
   const estado = { cuenta: cuenta({ rol: null, perfilId: null, contextoActual: null }) };
+  const dependencies = dependenciasCon(estado);
+  montarRutas(rutas, { ruta: "/bienvenida", cuenta: estado.cuenta, dependencies });
+
+  expect(
+    await screen.findByRole("heading", { name: "Resumen del colectivo" }),
+  ).toBeInTheDocument();
+  expect(dependencies.seleccionarContexto).toHaveBeenCalledTimes(1);
+  expect(dependencies.seleccionarContexto.mock.calls[0][0]).toBe("ctx-colectivo");
+  expect(
+    screen.queryByRole("heading", { name: "¿Cómo vas a usar Código a Voluntad?" }),
+  ).not.toBeInTheDocument();
+});
+
+test("si no puede retomar el único contexto lo ofrece en Bienvenida", async () => {
+  const estado = { cuenta: cuenta({ rol: null, perfilId: null, contextoActual: null }) };
+  const dependencies = dependenciasCon(estado, {
+    seleccionarContexto: vi.fn(async () => {
+      throw new Error("el contexto ya no está activo");
+    }),
+  });
+  montarRutas(rutas, { ruta: "/bienvenida", cuenta: estado.cuenta, dependencies });
+
+  expect(
+    await screen.findByRole("heading", { name: "Seguí donde estabas" }),
+  ).toBeInTheDocument();
+  expect(dependencies.obtenerCuentaActual).toHaveBeenCalledTimes(1);
+});
+
+test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
+  const estado = {
+    cuenta: cuenta({
+      rol: null,
+      perfilId: null,
+      contextoActual: null,
+      contextos: [CONTEXTO_COLECTIVO, OTRO_CONTEXTO],
+    }),
+  };
   const dependencies = dependenciasCon(estado);
   const { user } = montarRutas(rutas, {
     ruta: "/bienvenida",
@@ -135,10 +179,11 @@ test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
   expect(
     await screen.findByRole("heading", { name: "Seguí donde estabas" }),
   ).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Soy un colectivo/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Crear un colectivo/ })).toBeInTheDocument();
   expect(
-    screen.queryByRole("link", { name: /Soy colaboradora/ }),
+    screen.queryByRole("link", { name: /Registrarme como colaboradora/ }),
   ).not.toBeInTheDocument();
+  expect(dependencies.seleccionarContexto).not.toHaveBeenCalled();
 
   const seccion = screen.getByRole("region", { name: "Seguí donde estabas" });
   await user.click(within(seccion).getByRole("button", { name: /Fundación Huerta/ }));
@@ -146,7 +191,7 @@ test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
   expect(
     await screen.findByRole("heading", { name: "Resumen del colectivo" }),
   ).toBeInTheDocument();
-  expect(dependencies.seleccionarContexto).toHaveBeenCalledWith("ctx-colectivo");
+  expect(dependencies.seleccionarContexto.mock.calls).toEqual([["ctx-colectivo"]]);
 });
 
 test("cerrar sesión intenta limpiar el contexto y cierra aunque el back no responda", async () => {

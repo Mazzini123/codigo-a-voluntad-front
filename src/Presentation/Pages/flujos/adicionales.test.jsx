@@ -144,7 +144,7 @@ test("las estadísticas del colectivo conservan unidades, enlaces y total indepe
   expect(pedidos.find((p) => p.url.endsWith("/estadisticas")).requiereSesion).toBe(true);
 });
 
-test("un colectivo sin proyectos ofrece publicar y un error no oculta contenido vecino", async () => {
+test("un colectivo sin proyectos oculta sus estadísticas sin ocultar contenido vecino", async () => {
   responder = () => ({ ...ESTADISTICAS, proyectos: { total: 0 } });
   montar(
     <>
@@ -152,9 +152,30 @@ test("un colectivo sin proyectos ofrece publicar y un error no oculta contenido 
       <EstadisticasDelColectivo id="c1" />
     </>,
   );
+  expect(screen.getByText("Tus proyectos en números")).toBeInTheDocument();
+  await waitFor(() =>
+    expect(screen.queryByText("Tus proyectos en números")).not.toBeInTheDocument(),
+  );
+  expect(pedidos.some((p) => p.url.endsWith("/estadisticas"))).toBe(true);
+  expect(screen.queryByText("Todavía no publicaste proyectos")).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Publicar un proyecto" })).toBeNull();
+  expect(screen.getByText("Acciones rápidas")).toBeVisible();
+});
+
+test("si el back no manda los proyectos, las estadísticas del colectivo ofrecen reintentar sin romper", async () => {
+  const { proyectos: _sinProyectos, ...sinProyectos } = ESTADISTICAS;
+  responder = () => sinProyectos;
+  montar(
+    <>
+      <p>Acciones rápidas</p>
+      <EstadisticasDelColectivo id="c1" />
+    </>,
+  );
   expect(
-    await screen.findByRole("link", { name: "Publicar un proyecto" }),
-  ).toHaveAttribute("href", "/colectivo/proyectos/nuevo");
+    await screen.findByText("No pudimos cargar las estadísticas del colectivo"),
+  ).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Tus proyectos en números" })).toBeVisible();
+  expect(screen.getByRole("button", { name: /Reintentar/ })).toBeEnabled();
   expect(screen.getByText("Acciones rápidas")).toBeVisible();
 });
 

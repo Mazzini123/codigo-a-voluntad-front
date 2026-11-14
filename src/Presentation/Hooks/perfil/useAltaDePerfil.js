@@ -4,6 +4,17 @@ import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useMutacion } from "@/Presentation/Hooks/comunes/useMutacion.js";
 
 const MENSAJES = Object.freeze({ 409: "Tu cuenta ya tiene un perfil." });
+const YA_TIENE_PERFIL = 409;
+const ERROR_DEL_SERVIDOR = 500;
+
+function pudoHaberseCreado(error) {
+  if (!error) return false;
+  return (
+    !error.status ||
+    error.status === YA_TIENE_PERFIL ||
+    error.status >= ERROR_DEL_SERVIDOR
+  );
+}
 
 export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
   const { usuario, recargarCuenta } = useAuth();
@@ -18,7 +29,6 @@ export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
 
   const sincronizar = useCallback(
     async (signal) => {
-      if (!registro.current) return;
       if (!signal.aborted) await recargarCuenta({ desdeAlta: true });
     },
     [recargarCuenta],
@@ -30,8 +40,11 @@ export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
   const crear = useCallback(
     async (request) => {
       if (registro.current) return false;
-      const { ok } = await registrarPerfil(request);
-      if (!ok) return false;
+      const { ok, error } = await registrarPerfil(request);
+      if (!ok) {
+        if (pudoHaberseCreado(error)) await actualizarCuenta();
+        return false;
+      }
       registro.current = true;
       avisar.exito(mensaje);
       await actualizarCuenta();

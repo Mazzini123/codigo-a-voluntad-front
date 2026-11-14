@@ -91,7 +91,7 @@ function montar(ruta) {
   return montarRutas(
     <Route element={<MarcoDeLaApp />}>
       <Route element={<RutaProtegida permitirSinPerfil />}>
-        <Route path="/bienvenida/colectivo" element={<AltaColectivoPage />} />
+        <Route path="/bienvenida/colectivo/nuevo" element={<AltaColectivoPage />} />
       </Route>
       <Route element={<RutaProtegida roles={["COLECTIVO"]} />}>
         <Route path="/colectivo/perfil" element={<PerfilColectivoPage />} />
@@ -117,7 +117,7 @@ describe("alta", () => {
   });
 
   test("con datos vacíos marca los campos, enfoca el primero y no envía", async () => {
-    const { user } = montar("/bienvenida/colectivo");
+    const { user } = montar("/bienvenida/colectivo/nuevo");
     await user.click(await screen.findByRole("button", { name: "Crear perfil" }));
     const nombre = screen.getByLabelText(/^Nombre/);
     expect(nombre).toHaveAttribute("aria-invalid", "true");
@@ -131,7 +131,7 @@ describe("alta", () => {
   });
 
   test("con datos vacíos resume los errores y cada enlace lleva a su campo", async () => {
-    const { user } = montar("/bienvenida/colectivo");
+    const { user } = montar("/bienvenida/colectivo/nuevo");
     await user.click(await screen.findByRole("button", { name: "Crear perfil" }));
     const resumen = screen
       .getAllByRole("alert")
@@ -143,8 +143,8 @@ describe("alta", () => {
     expect(screen.getByLabelText(/^Nombre/)).toHaveFocus();
   });
 
-  test("ofrece volver a elegir tipo de cuenta y avisa si hay datos cargados", async () => {
-    const { user, router } = montar("/bienvenida/colectivo");
+  test("ofrece elegir otro tipo de cuenta y avisa si hay datos cargados", async () => {
+    const { user, router } = montar("/bienvenida/colectivo/nuevo");
     await screen.findByRole("button", { name: "Crear perfil" });
     expect(
       screen.getByRole("link", { name: "Elegir otro tipo de cuenta" }),
@@ -154,11 +154,11 @@ describe("alta", () => {
     const dialogo = await screen.findByRole("dialog");
     expect(dialogo).toHaveTextContent("Los datos que cargaste se van a perder.");
     await user.click(within(dialogo).getByRole("button", { name: "Seguir editando" }));
-    expect(router.state.location.pathname).toBe("/bienvenida/colectivo");
+    expect(router.state.location.pathname).toBe("/bienvenida/colectivo/nuevo");
   });
 
   test("crea el perfil, avisa y lleva al resumen del colectivo con el rol de colectivo", async () => {
-    const { user } = montar("/bienvenida/colectivo");
+    const { user } = montar("/bienvenida/colectivo/nuevo");
     await user.type(await screen.findByLabelText(/^Nombre/), "Asamblea de Fiorito");
     await user.click(screen.getByRole("radio", { name: "Asamblea" }));
     await user.type(screen.getByLabelText(/^Descripción/), "Comedor y apoyo escolar.");
@@ -192,7 +192,7 @@ describe("alta", () => {
         issues: [{ path: ["nombre"], message: "Ya existe un colectivo con ese nombre" }],
       }),
     );
-    const { user } = montar("/bienvenida/colectivo");
+    const { user } = montar("/bienvenida/colectivo/nuevo");
     await user.type(await screen.findByLabelText(/^Nombre/), "Asamblea de Fiorito");
     await user.click(screen.getByRole("radio", { name: "Asamblea" }));
     await user.type(screen.getByLabelText(/^Descripción/), "Comedor.");
@@ -213,7 +213,7 @@ describe("alta", () => {
 
   test("una cuenta que ya tiene perfil no vuelve a elegir tipo", async () => {
     cuenta = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "c1" };
-    montar("/bienvenida/colectivo");
+    montar("/bienvenida/colectivo/nuevo");
     expect(
       await screen.findByRole("heading", { level: 1, name: "Resumen del colectivo" }),
     ).toBeInTheDocument();

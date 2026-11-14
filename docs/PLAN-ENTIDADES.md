@@ -175,7 +175,7 @@ Composición: `Presentation/Dependencies/colectivoDependencies.js`.
 | `ActualizarColectivo` | `PUT /colectivos/:colectivoId`       | `ActualizarColectivoRequest`        | `ColectivoDto`            |
 | `DarDeBajaColectivo`  | `POST /colectivos/:colectivoId/baja` | Sin body                            | `ColectivoDto`            |
 
-La baja es una acción POST que conserva el historial y elimina contactos/redes. No hay DELETE del colectivo. Los listados aceptan etiqueta.
+La baja es una acción POST que conserva el historial y elimina contactos/redes. No hay DELETE del colectivo. Los listados aceptan etiqueta. `GET /colectivos` suma `q` (opcional, de 1 a 80 caracteres después de recortar espacios): coincidencia parcial en el nombre, sin distinguir mayúsculas ni tildes, combinable con `etiqueta`, `page` y `limit`. Para `ListarColectivos`, `ListadoConEtiquetaRequest` lleva además `q`.
 
 ### Colaborador
 

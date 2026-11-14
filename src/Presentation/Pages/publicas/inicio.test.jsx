@@ -242,7 +242,6 @@ test.each([
   [null, "Iniciar sesión"],
   [COLECTIVO, "Resumen del colectivo"],
   [COLABORADORA, "Proyectos de colectivos sociales"],
-  [{ id: "s", rol: null, perfilId: null }, "¿Cómo vas a usar Código a Voluntad?"],
 ])(
   "Cómo funciona abre la explicación y enfoca la sección para %s",
   async (cuenta, titulo) => {

@@ -61,7 +61,7 @@ Revisión completa del front contra el libro de la cursada, en la doc "Revisión
 
 - Ingreso y registro sin tenant — hecho. El header abre `/login` o `/registro` con los campos deshabilitados, un mensaje claro y un enlace a proyectos. Ya no muestra el aviso genérico al elegir un acceso. Con tenant o sesión simulada se conserva el recorrido directo. Verificado a 1280 y 320px; lint, formato, 476 tests y build en verde.
 
-`/` (landing pública), `/proyectos`, `/proyectos/:id`, `/login`, `/registro`, `/auth/callback`, `/bienvenida`, `/bienvenida/colectivo`, `/bienvenida/colaboradora`, `/colectivo/perfil`, `/colectivo/proyectos`, `/colectivo/proyectos/nuevo`, `/colectivos/:id`, `/colaboradora/perfil`, `/colaboradoras/:id`, `/habilidades` (ejemplo), `/sin-permiso` y 404.
+`/` (landing pública), `/proyectos`, `/proyectos/:id`, `/login`, `/registro`, `/auth/callback`, `/bienvenida`, `/bienvenida/colaboradora`, `/colectivo/perfil`, `/colectivo/proyectos`, `/colectivo/proyectos/nuevo`, `/colectivos/:id`, `/colaboradora/perfil`, `/colaboradoras/:id`, `/habilidades` (ejemplo), `/sin-permiso` y 404.
 
 ## Piezas para reusar
 

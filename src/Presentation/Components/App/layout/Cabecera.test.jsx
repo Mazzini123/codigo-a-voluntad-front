@@ -21,7 +21,6 @@ describe("navegación principal por rol", () => {
     ["un visitante", null, ["Proyectos"]],
     ["una colaboradora", COLABORADORA, ["Proyectos", "Mis postulaciones", "Mensajes"]],
     ["un colectivo", COLECTIVO, ["Proyectos", "Panel del colectivo"]],
-    ["una cuenta sin perfil", SIN_PERFIL, ["Proyectos"]],
   ])(
     "%s ve los enlaces que le corresponden y no ve Habilidades",
     async (_nombre, cuenta, esperados) => {
@@ -36,6 +35,28 @@ describe("navegación principal por rol", () => {
       if (esperados.length === 1)
         expect(screen.queryByRole("button", { name: "Menú" })).not.toBeInTheDocument();
       expect(screen.queryByText("Habilidades")).not.toBeInTheDocument();
+    },
+  );
+});
+
+describe("registro sin terminar", () => {
+  test.each([
+    ["sin modalidad", SIN_PERFIL],
+    ["sin nombre", { ...SIN_PERFIL, nombrePendiente: true }],
+  ])(
+    "una cuenta %s no ve la navegación principal ni Mis solicitudes",
+    async (_caso, cuenta) => {
+      const user = montar({ ...cuenta, usuarioId: "u1" });
+      await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+      expect(
+        screen.queryByRole("navigation", { name: "Principal" }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Proyectos" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: "Mis solicitudes" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Tu nombre" })).toBeVisible();
+      expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
     },
   );
 });

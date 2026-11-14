@@ -6,7 +6,15 @@ import { ConfirmacionDeAltaDePerfil } from "./ConfirmacionDeAltaDePerfil.jsx";
 import { inicioPorRol, RUTA_BIENVENIDA } from "@/Presentation/Routes/rutas.js";
 import estilos from "@/Presentation/Components/Perfil/Perfil.module.css";
 
-export function AltaDePerfil({ alta, tituloDePestana, titulo, bajada, children }) {
+export function AltaDePerfil({
+  alta,
+  tituloDePestana,
+  titulo,
+  bajada,
+  volverA = RUTA_BIENVENIDA,
+  textoVolver = "Elegir otro tipo de cuenta",
+  children,
+}) {
   const idTitulo = useId();
 
   if (alta.rolConfirmado)
@@ -15,9 +23,7 @@ export function AltaDePerfil({ alta, tituloDePestana, titulo, bajada, children }
   return (
     <section className={estilos.pagina} aria-labelledby={idTitulo}>
       <TituloDePagina>{tituloDePestana}</TituloDePagina>
-      {!alta.perfilCreado && (
-        <EnlaceVolver to={RUTA_BIENVENIDA}>Elegir otro tipo de cuenta</EnlaceVolver>
-      )}
+      {!alta.perfilCreado && <EnlaceVolver to={volverA}>{textoVolver}</EnlaceVolver>}
       <div className={estilos.titulos}>
         <h1 id={idTitulo} tabIndex={-1}>
           {titulo}

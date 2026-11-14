@@ -1,0 +1,71 @@
+.pagina,
+.lista,
+.fila {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  gap: var(--espacio-5);
+  overflow-wrap: anywhere;
+}
+
+.titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.bajada {
+  max-inline-size: var(--ancho-texto);
+  color: var(--color-tinta-suave);
+}
+
+.revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3) var(--espacio-4);
+}
+
+.sinNovedades {
+  color: var(--color-petroleo);
+  font-weight: var(--texto-label-peso);
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+}
+
+.fila {
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.fila h3 {
+  margin: 0;
+}
+
+.estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-3);
+  color: var(--color-tinta-suave);
+}
+
+.ayuda {
+  color: var(--color-tinta-suave);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}

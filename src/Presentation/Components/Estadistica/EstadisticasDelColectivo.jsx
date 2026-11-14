@@ -1,13 +1,11 @@
 import { Link } from "react-router-dom";
 import { useEstadisticasDelColectivo } from "@/Presentation/Hooks/estadistica/useEstadisticas.js";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
-import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
 import {
   Esqueleto,
   BloqueEsqueleto,
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
-import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
-import { RUTA_NUEVO_PROYECTO, rutaProyecto } from "@/Presentation/Routes/rutas.js";
+import { rutaProyecto } from "@/Presentation/Routes/rutas.js";
 import { numeroEstadistico } from "@/Presentation/Formatos/estadistica.js";
 import { selloDeProyecto } from "@/Presentation/Formatos/proyecto.js";
 import { Indicadores } from "./Indicadores.jsx";
@@ -15,6 +13,7 @@ import estilos from "./Estadisticas.module.css";
 
 export function EstadisticasDelColectivo({ id }) {
   const { datos, error, cargando, reintentar } = useEstadisticasDelColectivo(id);
+  if (!error && !cargando && datos?.proyectos?.total === 0) return null;
   return (
     <section className={estilos.seccion} aria-labelledby="estadisticas-colectivo">
       <h2 id="estadisticas-colectivo">Tus proyectos en números</h2>
@@ -32,10 +31,6 @@ export function EstadisticasDelColectivo({ id }) {
           <BloqueEsqueleto />
           <BloqueEsqueleto />
         </Esqueleto>
-      ) : datos.proyectos.total === 0 ? (
-        <EstadoVacio titulo="Todavía no publicaste proyectos">
-          <EnlaceBoton to={RUTA_NUEVO_PROYECTO}>Publicar un proyecto</EnlaceBoton>
-        </EstadoVacio>
       ) : (
         <>
           <Indicadores

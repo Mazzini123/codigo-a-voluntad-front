@@ -15,6 +15,9 @@ export function crearAuthHttpClient(http) {
     async seleccionarContexto(request, { signal } = {}) {
       return api.put("/auth/contexto-actual", request, { signal, requiereSesion: true });
     },
+    async listarMisSolicitudes({ signal } = {}) {
+      return api.get("/auth/solicitudes-ingreso", { signal, requiereSesion: true });
+    },
     async limpiarContexto({ signal, timeout } = {}) {
       return api.delete("/auth/contexto-actual", {
         signal,

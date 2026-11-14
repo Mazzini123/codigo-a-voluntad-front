@@ -63,3 +63,26 @@ export function nombreDelEstadoDeSolicitud(estado) {
     ESTADOS_DE_SOLICITUD.find(({ valor }) => valor === estado)?.singular ?? "Sin estado"
   );
 }
+
+const TIPO_DE_SELLO_POR_ESTADO = Object.freeze({
+  [ESTADO_SOLICITUD.PENDIENTE]: "pendiente",
+  [ESTADO_SOLICITUD.ACEPTADA]: "aceptada",
+  [ESTADO_SOLICITUD.RECHAZADA]: "rechazada",
+});
+
+export function selloDeSolicitud(estado) {
+  return {
+    tipo: TIPO_DE_SELLO_POR_ESTADO[estado] ?? "cerrada",
+    texto: nombreDelEstadoDeSolicitud(estado),
+  };
+}
+
+const FORMATO_HORA = new Intl.DateTimeFormat("es-AR", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function textoDeRevisionSinNovedades(momento) {
+  return `Todavía no te aceptaron. Revisamos a las ${FORMATO_HORA.format(momento)}.`;
+}

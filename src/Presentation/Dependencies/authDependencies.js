@@ -3,6 +3,7 @@ import { crearRegistrarUsuario } from "@/Application/UseCases/Auth/RegistrarUsua
 import { crearCambiarNombreDeUsuario } from "@/Application/UseCases/Auth/CambiarNombreDeUsuario.js";
 import { crearSeleccionarContexto } from "@/Application/UseCases/Auth/SeleccionarContexto.js";
 import { crearLimpiarContexto } from "@/Application/UseCases/Auth/LimpiarContexto.js";
+import { crearListarColectivosConSolicitudPendiente } from "@/Application/UseCases/Membresia/ListarColectivosConSolicitudPendiente.js";
 import { crearAuthHttpClient } from "@/Infrastructure/HttpClients/AuthHttpClient.js";
 import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 import { observarAltasSimuladas } from "@/Infrastructure/Auth/simulada/observarAltasSimuladas.js";
@@ -21,6 +22,8 @@ export function crearAuthDependencies(
     cambiarNombreDeUsuario: crearCambiarNombreDeUsuario(httpClient),
     seleccionarContexto: crearSeleccionarContexto(httpClient),
     limpiarContexto: crearLimpiarContexto(httpClient),
+    listarColectivosConSolicitudPendiente:
+      crearListarColectivosConSolicitudPendiente(httpClient),
   };
 }
 

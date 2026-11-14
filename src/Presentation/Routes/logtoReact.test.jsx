@@ -68,7 +68,25 @@ vi.mock(
 );
 
 const adaptadorOriginal = axiosClient.defaults.adapter;
+const SIN_MODALIDAD = { id: "cuenta-1", rol: null, perfilId: null };
+const CONTEXTO_DE_COLECTIVO = {
+  id: "ctx-1",
+  tipo: "COLECTIVO",
+  rol: "LIDER",
+  colectivo: { id: "c-1", nombre: "Asamblea" },
+  colaborador: null,
+  permisos: [],
+};
+const COLECTIVO = {
+  id: "cuenta-1",
+  rol: "COLECTIVO",
+  perfilId: "c-1",
+  usuario: { id: "u1", nombre: "Ana", nombrePendiente: false },
+  contextoActual: CONTEXTO_DE_COLECTIVO,
+  contextos: [CONTEXTO_DE_COLECTIVO],
+};
 let transporte;
+let cuentaDelBack;
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -81,6 +99,7 @@ beforeEach(() => {
   sdk.signOut.mockResolvedValue(undefined);
   sdk.clearAllTokens.mockResolvedValue(undefined);
   sdk.getAccessToken.mockResolvedValue("jwt-react");
+  cuentaDelBack = SIN_MODALIDAD;
   transporte = vi.fn(async (config) => ({
     config,
     status: 200,
@@ -90,7 +109,7 @@ beforeEach(() => {
       config.url === "/auth/registro"
         ? { usuarioId: "u1", creado: false }
         : config.url === "/auth/me"
-          ? { id: "cuenta-1", rol: null, perfilId: null }
+          ? cuentaDelBack
           : { data: [], meta: { page: 1, per_page: 12, total: 0, total_pages: 0 } },
   }));
   axiosClient.defaults.adapter = transporte;
@@ -141,6 +160,33 @@ test.each([
   },
 );
 
+test("un registro nuevo por Logto pide el nombre sin tomarlo del proveedor ni volver a la pantalla de origen", async () => {
+  cuentaDelBack = {
+    ...SIN_MODALIDAD,
+    usuario: { id: "u1", nombre: null, nombrePendiente: true },
+    contextoActual: null,
+    contextos: [],
+  };
+  sdk.isAuthenticated.mockResolvedValue(true);
+  sdk.getIdTokenClaims.mockResolvedValue({ sub: "sub-1", name: "Nombre De Logto" });
+  sdk.fetchUserInfo.mockResolvedValue({ sub: "sub-1", name: "Nombre De Logto" });
+  sessionStorage.setItem("codigo-a-voluntad:volver-a", "/proyectos");
+  const { router } = montar("/auth/callback?code=abc&state=xyz");
+
+  expect(
+    await screen.findByRole("heading", { level: 1, name: "¿Cómo te llamás?" }),
+  ).toBeVisible();
+  expect(router.state.location.pathname).toBe("/cuenta/nombre");
+  expect(screen.getByLabelText(/^Nombre/)).toHaveValue("");
+  expect(sdk.getIdTokenClaims).not.toHaveBeenCalled();
+  expect(sdk.fetchUserInfo).not.toHaveBeenCalled();
+  const pedidos = transporte.mock.calls.map(
+    ([config]) => `${config.method} ${config.url}`,
+  );
+  expect(pedidos.slice(0, 2)).toEqual(["post /auth/registro", "get /auth/me"]);
+  expect(pedidos).not.toContain("put /auth/usuario");
+});
+
 test("espera al SDK al recargar antes de consultar la cuenta y enviar el token del recurso", async () => {
   let terminar;
   sdk.isAuthenticated.mockReturnValue(
@@ -161,6 +207,7 @@ test("espera al SDK al recargar antes de consultar la cuenta y enviar el token d
   expect(pedidos.map(({ method, url }) => [method, url])).toEqual([
     ["post", "/auth/registro"],
     ["get", "/auth/me"],
+    ["get", "/auth/solicitudes-ingreso"],
   ]);
   expect(
     pedidos.every(({ headers }) => headers.Authorization === "Bearer jwt-react"),
@@ -193,6 +240,7 @@ test("el callback espera la autenticación antes de pedir la cuenta y conserva e
 });
 
 test("si falla la cuenta durante el callback, reintenta la consulta y conserva el destino", async () => {
+  cuentaDelBack = COLECTIVO;
   sdk.isAuthenticated.mockResolvedValue(true);
   sessionStorage.setItem(
     "codigo-a-voluntad:volver-a",
@@ -320,6 +368,7 @@ test("si falla el registro, reintenta antes de consultar la cuenta y conserva la
     "/auth/registro",
     "/auth/registro",
     "/auth/me",
+    "/auth/solicitudes-ingreso",
   ]);
   expect(sdk.clearAllTokens).not.toHaveBeenCalled();
 });

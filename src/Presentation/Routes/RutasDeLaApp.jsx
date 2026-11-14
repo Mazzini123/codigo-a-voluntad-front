@@ -19,6 +19,7 @@ import { ProyectosPage } from "@/Presentation/Pages/publicas/ProyectosPage.jsx";
 import { ResumenColectivoPage } from "@/Presentation/Pages/colectivo/ResumenColectivoPage.jsx";
 import { SinPermisoPage } from "@/Presentation/Pages/sistema/SinPermisoPage.jsx";
 import { RutaProtegida } from "./RutaProtegida.jsx";
+import { GuardaDeRegistro } from "./GuardaDeRegistro.jsx";
 import { RutaDelDueno } from "./RutaDelDueno.jsx";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import {
@@ -52,6 +53,7 @@ import {
   RUTA_RESUMEN_COLECTIVO,
   RUTA_SOLICITUDES_COLECTIVO,
   RUTA_SIN_PERMISO,
+  RUTA_UNIRME_A_COLECTIVO,
   TIPO_DE_PANTALLA,
 } from "./rutas.js";
 
@@ -79,6 +81,10 @@ const cargarNombrePage = () =>
 const cargarAltaColaboradoraPage = () =>
   import("@/Presentation/Pages/ingreso/AltaColaboradoraPage.jsx").then((modulo) => ({
     default: modulo.AltaColaboradoraPage,
+  }));
+const cargarUnirmeAColectivoPage = () =>
+  import("@/Presentation/Pages/ingreso/UnirmeAColectivoPage.jsx").then((modulo) => ({
+    default: modulo.UnirmeAColectivoPage,
   }));
 const cargarAltaColectivoPage = () =>
   import("@/Presentation/Pages/ingreso/AltaColectivoPage.jsx").then((modulo) => ({
@@ -110,7 +116,7 @@ const cargarPerfilColectivoPage = () =>
 export const rutas = createRoutesFromElements(
   <Route element={<Raiz />} errorElement={<ErrorInesperadoPage />}>
     <Route element={<MarcoDeLaApp />}>
-      <Route errorElement={<ErrorInesperadoPage />}>
+      <Route element={<GuardaDeRegistro />} errorElement={<ErrorInesperadoPage />}>
         <Route
           path={RUTA_INICIO}
           element={<InicioPage />}
@@ -156,6 +162,10 @@ export const rutas = createRoutesFromElements(
           <Route
             path={RUTA_MIS_SOLICITUDES}
             element={<PantallaDiferida cargar={cargarMisSolicitudesPage} />}
+          />
+          <Route
+            path={RUTA_UNIRME_A_COLECTIVO}
+            element={<PantallaDiferida cargar={cargarUnirmeAColectivoPage} />}
           />
           <Route
             path={RUTA_ALTA_COLECTIVO}

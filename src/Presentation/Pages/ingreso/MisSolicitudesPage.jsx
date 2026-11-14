@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { registroIncompleto } from "@/Application/Domain/Reglas/registro.js";
 import { ESTADO_SOLICITUD } from "@/Application/Domain/Enums/ESTADO_SOLICITUD.js";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
 import {
@@ -11,18 +12,34 @@ import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.j
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
+import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
 import {
   mensajeDeMembresia,
-  nombreDelEstadoDeSolicitud,
+  selloDeSolicitud,
+  textoDeRevisionSinNovedades,
 } from "@/Presentation/Formatos/membresia.js";
 import { fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
+import { useEsperaDeIngreso } from "@/Presentation/Hooks/membresia/useEsperaDeIngreso.js";
 import { useMisSolicitudesDeIngreso } from "@/Presentation/Hooks/membresia/useMisSolicitudesDeIngreso.js";
-import { rutaColectivo, RUTA_PROYECTOS } from "@/Presentation/Routes/rutas.js";
-import estilos from "@/Presentation/Pages/colectivo/MiembrosPage.module.css";
+import {
+  rutaColectivo,
+  RUTA_ALTA_COLECTIVO,
+  RUTA_BIENVENIDA,
+  RUTA_PROYECTOS,
+  RUTA_UNIRME_A_COLECTIVO,
+} from "@/Presentation/Routes/rutas.js";
+import estilos from "./MisSolicitudesPage.module.css";
+
+const BAJADA_DE_LA_ESPERA =
+  "Quienes coordinan el colectivo revisan tu pedido. Cuando lo acepten, vas a entrar directo la próxima vez que ingreses. Podés cerrar esta página y volver cuando quieras.";
 
 export default function MisSolicitudesPage() {
   const consulta = useMisSolicitudesDeIngreso();
+  const { usuario } = useAuth();
+  const espera = useEsperaDeIngreso();
+  const enRegistro = registroIncompleto(usuario);
   const avisar = useAvisos();
   const [aCancelar, setACancelar] = useState(null);
   const refTitulo = useRef(null);
@@ -32,8 +49,10 @@ export default function MisSolicitudesPage() {
     const resultado = await consulta.cancelar(aCancelar);
     if (!resultado) return;
     setACancelar(null);
-    if (resultado.ok) avisar.exito("Cancelaste la solicitud.");
-    else
+    if (resultado.ok) {
+      avisar.exito("Cancelaste la solicitud.");
+      if (espera.enEspera) await espera.volverAElegir();
+    } else
       avisar.error(
         mensajeDeMembresia(
           resultado.error,
@@ -42,16 +61,56 @@ export default function MisSolicitudesPage() {
       );
   }
 
+  async function actualizar() {
+    await Promise.all([espera.actualizar(), consulta.reintentar()]);
+  }
+
+  if (espera.destino) return <Navigate to={espera.destino} replace />;
+
   return (
     <section className={estilos.pagina} aria-labelledby="titulo-mis-solicitudes">
-      <TituloDePagina>Mis solicitudes</TituloDePagina>
-      <div>
+      <TituloDePagina>
+        {espera.enEspera ? "Esperando que te acepten" : "Mis solicitudes"}
+      </TituloDePagina>
+      <div className={estilos.titulos}>
         <h1 id="titulo-mis-solicitudes" ref={refTitulo} tabIndex={-1}>
-          Mis solicitudes
+          {espera.enEspera ? "Esperando que te acepten" : "Mis solicitudes"}
         </h1>
-        <p>Los colectivos a los que pediste sumarte.</p>
+        <p className={estilos.bajada}>
+          {espera.enEspera
+            ? BAJADA_DE_LA_ESPERA
+            : "Los colectivos a los que pediste sumarte."}
+        </p>
       </div>
-      <Listado consulta={consulta} alCancelar={setACancelar} />
+      {espera.enEspera && (
+        <div className={estilos.revision}>
+          <Boton
+            variante="primario"
+            enviando={espera.actualizando}
+            textoEnviando="Actualizando…"
+            onClick={actualizar}
+          >
+            Actualizar
+          </Boton>
+          <p role="status" className={estilos.sinNovedades}>
+            {espera.revisadoA ? textoDeRevisionSinNovedades(espera.revisadoA) : ""}
+          </p>
+        </div>
+      )}
+      <Listado consulta={consulta} alCancelar={setACancelar} enRegistro={enRegistro} />
+      {espera.enEspera && (
+        <div className={estilos.acciones}>
+          <EnlaceBoton to={RUTA_UNIRME_A_COLECTIVO}>
+            Pedir sumarme a otro colectivo
+          </EnlaceBoton>
+          <EnlaceBoton to={RUTA_ALTA_COLECTIVO}>Crear mi propio colectivo</EnlaceBoton>
+        </div>
+      )}
+      {enRegistro && !espera.enEspera && (
+        <div className={estilos.acciones}>
+          <EnlaceBoton to={RUTA_BIENVENIDA}>Elegir cómo registrarme</EnlaceBoton>
+        </div>
+      )}
       <DialogoDeConfirmacion
         abierto={Boolean(aCancelar)}
         titulo="¿Cancelar la solicitud?"
@@ -68,7 +127,7 @@ export default function MisSolicitudesPage() {
   );
 }
 
-function Listado({ consulta, alCancelar }) {
+function Listado({ consulta, alCancelar, enRegistro }) {
   if (consulta.error) {
     return (
       <EstadoDeError
@@ -90,9 +149,13 @@ function Listado({ consulta, alCancelar }) {
       <EstadoVacio
         icono="personas"
         titulo="Todavía no pediste sumarte a ningún colectivo"
-        descripcion="Desde el perfil de un colectivo podés pedir el ingreso."
+        descripcion={
+          enRegistro
+            ? "Cuando pidas sumarte a uno, vas a ver acá cómo va tu pedido."
+            : "Desde el perfil de un colectivo podés pedir el ingreso."
+        }
       >
-        <EnlaceBoton to={RUTA_PROYECTOS}>Explorar proyectos</EnlaceBoton>
+        {!enRegistro && <EnlaceBoton to={RUTA_PROYECTOS}>Explorar proyectos</EnlaceBoton>}
       </EstadoVacio>
     );
   }
@@ -106,15 +169,17 @@ function Listado({ consulta, alCancelar }) {
             <h3>
               <Link to={rutaColectivo(solicitud.colectivo.id)}>{nombre}</Link>
             </h3>
-            <p>
-              <strong>{nombreDelEstadoDeSolicitud(solicitud.estado)}</strong>
+            <p className={estilos.estado}>
+              <SelloDeBusqueda estado={selloDeSolicitud(solicitud.estado)} />
               {fecha && Number.isFinite(Date.parse(fecha)) && (
-                <>
-                  {" "}
-                  · <time dateTime={fecha}>{fechaLarga(fecha)}</time>
-                </>
+                <time dateTime={fecha}>{fechaLarga(fecha)}</time>
               )}
             </p>
+            {enRegistro && solicitud.estado === ESTADO_SOLICITUD.RECHAZADA && (
+              <p className={estilos.ayuda}>
+                Podés pedir sumarte a otro colectivo o crear el tuyo.
+              </p>
+            )}
             {solicitud.estado === ESTADO_SOLICITUD.PENDIENTE && (
               <div className={estilos.acciones}>
                 <Boton
@@ -123,7 +188,7 @@ function Listado({ consulta, alCancelar }) {
                   onClick={() => alCancelar(solicitud)}
                   aria-label={`Cancelar la solicitud a ${nombre}`}
                 >
-                  Cancelar
+                  Cancelar la solicitud
                 </Boton>
               </div>
             )}

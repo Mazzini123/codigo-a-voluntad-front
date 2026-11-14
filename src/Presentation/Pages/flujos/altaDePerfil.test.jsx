@@ -21,7 +21,7 @@ let dejarDeObservar;
 const COLECTIVO = {
   rol: "COLECTIVO",
   perfilId: "c1",
-  alta: "/bienvenida/colectivo",
+  alta: "/bienvenida/colectivo/nuevo",
   endpoint: "/colectivos",
   destino: "/colectivo/resumen",
   titulo: "Resumen del colectivo",

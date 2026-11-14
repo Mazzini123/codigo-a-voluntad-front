@@ -2,6 +2,10 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { informarFalla } from "@/Presentation/Components/App/sesion/informarFalla.js";
 import { ContextoDeSesion } from "@/Presentation/Context/ContextoDeSesion.js";
+import {
+  contextoParaRetomar,
+  necesitaPedidosPendientes,
+} from "@/Application/Domain/Reglas/registro.js";
 import { authDependencies } from "@/Presentation/Dependencies/authDependencies.js";
 import {
   configuracionAuth,
@@ -31,6 +35,19 @@ function conLimite(promesa, ms) {
       setTimeout(resolver, ms);
     }),
   ]);
+}
+
+async function conPedidosPendientes(cuenta, dependencies, signal) {
+  if (
+    !necesitaPedidosPendientes(cuenta) ||
+    !dependencies.listarColectivosConSolicitudPendiente
+  )
+    return cuenta;
+  const pedidosPendientes = await dependencies.listarColectivosConSolicitudPendiente({
+    signal,
+  });
+  signal.throwIfAborted();
+  return { ...cuenta, pedidosPendientes };
 }
 
 class ErrorAlRecargarCuentaDelAlta extends Error {
@@ -101,7 +118,7 @@ export function AuthProvider({
   }, [claveSesionHttp]);
 
   const buscarCuenta = useCallback(
-    async (signal, { desdeAlta = false } = {}) => {
+    async (signal, { desdeAlta = false, sinRetomar = false } = {}) => {
       try {
         const autenticada =
           !vencimientoAvisado.current && !descartada.current && autenticado;
@@ -115,7 +132,20 @@ export function AuthProvider({
           signal.throwIfAborted();
           registroConfirmado.current = { clave: claveSesionHttp, dependencies };
         }
-        return { cuenta: await dependencies.obtenerCuentaActual({ signal }) };
+        const cuenta = await dependencies.obtenerCuentaActual({ signal });
+        const unico = sinRetomar ? null : contextoParaRetomar(cuenta);
+        if (!unico || !dependencies.seleccionarContexto) {
+          return { cuenta: await conPedidosPendientes(cuenta, dependencies, signal) };
+        }
+        try {
+          await dependencies.seleccionarContexto(unico.id, { signal });
+        } catch (falla) {
+          if (signal.aborted) throw falla;
+          return { cuenta: await conPedidosPendientes(cuenta, dependencies, signal) };
+        }
+        signal.throwIfAborted();
+        const retomada = await dependencies.obtenerCuentaActual({ signal });
+        return { cuenta: await conPedidosPendientes(retomada, dependencies, signal) };
       } catch (error) {
         if (desdeAlta) throw new ErrorAlRecargarCuentaDelAlta(error);
         throw error;
@@ -243,7 +273,7 @@ export function AuthProvider({
 
   const invalidarPerfil = useCallback(async () => {
     setPerfilDadoDeBaja(true);
-    await ejecutar();
+    await ejecutar({ sinRetomar: true });
   }, [ejecutar]);
 
   const valor = useMemo(

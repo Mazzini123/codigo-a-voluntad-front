@@ -20,7 +20,7 @@ entonces Logto le abre directamente la pantalla de registro.
 
 Dado una persona que ingresa por primera vez y todavía no tiene perfil,
 cuando vuelve de Logto,
-entonces llega a `/bienvenida` y elige "Soy un colectivo" o "Soy colaboradora" antes de seguir.
+entonces completa su nombre en `/cuenta/nombre`, llega a `/bienvenida` y elige "Registrarme como colectivo" o "Registrarme como colaboradora" antes de seguir. Si elige colectivo, después decide entre crear uno o unirse a uno existente (spec 18).
 
 Dado un visitante sin sesión,
 cuando abre una ruta privada (por ejemplo `/colectivo/proyectos`),
@@ -111,15 +111,16 @@ entonces confirma en un diálogo y vuelve al inicio como visitante.
   - Mientras redirige, el botón muestra "Abriendo…".
   - Sin formularios propios: el usuario y la contraseña se cargan en Logto.
 - **`CallbackPage`:**
-  - Muestra "Iniciando sesión…" (`role="status"`), completa el ingreso, recarga la cuenta y navega con `replace` a `volverA` o al inicio del rol.
+  - Muestra "Iniciando sesión…" (`role="status"`), completa el ingreso, recarga la cuenta y navega con `replace` al paso pendiente del registro (`/cuenta/nombre` o `/bienvenida`) y, si no hay ninguno, a `volverA` o al inicio del rol.
   - Si falla, muestra un `EstadoDeError` "No pudimos iniciar sesión" con un enlace a `/login`.
   - En desarrollo, StrictMode monta dos veces: el ingreso se completa una sola vez (una ref lo evita).
 - **`BienvenidaPage`:**
   - Título "¿Cómo vas a usar Código a Voluntad?".
   - Dos opciones grandes, como enlaces con el aspecto de una tarjeta:
-    - "Soy un colectivo: publico proyectos y busco colaboradoras."
-    - "Soy colaboradora: me sumo a proyectos con mis habilidades."
-  - Cada una lleva al alta del perfil correspondiente (`/bienvenida/colectivo` y `/bienvenida/colaboradora`), que entregan las specs 02 y 03.
+    - "Registrarme como colectivo: creo y administro un colectivo: publico proyectos y busco colaboradoras."
+    - "Registrarme como colaboradora: me sumo a proyectos con mis habilidades, a título personal."
+  - «Registrarme como colaboradora» lleva al alta de su perfil (`/bienvenida/colaboradora`, spec 03).
+  - «Registrarme como colectivo» lleva a `/bienvenida/colectivo`, donde se elige entre crear un colectivo (`/bienvenida/colectivo/nuevo`, spec 02) o unirse a uno existente (spec 18).
   - El usuario puede elegir entre sus contextos activos o dar de alta un perfil compatible con su modalidad.
 
 ### Cabecera
