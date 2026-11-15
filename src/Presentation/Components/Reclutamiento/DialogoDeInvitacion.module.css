@@ -1,0 +1,28 @@
+.contador,
+.excedido {
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  color: var(--color-tinta-suave);
+}
+
+.excedido {
+  color: var(--color-peligro);
+  font-weight: var(--texto-label-peso);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+  border-radius: var(--radio-md);
+  background: var(--color-peligro-tenue);
+  color: var(--color-peligro);
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  font-weight: var(--texto-label-peso);
+}
+
+.error svg {
+  flex-shrink: 0;
+}

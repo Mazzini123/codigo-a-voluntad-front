@@ -1,0 +1,5 @@
+.verificando {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  color: var(--color-tinta-suave);
+}

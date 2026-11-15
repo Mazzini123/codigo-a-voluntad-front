@@ -1,0 +1,23 @@
+.seccion {
+  display: grid;
+  gap: var(--espacio-5);
+  margin-top: var(--espacio-7);
+  min-width: 0;
+}
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--espacio-5);
+  border-left: 2px solid var(--color-linea);
+  display: grid;
+  gap: var(--espacio-6);
+}
+.lista li {
+  overflow-wrap: anywhere;
+}
+.lista time {
+  color: var(--color-tinta-suave);
+}
+.lista p {
+  margin: var(--espacio-2) 0;
+}

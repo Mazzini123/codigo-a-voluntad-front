@@ -1,0 +1,118 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  box-shadow: var(--sombra-tarjeta);
+  border-radius: var(--radio-lg);
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.seccion > legend {
+  margin-block-end: var(--espacio-2);
+  padding: 0;
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-title-tamano);
+  font-weight: var(--texto-title-peso);
+  font-variation-settings: "opsz" var(--texto-title-opsz);
+}
+
+.texto {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.tipoFijo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.privacidad {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4);
+  background: var(--color-info-tenue);
+  border-radius: var(--radio-md);
+  color: var(--color-info);
+  font-size: var(--texto-body-sm-tamano);
+  font-weight: var(--texto-label-peso);
+}
+
+.errorGeneral {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4);
+  background: var(--color-peligro-tenue);
+  border: var(--borde) solid var(--color-peligro);
+  border-radius: var(--radio-md);
+  color: var(--color-tinta);
+  font-weight: var(--texto-label-peso);
+}
+
+.errorGeneral svg {
+  color: var(--color-peligro);
+}
+
+.resumen {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4);
+  background: var(--color-peligro-tenue);
+  border: var(--borde) solid var(--color-peligro);
+  border-radius: var(--radio-md);
+  color: var(--color-tinta);
+  font-weight: var(--texto-label-peso);
+}
+
+.resumen svg {
+  color: var(--color-peligro);
+}
+
+.resumen a {
+  color: var(--color-peligro);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.leyendaDeFormulario {
+  margin-block-end: var(--espacio-2);
+  padding: 0;
+  font-family: var(--fuente-titulos);
+  font-size: var(--texto-title-tamano);
+  font-weight: var(--texto-title-peso);
+  font-variation-settings: "opsz" var(--texto-title-opsz);
+}
+
+.accionesDeFila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}

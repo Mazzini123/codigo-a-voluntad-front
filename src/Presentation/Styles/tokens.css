@@ -1,0 +1,118 @@
+:root {
+  --color-crema: #ffffff;
+  --color-crema-marca: #fbf6ee;
+  --color-superficie: #ffffff;
+  --color-hundido: #f2eadc;
+  --color-linea: #d5c9b4;
+  --color-borde-campo: #857a6a;
+  --color-tinta: #16282b;
+  --color-tinta-suave: #4e5f61;
+  --color-blanco: #ffffff;
+  --color-petroleo: #0f4c4f;
+  --color-petroleo-hover: #0a3739;
+  --color-petroleo-tenue: #e1edeb;
+  --color-coral-vivo: #ff6f4d;
+  --color-coral: #b23a1c;
+  --color-coral-hover: #8f2d14;
+  --color-coral-tenue: #fce6de;
+  --color-peligro: #a3122a;
+  --color-peligro-hover: #7f0d20;
+  --color-peligro-tenue: #fbe4e6;
+  --color-exito: #1f6b3a;
+  --color-exito-tenue: #e3f1e6;
+  --color-aviso: #8a4b00;
+  --color-aviso-tenue: #fbebd3;
+  --color-info: #1d5794;
+  --color-info-tenue: #e2ecf7;
+  --color-telon: rgba(22, 40, 43, 0.55);
+  --color-velo-tinta: rgba(22, 40, 43, 0.08);
+  --color-velo-petroleo: rgba(15, 76, 79, 0.12);
+
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-3: 12px;
+  --espacio-4: 16px;
+  --espacio-5: 24px;
+  --espacio-6: 32px;
+  --espacio-7: 48px;
+  --espacio-8: 64px;
+
+  --radio-sm: 4px;
+  --radio-md: 8px;
+  --radio-lg: 12px;
+  --radio-xl: 16px;
+  --radio-pildora: 999px;
+
+  --fuente-titulos: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --fuente-texto: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+
+  --texto-display-tamano: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --texto-display-peso: 700;
+  --texto-display-altura: 1.1;
+  --texto-display-espaciado: -0.02em;
+  --texto-display-opsz: 48;
+
+  --texto-headline-tamano: 1.75rem;
+  --texto-headline-peso: 700;
+  --texto-headline-altura: 1.2;
+  --texto-headline-espaciado: -0.015em;
+  --texto-headline-opsz: 32;
+
+  --texto-title-tamano: 1.25rem;
+  --texto-title-peso: 600;
+  --texto-title-altura: 1.3;
+  --texto-title-espaciado: -0.005em;
+  --texto-title-opsz: 20;
+
+  --texto-body-tamano: 1.0625rem;
+  --texto-body-peso: 400;
+  --texto-body-altura: 1.55;
+
+  --texto-body-sm-tamano: 0.9375rem;
+  --texto-body-sm-peso: 400;
+  --texto-body-sm-altura: 1.5;
+
+  --texto-label-tamano: 0.875rem;
+  --texto-label-peso: 600;
+  --texto-label-altura: 1.3;
+  --texto-label-espaciado: 0.01em;
+
+  --texto-button-tamano: 1rem;
+  --texto-button-peso: 600;
+  --texto-button-altura: 1.25;
+
+  --sombra-tarjeta: 0 1px 2px rgba(22, 40, 43, 0.08), 0 4px 12px rgba(22, 40, 43, 0.06);
+  --sombra-respuesta:
+    0 2px 4px rgba(15, 76, 79, 0.06), 0 8px 20px -6px rgba(15, 76, 79, 0.14);
+  --sombra-elevacion:
+    0 4px 8px rgba(15, 76, 79, 0.08), 0 24px 48px -12px rgba(15, 76, 79, 0.28);
+
+  --toque-minimo: 44px;
+  --relleno-boton: 10px 20px;
+  --relleno-campo: 10px 12px;
+  --alto-chip: 32px;
+  --ancho-contenedor: 1200px;
+  --ancho-lectura: 720px;
+  --ancho-texto: 68ch;
+  --ancho-vacio: 48ch;
+  --ancho-dialogo: 480px;
+  --ancho-aviso: 400px;
+  --ancho-opcion: 260px;
+  --ancho-menu-cuenta: 220px;
+  --capa-avisos: 100;
+  --capa-menu: 50;
+  --borde: 1px;
+  --borde-control: 1.5px;
+  --anillo-foco: 3px;
+  --icono-sm: 16px;
+  --icono-md: 20px;
+  --icono-lg: 24px;
+  --icono-xl: 32px;
+  --opacidad-atenuada: 0.55;
+
+  --duracion-presion: 120ms;
+  --duracion-hover: 150ms;
+  --duracion-dialogo: 180ms;
+  --duracion-pulso: 1.6s;
+  --duracion-giro: 0.8s;
+}

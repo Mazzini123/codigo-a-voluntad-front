@@ -1,0 +1,63 @@
+.texto {
+  display: grid;
+  gap: var(--espacio-3);
+  max-inline-size: var(--ancho-texto);
+  overflow-wrap: anywhere;
+}
+
+.provisorio {
+  white-space: pre-line;
+}
+
+.texto :is(p, ul, ol, blockquote, pre, h2, h3, h4, h5, h6) {
+  margin: 0;
+}
+
+.texto p {
+  white-space: pre-line;
+}
+
+.texto :is(ul, ol) {
+  padding-inline-start: var(--espacio-5);
+}
+
+.texto li + li {
+  margin-block-start: var(--espacio-1);
+}
+
+.texto :is(h2, h3, h4, h5, h6) {
+  font-size: var(--texto-title-tamano);
+  font-weight: var(--texto-title-peso);
+  line-height: var(--texto-title-altura);
+}
+
+.texto blockquote {
+  padding-inline-start: var(--espacio-4);
+  border-inline-start: var(--espacio-1) solid var(--color-linea);
+  color: var(--color-tinta-suave);
+}
+
+.texto code {
+  padding: 0 var(--espacio-1);
+  border-radius: var(--radio-sm);
+  background: var(--color-hundido);
+  font-size: 0.9em;
+}
+
+.texto pre {
+  overflow-x: auto;
+  padding: var(--espacio-3);
+  border-radius: var(--radio-md);
+  background: var(--color-hundido);
+}
+
+.texto pre code {
+  padding: 0;
+  background: none;
+}
+
+.texto hr {
+  inline-size: 100%;
+  border: 0;
+  border-block-start: var(--borde) solid var(--color-linea);
+}

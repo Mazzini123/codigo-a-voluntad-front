@@ -1,0 +1,6 @@
+export const TIPO_UBICACION = Object.freeze({
+  ARGENTINA: "ARGENTINA",
+  PROVINCIA: "PROVINCIA",
+  CABA: "CABA",
+  LOCALIDAD: "LOCALIDAD",
+});

@@ -1,0 +1,7 @@
+.seccion {
+  border-top: var(--borde) solid var(--color-linea);
+  margin-top: var(--espacio-7);
+  padding-top: var(--espacio-6);
+  display: grid;
+  gap: var(--espacio-4);
+}

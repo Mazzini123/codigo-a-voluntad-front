@@ -1,0 +1,38 @@
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.encabezado > div {
+  flex: 1 1 20rem;
+}
+
+.listado {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.cantidad {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.tarjetas {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  min-inline-size: 0;
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-tarjeta);
+}

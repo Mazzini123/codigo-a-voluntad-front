@@ -1,0 +1,51 @@
+.accesos {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+}
+
+.ingresar,
+.crear {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  padding-inline: var(--espacio-3);
+  border: var(--borde-control) solid transparent;
+  border-radius: var(--radio-md);
+  background: transparent;
+  color: var(--color-crema-marca);
+  font-size: var(--texto-button-tamano);
+  font-weight: var(--texto-button-peso);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.crear {
+  border-color: var(--color-crema-marca);
+}
+
+.accesos [aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--color-coral-vivo);
+  text-decoration-thickness: var(--anillo-foco);
+  text-underline-offset: var(--espacio-2);
+}
+
+.ingresar:hover:not(:disabled),
+.crear:hover:not(:disabled) {
+  color: var(--color-crema-marca);
+  background: var(--color-petroleo-hover);
+}
+
+.ingresar:disabled,
+.crear:disabled {
+  cursor: progress;
+}
+
+@media (width < 48rem) {
+  .accesos {
+    flex-basis: 100%;
+    padding-block-end: var(--espacio-2);
+  }
+}
