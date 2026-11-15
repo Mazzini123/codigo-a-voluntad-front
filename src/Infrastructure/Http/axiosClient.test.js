@@ -466,6 +466,6 @@ describe("contexto", () => {
     );
 
     expect(alCambiarContexto).not.toHaveBeenCalled();
-    expect(error.mensaje).toBe("Tu rol en este colectivo no permite hacer esto.");
+    expect(error.mensaje).toBe("Tu rol actual no permite hacer esto.");
   });
 });

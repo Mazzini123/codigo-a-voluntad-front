@@ -5,6 +5,7 @@ const SESIONES = [
   { proyecto: "sin-perfil", sesion: "SIN_PERFIL", puerto: 5182 },
   { proyecto: "colaboradora", sesion: "COLABORADORA", puerto: 5183 },
   { proyecto: "colectivo", sesion: "COLECTIVO", puerto: 5184 },
+  { proyecto: "administracion", sesion: "ADMINISTRACION", puerto: 5185 },
 ];
 
 const url = (puerto) => `http://localhost:${puerto}`;

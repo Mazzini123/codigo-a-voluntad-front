@@ -27,12 +27,6 @@
   --relleno-superior-principal: var(--espacio-6);
 }
 
-@media (width < 48rem) {
-  .panelColectivo {
-    --mostrar-enlace-actual-cabecera: none;
-  }
-}
-
 @media (width < 30rem) {
   .panelColectivo {
     --ajuste-cabecera: wrap;

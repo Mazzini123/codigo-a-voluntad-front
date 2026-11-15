@@ -1,0 +1,19 @@
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--espacio-4);
+  align-items: start;
+}
+
+@media (width >= 48rem) {
+  .filtros {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  grid-column: 1 / -1;
+}

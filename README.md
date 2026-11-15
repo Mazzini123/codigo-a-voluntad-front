@@ -78,7 +78,7 @@ Los cambios son ficticios y se conservan en esa pesta?a, incluso al cambiar de r
 
 ### Sesión simulada (solo desarrollo)
 
-Para simular solamente el ingreso y el rol sin Logto (los datos siguen requiriendo backend), poner en `.env` `VITE_SESION_SIMULADA=COLECTIVO`, `COLABORADORA` o `SIN_PERFIL` y reiniciar `npm run dev`. "Ingresar" deja la sesión del rol elegido (pasando por `/callback`, como con Logto) y el menú "Mi cuenta" lo indica. No manda token al back y no existe en el build de producción. Con `VITE_SESION_SIMULADA_PERFIL_ID` la cuenta simulada usa el `id` de un colectivo o una colaboradora real del back (según el rol) como su perfil; con `SIN_PERFIL`, al completar un alta adopta el perfil creado. Para cambiar de rol, editar `.env`, reiniciar y cerrar sesión.
+Para simular solamente el ingreso y el rol sin Logto (los datos siguen requiriendo backend), poner en `.env` `VITE_SESION_SIMULADA=COLECTIVO`, `COLABORADORA`, `ADMINISTRACION` o `SIN_PERFIL` y reiniciar `npm run dev`. "Ingresar" deja la sesión del rol elegido (pasando por `/callback`, como con Logto) y el menú "Mi cuenta" lo indica. No manda token al back y no existe en el build de producción. Con `VITE_SESION_SIMULADA_PERFIL_ID` la cuenta simulada usa el `id` de un colectivo o una colaboradora real del back (según el rol) como su perfil; con `SIN_PERFIL`, al completar un alta adopta el perfil creado. Para cambiar de rol, editar `.env`, reiniciar y cerrar sesión.
 
 ## Scripts
 
@@ -96,7 +96,7 @@ Para simular solamente el ingreso y el rol sin Logto (los datos siguen requirien
 
 ### Pruebas de punta a punta
 
-`tests/e2e/` recorre en un navegador real los flujos principales: crear el perfil de un colectivo, buscar un proyecto y postularse, publicar un proyecto y aceptar una postulación. En cada pantalla corre axe con las reglas WCAG 2.2 AA. No necesitan el back ni Logto: Playwright levanta cuatro `vite` (visitante, sin perfil, colaboradora y colectivo, en los puertos 5181 a 5184) con la sesión simulada y responde los pedidos a `/api` con un back en memoria (`tests/e2e/apoyo/backFalso.js`). Cada carpeta de `tests/e2e/` corre con la sesión de su nombre.
+`tests/e2e/` recorre en un navegador real los flujos principales: crear el perfil de un colectivo, buscar un proyecto y postularse, publicar un proyecto y aceptar una postulación. En cada pantalla corre axe con las reglas WCAG 2.2 AA. No necesitan el back ni Logto: Playwright levanta cinco `vite` (visitante, sin perfil, colaboradora, colectivo y administración, en los puertos 5181 a 5185) con la sesión simulada y responde los pedidos a `/api` con un back en memoria (`tests/e2e/apoyo/backFalso.js`). Cada carpeta de `tests/e2e/` corre con la sesión de su nombre.
 
 La primera vez hay que bajar el navegador: `npx playwright install chromium`. Si no se puede bajar, `CHROME_PATH=/ruta/a/chrome npm run test:e2e` usa un Chrome ya instalado. En CI corren en un trabajo aparte y, si fallan, dejan el reporte como artefacto.
 

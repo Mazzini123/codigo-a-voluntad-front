@@ -1,0 +1,5 @@
+export const TIPO_ENTIDAD_AUDITADA = Object.freeze({
+  PROYECTO: "PROYECTO",
+  REVISION: "REVISION",
+  USUARIO: "USUARIO",
+});

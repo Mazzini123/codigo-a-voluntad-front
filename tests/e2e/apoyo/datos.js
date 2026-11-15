@@ -84,3 +84,34 @@ export function unaColaboradora(id, campos = {}) {
     ...campos,
   };
 }
+
+export function unaRevision(id, proyecto, campos = {}) {
+  return {
+    id,
+    proyecto: {
+      id: proyecto.id,
+      titulo: proyecto.titulo,
+      colectivo: { id: "cl-fiorito", nombre: "Asamblea de Fiorito" },
+    },
+    motivo: "SIN_ACTUALIZACIONES",
+    estado: "PENDIENTE",
+    creadaEn: "2026-10-20T12:00:00.000Z",
+    resueltaPor: null,
+    resueltaEn: null,
+    nota: null,
+    ...campos,
+  };
+}
+
+export function unaAccionAdministrativa(id, campos = {}) {
+  return {
+    id,
+    usuarioId: "otra-cuenta",
+    contextoId: "otro-contexto",
+    accion: "PROYECTO_DESTACADO",
+    entidad: { tipo: "PROYECTO", id: "p1" },
+    detalle: { hasta: "2026-12-31T23:59:59.000Z" },
+    fecha: "2026-11-01T12:00:00.000Z",
+    ...campos,
+  };
+}

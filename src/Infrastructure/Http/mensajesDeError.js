@@ -34,7 +34,7 @@ export const MENSAJES_DE_SESION = new Map([
     CODIGO_ERROR.CONTEXTO_REQUERIDO,
     "Elegí con qué perfil querés operar y volvé a intentar.",
   ],
-  [CODIGO_ERROR.PERMISO_INSUFICIENTE, "Tu rol en este colectivo no permite hacer esto."],
+  [CODIGO_ERROR.PERMISO_INSUFICIENTE, "Tu rol actual no permite hacer esto."],
   [CODIGO_ERROR.NOMBRE_REQUERIDO, "Antes de seguir, contanos tu nombre."],
 ]);
 
