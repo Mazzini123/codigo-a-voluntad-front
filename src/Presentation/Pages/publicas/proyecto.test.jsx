@@ -534,6 +534,28 @@ describe("quién ve qué acción", () => {
     );
   });
 
+  test.each([
+    [
+      422,
+      "HABILIDADES_REQUERIDAS_FALTANTES",
+      "No podés postularte: tu perfil no tiene todas las habilidades requeridas de este perfil. Podés sumarlas desde tu perfil de colaboradora.",
+    ],
+    [409, "BUSQUEDA_CERRADA", "La búsqueda de este perfil ya cerró."],
+    [409, "PROYECTO_FINALIZADO", "Este proyecto ya finalizó y no recibe postulaciones."],
+    [409, "POSTULACION_EXISTENTE", "Ya te postulaste a este perfil."],
+  ])(
+    "si el back responde %i %s, el diálogo explica el motivo real",
+    async (status, codigo, texto) => {
+      respuestaAlPostular = { status, data: { codigo } };
+      const { user } = montar("/proyectos/p1", COLABORADORA);
+      await abrirDialogoDeFrontend(user);
+      await user.click(screen.getByRole("button", { name: "Enviar postulación" }));
+      expect(
+        await within(screen.getByRole("dialog")).findByRole("alert"),
+      ).toHaveTextContent(texto);
+    },
+  );
+
   test("un perfil con el límite alcanzado lo dice", async () => {
     proyecto.perfiles[0].limiteColaboraciones = 2;
     montar("/proyectos/p1", COLABORADORA);
@@ -852,11 +874,15 @@ describe("postularse", () => {
   });
 
   test.each([
-    [409, "Ya existe una postulación a este perfil.", "Ya te postulaste a este perfil."],
+    [
+      409,
+      "Ya existe una postulación a este perfil.",
+      "No pudimos registrar tu postulación. Actualizá la página y revisá que el perfil siga recibiendo postulaciones.",
+    ],
     [
       400,
       "No cumplís las habilidades requeridas.",
-      "No pudimos registrar tu postulación. Puede que la búsqueda de este perfil ya haya cerrado.",
+      "No pudimos registrar tu postulación. Actualizá la página y revisá que el perfil siga recibiendo postulaciones.",
     ],
   ])(
     "si el back responde %i deja el diálogo abierto con un mensaje propio, no el del back",
