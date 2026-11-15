@@ -7,6 +7,7 @@ import {
   motivoDeCierre,
   perfilesAbiertos,
 } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
+import { encajeDeHabilidades } from "@/Application/Domain/Reglas/encaje.js";
 
 const TEXTO_PERIODO = Object.freeze({
   [PERIODO_COMPROMISO.HS_MENSUALES]: "por mes",
@@ -122,15 +123,6 @@ export function habilidadesBuscadas(proyecto, hoy = new Date()) {
     }
   }
   return [...vistas.values()];
-}
-
-function encajeDeHabilidades(perfil, codigosPropios) {
-  const total = perfil.habilidadesRequeridas?.length ?? 0;
-  if (total === 0) return null;
-  const tiene = perfil.habilidadesRequeridas.filter((h) =>
-    codigosPropios.has(h.codigo),
-  ).length;
-  return { tiene, total };
 }
 
 export function encajeDelPerfil(perfil, proyecto, codigosPropios, hoy = new Date()) {

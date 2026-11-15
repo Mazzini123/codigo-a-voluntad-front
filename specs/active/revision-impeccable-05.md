@@ -61,7 +61,7 @@ Ordenados por prioridad. Cada uno indica de dónde salió (A: revisión de dise�
 - **Resultado esperado.** El nombre en tinta, con contraste de 4.5:1 o más. axe sin violaciones con el menú abierto.
 - **Respaldo.** §9 «Contraste mínimo de 4.5:1 en el texto»; §12 «Lighthouse no marca problemas importantes».
 
-### R2. Postulaciones recibidas: decidir sin información (P1, A)
+### R2. Postulaciones recibidas: decidir sin información (P1, A) — hecho
 
 - **Dónde.** `PostulacionesRecibidasPage.jsx`:
   - `:278`: el estado es un `<strong>`;
@@ -92,6 +92,12 @@ Ordenados por prioridad. Cada uno indica de dónde salió (A: revisión de dise�
   - La comparación con el perfil usa la misma regla de encaje que «Tenés 1 de 1 habilidad requerida» en el detalle.
   - Quedó anotado en `docs/pendientes-con-el-back.md` el pedido de que `ColaboracionDto` traiga las habilidades.
   - El grupo se titula con `perfil.titulo`, que el back ya manda opcional, y si falta, con la descripción del perfil.
+- **Hecho (15/11/2026).**
+  - La regla de encaje pasó a `Domain/Reglas/encaje.js` y la usan el detalle del proyecto y esta pantalla.
+  - `HabilidadesDelPostulante` muestra «Tiene N de M habilidades requeridas», cada requerida con «la tiene» o «no la tiene» (ícono y texto) y las otras habilidades. Cada fila tiene su carga, su error con «Reintentar», su caso sin habilidades y el de perfil dado de baja. Las postulaciones anónimas no se piden.
+  - Estado con `SelloDeBusqueda`, «Aceptar» primario y «Rechazar» secundario, y las acciones de una aceptada en una sola fila.
+  - El diálogo dice «¿Aceptar a Ada?» y avisa que se van a ver sus datos de contacto; si es anónima, que no se comparten.
+  - Sigue pendiente lo de la ronda 04 en `SolicitudesDeIngresoPage.jsx`, que es otra pantalla.
 - **Respaldo.**
   - §1 «Elegí una acción principal por pantalla y que se note»;
   - §8 «Que filas y tarjetas muestren lo necesario para decidir»;
@@ -354,6 +360,6 @@ Registradas en `docs/decisiones.md`.
 - **Resumen del colectivo (R8).** Bandeja: primero lo que espera respuesta, después los proyectos y al final las estadísticas, visibles.
 - **Postulaciones recibidas (R2).** Las habilidades se piden con `GET /colaboradores/:id` por postulante, sin esperar al back. Queda el pedido al back en `docs/pendientes-con-el-back.md`.
 - **Orden de trabajo.**
-  - R1, R6, R3 y R5 están hechos.
-  - Siguen R4 (un solo marco para el panel) y R2, cada uno en su propia sesión.
+  - R1, R6, R3, R5 y R2 están hechos.
+  - Sigue R4 (un solo marco para el panel), en su propia sesión.
   - Después vienen los P2, con R8 y R9 ya decididos.

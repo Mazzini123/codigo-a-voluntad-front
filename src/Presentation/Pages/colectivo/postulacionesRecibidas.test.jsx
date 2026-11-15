@@ -17,6 +17,8 @@ let dueño;
 let falloDeConsulta;
 let falloDeAccion;
 let codigoDeFallo;
+let colaboradoras;
+let falloDeColaboradora;
 
 function fila(id, estado, campos = {}) {
   return {
@@ -40,6 +42,8 @@ beforeEach(() => {
   falloDeConsulta = false;
   falloDeAccion = null;
   codigoDeFallo = undefined;
+  colaboradoras = {};
+  falloDeColaboradora = null;
   transporte = vi.fn(async (config) => {
     const { url, method } = config;
     const responder = (data) => ({
@@ -64,6 +68,13 @@ beforeEach(() => {
         colectivo: { id: dueño ? "c1" : "otro" },
       });
     if (url === base) return falloDeConsulta ? fallar(500) : responder(filas);
+    if (url.startsWith("/colaboradores/")) {
+      const idColaboradora = url.slice("/colaboradores/".length);
+      if (falloDeColaboradora) fallar(falloDeColaboradora);
+      return responder(
+        colaboradoras[idColaboradora] ?? { id: idColaboradora, habilidades: [] },
+      );
+    }
     if (method === "post" && url.startsWith(base)) {
       const [, id, accion] = url.slice(base.length).split("/");
       const registro = filas.find((item) => item.id === id);
@@ -267,4 +278,86 @@ test("«Ver datos de contacto» aparece solo en aceptadas públicas con id y vue
     estadoDeVuelta: null,
     textoVolver: "Volver a las postulaciones",
   });
+});
+
+const react = { codigo: "react", titulo: "React" };
+const css = { codigo: "css", titulo: "CSS" };
+const sql = { codigo: "sql", titulo: "SQL" };
+
+test("compara las habilidades de cada postulante con las requeridas del perfil", async () => {
+  proyecto.perfiles[0] = {
+    ...proyecto.perfiles[0],
+    titulo: "Diseño de la web",
+    habilidadesRequeridas: [react, css],
+  };
+  colaboradoras.Ada = { id: "Ada", habilidades: [react, sql] };
+  montar();
+  expect(await screen.findByText("Tiene 1 de 2 habilidades requeridas")).toBeVisible();
+  const requeridas = screen.getByRole("list", { name: "Lo que pide el perfil" });
+  expect(within(requeridas).getByText(/React/)).toHaveTextContent("React. La tiene");
+  expect(within(requeridas).getByText(/CSS/)).toHaveTextContent("CSS. No la tiene");
+  const otras = screen.getByRole("list", { name: "Otras habilidades" });
+  expect(within(otras).getByText("SQL")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Diseño de la web" })).toBeVisible();
+});
+
+test("una persona sin habilidades cargadas lo dice en su fila", async () => {
+  montar();
+  expect(await screen.findByText("Todavía no cargó habilidades.")).toBeVisible();
+});
+
+test("si fallan las habilidades se reintenta solo esa fila", async () => {
+  falloDeColaboradora = 500;
+  const { user } = montar();
+  expect(await screen.findByText("No pudimos cargar sus habilidades.")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Aceptar" })).toBeEnabled();
+  falloDeColaboradora = null;
+  colaboradoras.Ada = { id: "Ada", habilidades: [sql] };
+  await user.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(await screen.findByText("SQL")).toBeVisible();
+  expect(transporte.mock.calls.filter(([c]) => c.url === base)).toHaveLength(1);
+});
+
+test("si el perfil de la persona ya no existe lo explica", async () => {
+  falloDeColaboradora = 404;
+  montar();
+  expect(
+    await screen.findByText("Su perfil de colaboradora ya no está disponible."),
+  ).toBeVisible();
+});
+
+test("una postulación anónima no pide habilidades", async () => {
+  filas = [fila("Ada", "PENDIENTE", { esPublica: false })];
+  montar();
+  expect(await screen.findByText("Postulación anónima")).toBeVisible();
+  expect(transporte.mock.calls.some(([c]) => c.url.startsWith("/colaboradores/"))).toBe(
+    false,
+  );
+});
+
+test("el grupo sin título usa la descripción y el estado va en un sello", async () => {
+  filas = [fila("Ada", "PENDIENTE", { fecha: "2026-11-10T12:00:00Z" })];
+  montar();
+  expect(await screen.findByRole("heading", { name: "Interfaz" })).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "Perfil 1" })).not.toBeInTheDocument();
+  expect(screen.getByText("Pendiente").closest("span")).toBeVisible();
+  expect(screen.getByText(/10 de noviembre de 2026/)).toBeVisible();
+});
+
+test("aceptar nombra a la persona y avisa que se comparten los datos de contacto", async () => {
+  const { user } = montar();
+  await user.click(await screen.findByRole("button", { name: "Aceptar" }));
+  const dialogo = screen.getByRole("dialog", { name: "¿Aceptar a Ada?" });
+  expect(within(dialogo).getByText(/sus datos de contacto/)).toBeVisible();
+});
+
+test("las acciones de una aceptada van en una sola fila", async () => {
+  filas = [fila("Ada", "ACEPTADA")];
+  montar();
+  const contacto = await screen.findByRole("link", { name: "Ver datos de contacto" });
+  const acciones = contacto.parentElement;
+  expect(
+    within(acciones).getByRole("button", { name: "Finalizar colaboración" }),
+  ).toBeVisible();
+  expect(within(acciones).getByRole("button", { name: "Desvincular" })).toBeVisible();
 });

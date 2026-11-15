@@ -19,10 +19,16 @@ import {
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import {
+  confirmacionDeAceptar,
   ESTADOS,
+  fechaValida,
   MENSAJE_COLABORACION_PROPIA,
   nombreDelPostulante,
+  selloDePostulacion,
+  tituloDelGrupo,
 } from "@/Presentation/Formatos/colaboracion.js";
+import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
+import { HabilidadesDelPostulante } from "@/Presentation/Components/Postulacion/HabilidadesDelPostulante.jsx";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   esContribucionAnonimaAceptada,
@@ -44,8 +50,6 @@ import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
 const ACCIONES = {
   aceptar: {
     texto: "Aceptar",
-    titulo: "¿Aceptar la postulación?",
-    descripcion: "La persona pasa a colaborar en este perfil y ocupa un lugar.",
     resultado: "Se aceptó la postulación.",
   },
   rechazar: {
@@ -69,7 +73,7 @@ function agrupar(perfiles, filas, filtro) {
     perfiles.map((perfil, indice) => [
       perfil.id,
       {
-        titulo: perfil.titulo || `Perfil ${indice + 1}`,
+        titulo: tituloDelGrupo(perfil, indice),
         perfil,
         filas: [],
         aceptadas: 0,
@@ -119,7 +123,10 @@ function Postulaciones({ id }) {
     cambiarPagina,
   } = usePostulacionesRecibidas(id, filtro);
   const [proyecto, filas] = datos ?? [null, []];
-  const accion = confirmacion && ACCIONES[confirmacion.tipo];
+  const accion = confirmacion && {
+    ...ACCIONES[confirmacion.tipo],
+    ...(confirmacion.tipo === "aceptar" && confirmacionDeAceptar(confirmacion.fila)),
+  };
   const grupos = agrupar(proyecto?.perfiles ?? [], filas, filtro);
 
   function cambiarFiltro(evento) {
@@ -130,7 +137,7 @@ function Postulaciones({ id }) {
   }
 
   async function confirmar() {
-    const resultado = await resolver(confirmacion.tipo, confirmacion.id);
+    const resultado = await resolver(confirmacion.tipo, confirmacion.fila.id);
     if (!resultado) return;
     setConfirmacion(null);
     if (resultado.fallo) {
@@ -189,7 +196,7 @@ function Postulaciones({ id }) {
               editable={proyecto.estado === PROYECTO_ESTADO.ABIERTO}
               ocupado={procesando || cargando}
               alActualizar={reintentar}
-              alElegir={(tipo, id) => setConfirmacion({ tipo, id })}
+              alElegir={(tipo, fila) => setConfirmacion({ tipo, fila })}
             />
           ))}
         </>
@@ -229,13 +236,14 @@ function Grupo({ proyectoId, grupo, editable, ocupado, alElegir, alActualizar })
   return (
     <section className={estilos.grupo}>
       <h2>{grupo.titulo}</h2>
-      {perfil && <p>{perfil.descripcion}</p>}
+      {perfil?.titulo && perfil.descripcion && <p>{perfil.descripcion}</p>}
       <ul className={estilos.lista}>
         {grupo.filas.map((fila) => (
           <Fila
             key={fila.id}
             proyectoId={proyectoId}
             fila={fila}
+            perfil={perfil}
             motivo={motivo}
             editable={editable}
             ocupado={ocupado}
@@ -248,51 +256,47 @@ function Grupo({ proyectoId, grupo, editable, ocupado, alElegir, alActualizar })
   );
 }
 
-function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActualizar }) {
+function Fila({
+  proyectoId,
+  fila,
+  perfil,
+  motivo,
+  editable,
+  ocupado,
+  alElegir,
+  alActualizar,
+}) {
   const location = useLocation();
   const { usuario } = useAuth();
   const propia = esColaboracionPropia(usuario, fila);
   const persona = postulanteVisible(fila);
   const nombre = nombreDelPostulante(fila);
-  const habilidades = persona?.habilidades?.map(({ titulo }) => titulo).filter(Boolean);
-  const estado =
-    ESTADOS.find(({ valor }) => valor === fila.estado)?.singular ??
-    "Estado no disponible";
-  const fecha = fila.fecha && Number.isFinite(Date.parse(fila.fecha));
+  const volver = estadoParaVolver(location, "Volver a las postulaciones");
   return (
     <li className={estilos.fila}>
-      <h3>
-        {persona?.id ? (
-          <Link
-            className={estilos.enlace}
-            to={rutaColaboradora(persona.id)}
-            state={estadoParaVolver(location, "Volver a las postulaciones")}
-          >
-            {nombre}
-          </Link>
-        ) : (
-          nombre
-        )}
-      </h3>
-      <p>
-        <strong>{estado}</strong>
-        {fecha && (
-          <>
-            {" "}
-            · <time dateTime={fila.fecha}>{fechaLarga(fila.fecha)}</time>
-          </>
-        )}
-      </p>
-      {habilidades?.length > 0 && <p>Habilidades: {habilidades.join(", ")}</p>}
-      {puedeVerContacto(fila) && (
-        <div className={estilos.acciones}>
-          <EnlaceBoton
-            to={rutaContactoDeColaboradora(proyectoId, persona.id)}
-            state={estadoParaVolver(location, "Volver a las postulaciones")}
-          >
-            Ver datos de contacto
-          </EnlaceBoton>
-        </div>
+      <div className={estilos.cabecera}>
+        <h3>
+          {persona?.id ? (
+            <Link
+              className={estilos.enlace}
+              to={rutaColaboradora(persona.id)}
+              state={volver}
+            >
+              {nombre}
+            </Link>
+          ) : (
+            nombre
+          )}
+        </h3>
+        <p className={estilos.estado}>
+          <SelloDeBusqueda estado={selloDePostulacion(fila.estado)} />
+          {fechaValida(fila.fecha) && (
+            <time dateTime={fila.fecha}>{fechaLarga(fila.fecha)}</time>
+          )}
+        </p>
+      </div>
+      {persona?.id && (
+        <HabilidadesDelPostulante colaboradoraId={persona.id} perfil={perfil} />
       )}
       {esContribucionAnonimaAceptada(fila) && <p>{MENSAJE_CONTRIBUCION_ANONIMA}</p>}
       <AccionesDeColaboracion
@@ -300,38 +304,47 @@ function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActuali
         colaboracion={fila}
         ocupado={ocupado}
         alActualizar={alActualizar}
-      />
-      {editable && fila.estado === ESTADO.PENDIENTE && (
-        <div className={estilos.acciones}>
-          <Boton
-            disabled={ocupado || Boolean(motivo) || propia}
-            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : motivo}
-            onClick={() => alElegir("aceptar", fila.id)}
-          >
-            Aceptar
-          </Boton>
+        antes={
+          puedeVerContacto(fila) && (
+            <EnlaceBoton
+              to={rutaContactoDeColaboradora(proyectoId, persona.id)}
+              state={volver}
+            >
+              Ver datos de contacto
+            </EnlaceBoton>
+          )
+        }
+      >
+        {editable && fila.estado === ESTADO.PENDIENTE && (
+          <>
+            <Boton
+              variante="primario"
+              disabled={ocupado || Boolean(motivo) || propia}
+              motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : motivo}
+              onClick={() => alElegir("aceptar", fila)}
+            >
+              Aceptar
+            </Boton>
+            <Boton
+              disabled={ocupado || propia}
+              motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
+              onClick={() => alElegir("rechazar", fila)}
+            >
+              Rechazar
+            </Boton>
+          </>
+        )}
+        {editable && fila.estado === ESTADO.ACEPTADA && (
           <Boton
             variante="peligroso"
             disabled={ocupado || propia}
             motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
-            onClick={() => alElegir("rechazar", fila.id)}
-          >
-            Rechazar
-          </Boton>
-        </div>
-      )}
-      {editable && fila.estado === ESTADO.ACEPTADA && (
-        <div className={estilos.acciones}>
-          <Boton
-            variante="peligroso"
-            disabled={ocupado || propia}
-            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
-            onClick={() => alElegir("desvincular", fila.id)}
+            onClick={() => alElegir("desvincular", fila)}
           >
             Desvincular
           </Boton>
-        </div>
-      )}
+        )}
+      </AccionesDeColaboracion>
     </li>
   );
 }

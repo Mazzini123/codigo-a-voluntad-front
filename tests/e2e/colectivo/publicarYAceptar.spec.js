@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { esperarSinViolaciones } from "../apoyo/accesibilidad.js";
 import { conBackFalso } from "../apoyo/backFalso.js";
-import { unColectivo, unProyecto } from "../apoyo/datos.js";
+import { unaColaboradora, unColectivo, unProyecto } from "../apoyo/datos.js";
 import { conSesionIniciada } from "../apoyo/sesion.js";
 
 const ID = "colectivo-simulado";
@@ -69,6 +69,7 @@ test("un colectivo publica un proyecto en tres pasos y llega a su detalle", asyn
 
 test("un colectivo acepta una postulación pendiente", async ({ page }) => {
   const { estado, noAtendidos } = await preparar(page, (inicial) => {
+    inicial.colaboradores.set("co-ada", unaColaboradora("co-ada"));
     inicial.proyectos.set("pc", {
       ...unProyecto("pc", {
         titulo: "Turnos de la huerta",
@@ -94,10 +95,11 @@ test("un colectivo acepta una postulación pendiente", async ({ page }) => {
   await page.goto("/proyectos/pc/postulaciones");
   const aceptar = page.getByRole("button", { name: "Aceptar" });
   await expect(aceptar).toBeVisible();
+  await expect(page.getByText("React")).toBeVisible();
   await esperarSinViolaciones(page);
   await aceptar.click();
 
-  const dialogo = page.getByRole("dialog", { name: "¿Aceptar la postulación?" });
+  const dialogo = page.getByRole("dialog", { name: "¿Aceptar a Ada?" });
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Aceptar" }).click();
 

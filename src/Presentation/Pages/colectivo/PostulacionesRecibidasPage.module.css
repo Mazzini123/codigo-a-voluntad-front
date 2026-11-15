@@ -40,3 +40,21 @@
 .filtro {
   max-inline-size: var(--ancho-aviso);
 }
+
+.cabecera {
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.cabecera h3,
+.estado {
+  margin: 0;
+}
+
+.estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+  color: var(--color-tinta-suave);
+}
