@@ -570,18 +570,22 @@ describe("navegación del panel", () => {
 });
 
 describe("cargando y con error", () => {
+  // Cada sección queda cargando mientras no llega su propia consulta: Postulaciones
+  // depende de /postulaciones, no de /proyectos. Bloquear otra deja una carrera.
   test.each([
-    ["/colectivo/resumen", "Resumen del colectivo"],
-    ["/colectivo/proyectos", "Mis proyectos"],
-    ["/colectivo/postulaciones", "Postulaciones pendientes"],
+    ["/colectivo/resumen", "Resumen del colectivo", "/colectivos/c1/proyectos"],
+    ["/colectivo/proyectos", "Mis proyectos", "/colectivos/c1/proyectos"],
+    [
+      "/colectivo/postulaciones",
+      "Postulaciones pendientes",
+      "/colectivos/c1/postulaciones",
+    ],
   ])(
     "%s mientras carga anuncia que está cargando y mantiene el encabezado",
-    async (ruta, titulo) => {
+    async (ruta, titulo, consultaPendiente) => {
       const responder = transporte.getMockImplementation();
       transporte.mockImplementation((config) =>
-        config.url === "/colectivos/c1/proyectos"
-          ? new Promise(() => {})
-          : responder(config),
+        config.url === consultaPendiente ? new Promise(() => {}) : responder(config),
       );
       montar(ruta);
       expect(await screen.findByText(/^Cargando /)).toBeInTheDocument();
