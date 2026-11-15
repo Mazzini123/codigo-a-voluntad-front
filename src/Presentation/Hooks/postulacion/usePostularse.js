@@ -8,15 +8,22 @@ import { useMutacion } from "@/Presentation/Hooks/comunes/useMutacion.js";
 export const AVISO_POSTULADA = "Te postulaste. El colectivo va a revisar tu postulación.";
 export const AVISO_ACEPTADA = "Listo: ya sos parte de este perfil.";
 
-const PERFIL_CERRADO =
-  "No pudimos registrar tu postulación. Puede que la búsqueda de este perfil ya haya cerrado.";
+const NO_REGISTRADA =
+  "No pudimos registrar tu postulación. Actualizá la página y revisá que el perfil siga recibiendo postulaciones.";
 const MENSAJE_COLECTIVO_PROPIO =
   "Sos parte de este colectivo, así que no podés postularte a sus proyectos.";
-const MENSAJES = Object.freeze({
-  400: PERFIL_CERRADO,
-  409: "Ya te postulaste a este perfil.",
-  422: PERFIL_CERRADO,
+// El código del back dice el motivo exacto; el estado HTTP solo queda como respaldo.
+export const MENSAJES_DE_POSTULACION = Object.freeze({
+  400: NO_REGISTRADA,
+  409: NO_REGISTRADA,
+  422: NO_REGISTRADA,
   [CODIGO_ERROR.POSTULACION_EN_COLECTIVO_PROPIO]: MENSAJE_COLECTIVO_PROPIO,
+  [CODIGO_ERROR.HABILIDADES_REQUERIDAS_FALTANTES]:
+    "No podés postularte: tu perfil no tiene todas las habilidades requeridas de este perfil. Podés sumarlas desde tu perfil de colaboradora.",
+  [CODIGO_ERROR.BUSQUEDA_CERRADA]: "La búsqueda de este perfil ya cerró.",
+  [CODIGO_ERROR.PROYECTO_FINALIZADO]:
+    "Este proyecto ya finalizó y no recibe postulaciones.",
+  [CODIGO_ERROR.POSTULACION_EXISTENTE]: "Ya te postulaste a este perfil.",
 });
 
 export function usePostularse(
@@ -35,7 +42,7 @@ export function usePostularse(
     [proyectoId, colaboradoraId, dependencies],
   );
   const { ejecutar, enviando, error, reiniciar } = useMutacion(registrar, {
-    mensajes: MENSAJES,
+    mensajes: MENSAJES_DE_POSTULACION,
   });
 
   const postularse = useCallback(
