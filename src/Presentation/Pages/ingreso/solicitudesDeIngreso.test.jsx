@@ -114,9 +114,15 @@ test("una solicitud repetida se explica en lenguaje claro", async () => {
   ).toBeVisible();
 });
 
+test("una cuenta con perfil de colaboradora también puede pedir el ingreso", async () => {
+  const cuenta = { ...persona, contextos: [{ id: "x", tipo: "COLABORADOR" }] };
+  const { user } = montar("/colectivos/c1", cuenta);
+  await user.click(await screen.findByRole("button", { name: "Pedir sumarme" }));
+  expect(await screen.findByText(/Enviamos tu solicitud/)).toBeVisible();
+});
+
 test.each([
   ["sin sesión", null],
-  ["como colaboradora", { ...persona, contextos: [{ id: "x", tipo: "COLABORADOR" }] }],
   [
     "si ya es parte",
     { ...persona, contextos: [{ id: "x", tipo: "COLECTIVO", colectivo: { id: "c1" } }] },

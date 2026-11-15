@@ -41,8 +41,8 @@ export function AbandonarColectivo({ colectivoId, esLider }) {
       <h2 id="abandonar-colectivo">Salir del colectivo</h2>
       <p>
         {esLider
-          ? "Si tenés el liderazgo, antes de salir tenés que pasárselo a otra persona."
-          : "Dejás de operar como parte del colectivo. El historial sigue visible."}
+          ? "Como coordinás el colectivo, antes de salir tenés que pasarle la coordinación a otra persona."
+          : "Vas a dejar de ver el panel y de actuar en nombre del colectivo. Lo que ya hiciste sigue a la vista."}
       </p>
       <Boton
         variante="peligroso"

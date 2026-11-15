@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ProyectosDestacados } from "@/Presentation/Components/Proyecto/listado/ProyectosDestacados.jsx";
 import { EstadisticasGlobales } from "@/Presentation/Components/Estadistica/EstadisticasGlobales.jsx";
 import { Navigate, useLocation } from "react-router-dom";
 import ilustracionColaboracion from "@/assets/inicio-colaboracion.webp";
@@ -85,6 +86,8 @@ export function InicioPage() {
           />
         </div>
       </header>
+
+      <ProyectosDestacados />
 
       <section className={estilos.recorridos} aria-labelledby="como-empezar">
         <h2 id="como-empezar" tabIndex={-1}>

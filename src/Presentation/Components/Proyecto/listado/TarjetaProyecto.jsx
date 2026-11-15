@@ -19,6 +19,7 @@ import {
   perfilesAbiertos,
 } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
 import { FranjaDeEncaje } from "@/Presentation/Components/Proyecto/detalle/FranjaDeEncaje.jsx";
+import { SelloDeDestacado } from "./SelloDeDestacado.jsx";
 import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
 import estilos from "./TarjetaProyecto.module.css";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
@@ -71,6 +72,7 @@ export function TarjetaProyecto({
       className={clases(estilos.tarjeta, !propia && estilos.exploracion)}
       aria-labelledby={idTitulo}
     >
+      {proyecto.destacado === true && <SelloDeDestacado />}
       <div
         className={clases(estilos.encabezado, estadoAlCostado && estilos.estadoAlCostado)}
       >

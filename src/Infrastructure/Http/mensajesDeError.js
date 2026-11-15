@@ -36,10 +36,6 @@ export const MENSAJES_DE_SESION = new Map([
   ],
   [CODIGO_ERROR.PERMISO_INSUFICIENTE, "Tu rol en este colectivo no permite hacer esto."],
   [CODIGO_ERROR.NOMBRE_REQUERIDO, "Antes de seguir, contanos tu nombre."],
-  [
-    CODIGO_ERROR.MODALIDAD_INCOMPATIBLE,
-    "Tu cuenta ya opera con otro tipo de perfil. No se pueden usar los dos a la vez.",
-  ],
 ]);
 
 export function esDemora(error) {

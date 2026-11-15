@@ -211,12 +211,10 @@ describe("alta", () => {
     expect(nombre).toHaveFocus();
   });
 
-  test("una cuenta que ya tiene perfil no vuelve a elegir tipo", async () => {
+  test("una cuenta que ya tiene un colectivo puede crear otro", async () => {
     cuenta = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "c1" };
     montar("/bienvenida/colectivo/nuevo");
-    expect(
-      await screen.findByRole("heading", { level: 1, name: "Resumen del colectivo" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Nombre/)).toBeInTheDocument();
   });
 });
 

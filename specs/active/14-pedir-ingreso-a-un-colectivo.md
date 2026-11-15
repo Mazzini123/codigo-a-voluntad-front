@@ -4,9 +4,11 @@ Origen: rediseño de autenticación y contextos (10/11/2026). Registro de lo imp
 
 Actualización (14/11/2026): durante el registro, el pedido de ingreso se hace desde `/bienvenida/colectivo/unirme` y la persona espera en «Mis solicitudes» sin entrar a ningún panel. Ver spec 18.
 
+Actualización (14/11/2026): el botón ya no se oculta por tener perfil de colaboradora. Ver spec 19.
+
 ## Intención
 
-Que una persona con sesión y sin perfil de colaboradora pueda pedir sumarse a un colectivo existente y seguir o cancelar sus pedidos.
+Que una persona con sesión pueda pedir sumarse a un colectivo existente y seguir o cancelar sus pedidos.
 
 ## Escenarios
 
@@ -16,7 +18,7 @@ Dada una persona en «Mis solicitudes», cuando cancela una pendiente y confirma
 
 ## Requisitos
 
-- El botón no aparece sin sesión, con perfil de colaboradora, si ya es parte del colectivo o si el colectivo está dado de baja.
+- El botón no aparece sin sesión, si ya es parte del colectivo o si el colectivo está dado de baja.
 - «Mis solicitudes» ordena primero las pendientes y muestra nombre del colectivo, estado y fecha.
 - Accesos: menú de cuenta y Bienvenida (opción «Quiero sumarme a un colectivo» y enlace a «Mis solicitudes») para cuentas que ya tienen contextos. Durante el registro, «Registrarme como colectivo» → «Unirme a un colectivo» (spec 18).
 

@@ -53,8 +53,8 @@ export function NombrePage() {
         {completando ? "¿Cómo te llamás?" : "Tu nombre"}
       </h1>
       <p className={estilos.bajada}>
-        Es el nombre con el que te van a ver las personas de tus colectivos. Lo guardamos
-        nosotros, no tu cuenta de ingreso, y lo podés cambiar cuando quieras.
+        Es el nombre con el que te van a ver las personas de tus colectivos. Lo podés
+        cambiar cuando quieras.
       </p>
       <form className={estilos.formulario} onSubmit={alEnviar} noValidate>
         <Campo

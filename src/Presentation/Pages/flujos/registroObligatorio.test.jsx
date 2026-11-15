@@ -74,7 +74,6 @@ function crearBack({
     },
     "post /colectivos": (datos) => {
       if (!estado.nombre) return [409, { codigo: "NOMBRE_REQUERIDO" }];
-      if (tiene("COLABORADOR")) return [409, { codigo: "MODALIDAD_INCOMPATIBLE" }];
       const id = `colectivo-${estado.contextos.length + 1}`;
       agregarContexto({
         id: `ctx-${id}`,
@@ -88,7 +87,6 @@ function crearBack({
     },
     "post /colaboradores": (datos) => {
       if (!estado.nombre) return [409, { codigo: "NOMBRE_REQUERIDO" }];
-      if (tiene("COLECTIVO")) return [409, { codigo: "MODALIDAD_INCOMPATIBLE" }];
       if (tiene("COLABORADOR")) return [409, { codigo: "PERFIL_COLABORADOR_EXISTENTE" }];
       agregarContexto({
         id: "ctx-colaboradora",
@@ -191,6 +189,14 @@ const CONTEXTO_LIDER = {
   colectivo: { id: "colectivo-1", nombre: "Asamblea de Fiorito" },
   colaborador: null,
   permisos: ["COLECTIVO_EDITAR"],
+};
+const CONTEXTO_COLABORADORA = {
+  id: "ctx-colaboradora-1",
+  tipo: "COLABORADOR",
+  rol: "COLABORADOR",
+  colectivo: null,
+  colaborador: { id: "colaboradora-1", nombre: "Pixel" },
+  permisos: ["POSTULACION_CREAR"],
 };
 const CON_NOMBRE = { registrado: true, nombre: "Ana" };
 const COMPLETA = {
@@ -387,13 +393,26 @@ describe("retomar el registro según el estado del back", () => {
     expect(back.estado.contextos).toEqual([]);
   });
 
-  test("al recargar el alta con la modalidad ya creada va al panel sin repetirla", async () => {
+  test("al recargar el alta de colaboradora con el perfil ya creado va a su inicio sin repetirla", async () => {
+    const back = crearBack({
+      ...CON_NOMBRE,
+      contextos: [CONTEXTO_COLABORADORA],
+      actual: CONTEXTO_COLABORADORA.id,
+    });
+    const { router } = montar(back, "/bienvenida/colaboradora");
+
+    await enRuta(router, "/proyectos");
+    expect(back.veces("post /colaboradores")).toBe(0);
+    expect(back.estado.contextos).toHaveLength(1);
+  });
+
+  test("quien ya lidera un colectivo puede crear otro", async () => {
     const back = crearBack(COMPLETA);
     const { router } = montar(back, "/bienvenida/colectivo/nuevo");
 
-    await enRuta(router, "/colectivo/resumen");
+    expect(await screen.findByLabelText(/^Nombre/)).toBeVisible();
+    expect(router.state.location.pathname).toBe("/bienvenida/colectivo/nuevo");
     expect(back.veces("post /colectivos")).toBe(0);
-    expect(back.estado.contextos).toHaveLength(1);
   });
 
   test("si se pierde la respuesta del alta, consulta la cuenta y no crea otro contexto", async () => {
@@ -458,5 +477,67 @@ describe("cuentas que ya terminaron el registro", () => {
     expect(back.estado.actual).toBe(CONTEXTO_LIDER.id);
     expect(back.veces("put /auth/contexto-actual")).toBe(1);
     expect(back.veces("post /colectivos")).toBe(0);
+  });
+});
+
+describe("cuentas con los dos tipos de contexto", () => {
+  test("una colaboradora crea un colectivo desde Mi cuenta y vuelve a su perfil", async () => {
+    const back = crearBack({
+      ...CON_NOMBRE,
+      contextos: [CONTEXTO_COLABORADORA],
+      actual: CONTEXTO_COLABORADORA.id,
+    });
+    const { user, router } = montar(back, "/proyectos");
+
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    await user.click(screen.getByRole("link", { name: "Crear un colectivo" }));
+    expect(router.state.location.pathname).toBe("/bienvenida/colectivo/nuevo");
+    await completarColectivo(user);
+
+    await enRuta(router, "/colectivo/resumen");
+    expect(back.estado.contextos.map(({ tipo }) => tipo)).toEqual([
+      "COLABORADOR",
+      "COLECTIVO",
+    ]);
+    expect(back.veces("post /colectivos")).toBe(1);
+
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    const cambiar = screen.getByRole("list", { name: "Cambiar a" });
+    await user.click(within(cambiar).getByRole("button", { name: /Pixel/ }));
+
+    await enRuta(router, "/proyectos");
+    expect(back.estado.actual).toBe(CONTEXTO_COLABORADORA.id);
+  });
+
+  test("un colectivo suma su perfil de colaboradora y Mi cuenta deja de ofrecerlo", async () => {
+    const back = crearBack(COMPLETA);
+    const { user, router } = montar(back, "/colectivo/resumen");
+
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    await user.click(
+      screen.getByRole("link", { name: "Crear mi perfil de colaboradora" }),
+    );
+    await completarColaboradora(user);
+
+    await enRuta(router, "/proyectos");
+    expect(back.estado.contextos.map(({ tipo }) => tipo)).toEqual([
+      "COLECTIVO",
+      "COLABORADOR",
+    ]);
+    expect(back.veces("post /colaboradores")).toBe(1);
+
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    expect(
+      screen.queryByRole("link", { name: "Crear mi perfil de colaboradora" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Crear un colectivo" })).toBeVisible();
+
+    const cambiar = screen.getByRole("list", { name: "Cambiar a" });
+    await user.click(
+      within(cambiar).getByRole("button", { name: /Asamblea de Fiorito/ }),
+    );
+
+    await enRuta(router, "/colectivo/resumen");
+    expect(back.estado.actual).toBe(CONTEXTO_LIDER.id);
   });
 });

@@ -5,7 +5,7 @@ const IGNORADA = Object.freeze({ ok: false, ignorada: true, datos: null, error: 
 
 function conMensajePropio(error, mensajes) {
   if (error?.esDeSesion) return error;
-  const mensaje = mensajes?.[error?.status];
+  const mensaje = mensajes?.[error?.codigo] ?? mensajes?.[error?.status];
   return mensaje && typeof error.conMensaje === "function"
     ? error.conMensaje(mensaje)
     : error;

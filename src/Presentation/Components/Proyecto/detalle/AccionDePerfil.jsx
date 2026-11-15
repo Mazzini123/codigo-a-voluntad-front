@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
+import { participaEnElColectivo } from "@/Application/Domain/Reglas/postulacion.js";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import { ESTADO_BUSQUEDA, motivoNoPostulable } from "@/Presentation/Formatos/proyecto.js";
 import { RUTA_BIENVENIDA, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
@@ -26,6 +27,9 @@ const SELLO_DE_POSTULACION = Object.freeze({
   },
 });
 
+const MOTIVO_COLECTIVO_PROPIO =
+  "Sos parte del colectivo que publicó este proyecto, así que no podés postularte.";
+
 export function AccionDePerfil({
   perfil,
   proyecto,
@@ -49,7 +53,9 @@ export function AccionDePerfil({
       </span>
     );
 
-  const motivo = motivoNoPostulable(perfil, proyecto, hoy);
+  const motivo = participaEnElColectivo(usuario, proyecto.colectivo?.id)
+    ? MOTIVO_COLECTIVO_PROPIO
+    : motivoNoPostulable(perfil, proyecto, hoy);
   if (motivo) {
     return (
       <Boton disabled motivoDeshabilitado={motivo}>
@@ -71,7 +77,7 @@ export function AccionDePerfil({
     return <EnlaceBoton to={RUTA_BIENVENIDA}>Completar mi perfil</EnlaceBoton>;
   }
   return (
-    <Boton variante="primario" onClick={() => alPostular(perfil)}>
+    <Boton variante="secundario" onClick={() => alPostular(perfil)}>
       Postularme
     </Boton>
   );

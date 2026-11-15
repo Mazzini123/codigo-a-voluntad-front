@@ -179,10 +179,12 @@ test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
   expect(
     await screen.findByRole("heading", { name: "Seguí donde estabas" }),
   ).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Crear un colectivo/ })).toBeInTheDocument();
   expect(
-    screen.queryByRole("link", { name: /Registrarme como colaboradora/ }),
-  ).not.toBeInTheDocument();
+    within(screen.getByRole("main")).getByRole("link", { name: /Crear un colectivo/ }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: /Registrarme como colaboradora/ }),
+  ).toBeInTheDocument();
   expect(dependencies.seleccionarContexto).not.toHaveBeenCalled();
 
   const seccion = screen.getByRole("region", { name: "Seguí donde estabas" });
@@ -192,6 +194,43 @@ test("en Bienvenida elige uno de sus contextos y va a su inicio", async () => {
     await screen.findByRole("heading", { name: "Resumen del colectivo" }),
   ).toBeInTheDocument();
   expect(dependencies.seleccionarContexto.mock.calls).toEqual([["ctx-colectivo"]]);
+});
+
+test("en Bienvenida, quien ya es colaboradora no vuelve a ver el alta de colaboradora", async () => {
+  const contextoColaboradora = {
+    id: "ctx-colaboradora",
+    tipo: "COLABORADOR",
+    rol: "COLABORADOR",
+    colectivo: null,
+    colaborador: { id: "co1", nombre: "Pixel" },
+    permisos: [],
+  };
+  const estado = {
+    cuenta: cuenta({
+      rol: null,
+      perfilId: null,
+      contextoActual: null,
+      contextos: [contextoColaboradora, CONTEXTO_COLECTIVO],
+    }),
+  };
+  montarRutas(rutas, {
+    ruta: "/bienvenida",
+    cuenta: estado.cuenta,
+    dependencies: dependenciasCon(estado),
+  });
+
+  expect(
+    await within(await screen.findByRole("main")).findByRole("link", {
+      name: /Crear un colectivo/,
+    }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("link", { name: /Quiero sumarme a un colectivo/ }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("link", { name: /Registrarme como colaboradora/ }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByText(/no las dos cosas a la vez/)).not.toBeInTheDocument();
 });
 
 test("cerrar sesión intenta limpiar el contexto y cierra aunque el back no responda", async () => {

@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
 import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { colaboracionDependencies } from "@/Presentation/Dependencies/colaboracionDependencies.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
@@ -9,10 +10,13 @@ export const AVISO_ACEPTADA = "Listo: ya sos parte de este perfil.";
 
 const PERFIL_CERRADO =
   "No pudimos registrar tu postulación. Puede que la búsqueda de este perfil ya haya cerrado.";
+const MENSAJE_COLECTIVO_PROPIO =
+  "Sos parte de este colectivo, así que no podés postularte a sus proyectos.";
 const MENSAJES = Object.freeze({
   400: PERFIL_CERRADO,
   409: "Ya te postulaste a este perfil.",
   422: PERFIL_CERRADO,
+  [CODIGO_ERROR.POSTULACION_EN_COLECTIVO_PROPIO]: MENSAJE_COLECTIVO_PROPIO,
 });
 
 export function usePostularse(

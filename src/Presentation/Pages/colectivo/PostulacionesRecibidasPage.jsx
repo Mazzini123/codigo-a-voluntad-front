@@ -2,6 +2,11 @@ import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.
 import { useCallback, useRef, useState } from "react";
 import { AccionesDeColaboracion } from "@/Presentation/Components/Valoracion/AccionesDeColaboracion.jsx";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
+import {
+  esColaboracionPropia,
+  postulanteVisible,
+} from "@/Application/Domain/Reglas/postulacion.js";
 import { COLABORACION_ESTADO as ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { EnlaceBoton } from "@/Presentation/Components/App/ui/EnlaceBoton.jsx";
@@ -13,8 +18,12 @@ import {
   Esqueleto,
 } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
-import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
-import { ESTADOS } from "@/Presentation/Formatos/colaboracion.js";
+import {
+  ESTADOS,
+  MENSAJE_COLABORACION_PROPIA,
+  nombreDelPostulante,
+} from "@/Presentation/Formatos/colaboracion.js";
+import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
   esContribucionAnonimaAceptada,
   MENSAJE_CONTRIBUCION_ANONIMA,
@@ -126,9 +135,11 @@ function Postulaciones({ id }) {
     setConfirmacion(null);
     if (resultado.fallo) {
       avisar.error(
-        resultado.fallo.status === 409
-          ? "La postulación cambió o ya no se puede realizar esa acción."
-          : "No pudimos confirmar el resultado de la acción. Revisá el estado de la postulación.",
+        resultado.fallo.codigo === CODIGO_ERROR.COLABORACION_PROPIA
+          ? MENSAJE_COLABORACION_PROPIA
+          : resultado.fallo.status === 409
+            ? "La postulación cambió o ya no se puede realizar esa acción."
+            : "No pudimos confirmar el resultado de la acción. Revisá el estado de la postulación.",
       );
     } else {
       avisar.exito(accion.resultado);
@@ -239,11 +250,10 @@ function Grupo({ proyectoId, grupo, editable, ocupado, alElegir, alActualizar })
 
 function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActualizar }) {
   const location = useLocation();
-  const persona = fila.esPublica === false ? null : fila.colaborador;
-  const nombre =
-    fila.esPublica === false
-      ? "Postulación anónima"
-      : nombreVisible(persona) || "Identidad no disponible";
+  const { usuario } = useAuth();
+  const propia = esColaboracionPropia(usuario, fila);
+  const persona = postulanteVisible(fila);
+  const nombre = nombreDelPostulante(fila);
   const habilidades = persona?.habilidades?.map(({ titulo }) => titulo).filter(Boolean);
   const estado =
     ESTADOS.find(({ valor }) => valor === fila.estado)?.singular ??
@@ -294,15 +304,16 @@ function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActuali
       {editable && fila.estado === ESTADO.PENDIENTE && (
         <div className={estilos.acciones}>
           <Boton
-            disabled={ocupado || Boolean(motivo)}
-            motivoDeshabilitado={motivo}
+            disabled={ocupado || Boolean(motivo) || propia}
+            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : motivo}
             onClick={() => alElegir("aceptar", fila.id)}
           >
             Aceptar
           </Boton>
           <Boton
             variante="peligroso"
-            disabled={ocupado}
+            disabled={ocupado || propia}
+            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
             onClick={() => alElegir("rechazar", fila.id)}
           >
             Rechazar
@@ -313,7 +324,8 @@ function Fila({ proyectoId, fila, motivo, editable, ocupado, alElegir, alActuali
         <div className={estilos.acciones}>
           <Boton
             variante="peligroso"
-            disabled={ocupado}
+            disabled={ocupado || propia}
+            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
             onClick={() => alElegir("desvincular", fila.id)}
           >
             Desvincular

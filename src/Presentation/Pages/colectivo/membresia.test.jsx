@@ -97,11 +97,11 @@ function montar(ruta, cuenta) {
   );
 }
 
-test("el liderazgo ve a los miembros y puede quitar a alguien con confirmación", async () => {
+test("quien coordina ve a los miembros y puede quitar a alguien con confirmación", async () => {
   const { user } = montar("/colectivo/miembros", cuentaCon("LIDER", PERMISOS_DE_LIDER));
   const lista = await screen.findByRole("list", { name: "Miembros del colectivo" });
   expect(within(lista).getByText("Lía (vos)")).toBeVisible();
-  expect(within(lista).getByText("Liderazgo")).toBeVisible();
+  expect(within(lista).getByText("Coordinadora")).toBeVisible();
   await user.click(screen.getByRole("button", { name: "Quitar a Ada del colectivo" }));
   const dialogo = screen.getByRole("dialog", { name: "¿Quitar a Ada del colectivo?" });
   await user.click(within(dialogo).getByRole("button", { name: "Quitar del colectivo" }));
@@ -109,15 +109,15 @@ test("el liderazgo ve a los miembros y puede quitar a alguien con confirmación"
   expect(screen.queryByText("Ada")).not.toBeInTheDocument();
 });
 
-test("un miembro sin liderazgo solo ve la lista", async () => {
+test("un miembro que no coordina solo ve la lista", async () => {
   montar("/colectivo/miembros", cuentaCon("MIEMBRO", [PERMISO.COLECTIVO_MIEMBROS_VER]));
   expect(await screen.findByText("Ada")).toBeVisible();
   expect(screen.queryByRole("button", { name: /Quitar a/ })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /liderazgo/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /coordinación/ })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Salir del colectivo" })).toBeVisible();
 });
 
-test("si el liderazgo intenta salir sin pasarlo, explica qué hacer", async () => {
+test("si quien coordina intenta salir sin pasar la coordinación, explica qué hacer", async () => {
   falloPorRuta["post /colectivos/c1/abandono"] = {
     status: 409,
     codigo: "LIDER_DEBE_TRANSFERIR",
@@ -129,19 +129,21 @@ test("si el liderazgo intenta salir sin pasarlo, explica qué hacer", async () =
   await user.click(within(dialogo).getByRole("button", { name: "Salir del colectivo" }));
   expect(
     await within(dialogo).findByText(
-      "Antes de irte, pasale el liderazgo a otra persona del colectivo.",
+      "Antes de irte, pasale la coordinación a otra persona del colectivo.",
     ),
   ).toBeVisible();
 });
 
-test("pasar el liderazgo pide confirmación y recarga la cuenta", async () => {
+test("pasar la coordinación pide confirmación y recarga la cuenta", async () => {
   const { user } = montar("/colectivo/miembros", cuentaCon("LIDER", PERMISOS_DE_LIDER));
   await user.click(
-    await screen.findByRole("button", { name: "Pasarle el liderazgo a Ada" }),
+    await screen.findByRole("button", { name: "Pasar la coordinación a Ada" }),
   );
-  const dialogo = screen.getByRole("dialog", { name: "¿Pasarle el liderazgo a Ada?" });
-  await user.click(within(dialogo).getByRole("button", { name: "Pasar el liderazgo" }));
-  expect(await screen.findByText("Pasaste el liderazgo.")).toBeVisible();
+  const dialogo = screen.getByRole("dialog", { name: "¿Pasarle la coordinación a Ada?" });
+  await user.click(
+    within(dialogo).getByRole("button", { name: "Pasar la coordinación" }),
+  );
+  expect(await screen.findByText("Pasaste la coordinación.")).toBeVisible();
   const pedido = transporte.mock.calls.find(([c]) => c.url === "/colectivos/c1/lider");
   expect(JSON.parse(pedido[0].data)).toEqual({ contextoId: "m2" });
 });

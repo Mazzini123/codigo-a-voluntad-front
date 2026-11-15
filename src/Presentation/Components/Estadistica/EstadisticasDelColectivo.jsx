@@ -40,14 +40,15 @@ export function EstadisticasDelColectivo({ id }) {
               ["Postulaciones pendientes", datos.colaboraciones.pendientes],
               ["Colaboraciones aceptadas", datos.colaboraciones.aceptadas],
               ["Colaboraciones finalizadas", datos.colaboraciones.finalizadas],
-              ["Visualizaciones", datos.visualizaciones],
-              ["Avance promedio", datos.avancePromedio, " %"],
+              ["Visitas", datos.visualizaciones],
+              ["Avance promedio de los proyectos", datos.avancePromedio, " %"],
               ["Logros", datos.logros],
             ]}
           />
           <p>
-            Las visualizaciones no incluyen las visitas del propio colectivo. El total de
-            colaboraciones por proyecto incluye todos los estados.
+            Las visitas no cuentan las del propio colectivo. El avance es el porcentaje
+            que cargan en cada proyecto. El total de colaboraciones por proyecto incluye
+            todos los estados.
           </p>
           <table className={estilos.tabla}>
             <caption>Estadísticas por proyecto</caption>
@@ -56,7 +57,7 @@ export function EstadisticasDelColectivo({ id }) {
                 {[
                   "Proyecto",
                   "Estado",
-                  "Visualizaciones",
+                  "Visitas",
                   "Avance (%)",
                   "Logros",
                   "Colaboraciones",
@@ -95,7 +96,7 @@ export function EstadisticasDelColectivo({ id }) {
                 <p>{selloDeProyecto(p.estado)?.texto ?? "Sin estado"}</p>
                 <dl>
                   {[
-                    ["Visualizaciones", p.visualizaciones],
+                    ["Visitas", p.visualizaciones],
                     ["Avance (%)", p.porcentajeConcrecion],
                     ["Logros", p.logros],
                     ["Colaboraciones", p.colaboraciones],

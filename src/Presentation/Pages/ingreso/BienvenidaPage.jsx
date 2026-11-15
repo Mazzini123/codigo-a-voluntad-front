@@ -19,22 +19,20 @@ import estilos from "./BienvenidaPage.module.css";
 const CREAR_UN_COLECTIVO = {
   ruta: RUTA_ALTA_COLECTIVO,
   nombre: "Crear un colectivo",
-  detalle: "Lo administro como líder, publico proyectos y busco colaboradoras.",
-  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
+  detalle: "Lo coordino, publico proyectos y busco colaboradoras.",
 };
 
 const UNIRME_A_UN_COLECTIVO = {
   ruta: RUTA_UNIRME_A_COLECTIVO,
   nombre: "Unirme a un colectivo",
-  detalle: "Pido sumarme a uno que ya existe. Entro cuando su liderazgo me acepte.",
-  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
+  detalle:
+    "Pido sumarme a uno que ya existe. Entro cuando quienes lo coordinan me acepten.",
 };
 
 const REGISTRARME_COMO_COLABORADORA = {
   ruta: RUTA_ALTA_COLABORADORA,
   nombre: "Registrarme como colaboradora",
   detalle: "Me sumo a proyectos con mis habilidades, a título personal.",
-  incompatibleCon: TIPO_CONTEXTO.COLECTIVO,
 };
 
 const MODALIDADES_DE_REGISTRO = [
@@ -43,13 +41,10 @@ const MODALIDADES_DE_REGISTRO = [
   REGISTRARME_COMO_COLABORADORA,
 ];
 
-const MODALIDADES_CON_PERFIL = [CREAR_UN_COLECTIVO, REGISTRARME_COMO_COLABORADORA];
-
 const SUMARME_A_UN_COLECTIVO = {
   ruta: RUTA_PROYECTOS,
   nombre: "Quiero sumarme a un colectivo",
   detalle: "Buscá el colectivo desde sus proyectos y pedí el ingreso en su perfil.",
-  incompatibleCon: TIPO_CONTEXTO.COLABORADOR,
 };
 
 export function BienvenidaPage() {
@@ -82,11 +77,14 @@ export function BienvenidaPage() {
   const contextos = usuario?.contextos ?? [];
   const registrando = contextos.length === 0;
   const tipos = new Set(contextos.map((contexto) => contexto.tipo));
-  const opciones = (
-    registrando
-      ? MODALIDADES_DE_REGISTRO
-      : [...MODALIDADES_CON_PERFIL, SUMARME_A_UN_COLECTIVO]
-  ).filter(({ incompatibleCon }) => !tipos.has(incompatibleCon));
+  const tieneColaboradora = tipos.has(TIPO_CONTEXTO.COLABORADOR);
+  const opciones = registrando
+    ? MODALIDADES_DE_REGISTRO
+    : [
+        CREAR_UN_COLECTIVO,
+        ...(tieneColaboradora ? [] : [REGISTRARME_COMO_COLABORADORA]),
+        SUMARME_A_UN_COLECTIVO,
+      ];
 
   return (
     <section className={estilos.bienvenida} aria-labelledby="titulo-bienvenida">
@@ -106,8 +104,8 @@ export function BienvenidaPage() {
       )}
       <p className={estilos.bajada}>
         {registrando
-          ? "Para terminar tu registro, elegí cómo te vas a registrar. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."
-          : "O armá un perfil nuevo. Podés operar como colaboradora o en nombre de colectivos, pero no las dos cosas a la vez."}
+          ? "Para terminar tu registro, elegí cómo te vas a registrar. Más adelante podés sumar el otro tipo de perfil desde Mi cuenta."
+          : "O sumá otro perfil. Tu cuenta puede tener un perfil de colaboradora y participar en varios colectivos."}
       </p>
       <ul
         className={estilos.opciones}
@@ -125,7 +123,7 @@ export function BienvenidaPage() {
           </li>
         ))}
       </ul>
-      {!registrando && !tipos.has(TIPO_CONTEXTO.COLABORADOR) && (
+      {!registrando && (
         <p className={estilos.bajada}>
           ¿Ya pediste sumarte? Seguila en{" "}
           <Link to={RUTA_MIS_SOLICITUDES}>Mis solicitudes</Link>.

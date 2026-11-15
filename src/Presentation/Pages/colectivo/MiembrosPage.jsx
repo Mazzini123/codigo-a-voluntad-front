@@ -27,18 +27,18 @@ const ACCIONES = Object.freeze({
     texto: "Quitar del colectivo",
     titulo: (nombre) => `¿Quitar a ${nombre} del colectivo?`,
     descripcion:
-      "Deja de poder operar como parte del colectivo. Si más adelante quiere volver, tiene que pedir el ingreso otra vez.",
+      "Ya no va a poder ver el panel ni actuar en nombre del colectivo. Si más adelante quiere volver, tiene que pedir el ingreso otra vez.",
     resultado: "Quitaste a la persona del colectivo.",
     fallo: "No pudimos quitar a la persona. Probá de nuevo.",
     permanente: true,
   },
   transferir: {
-    texto: "Pasar el liderazgo",
-    titulo: (nombre) => `¿Pasarle el liderazgo a ${nombre}?`,
+    texto: "Pasar la coordinación",
+    titulo: (nombre) => `¿Pasarle la coordinación a ${nombre}?`,
     descripcion:
       "Vas a seguir en el colectivo como miembro y ya no vas a poder editar sus datos, resolver solicitudes ni quitar personas.",
-    resultado: "Pasaste el liderazgo.",
-    fallo: "No pudimos pasar el liderazgo. Probá de nuevo.",
+    resultado: "Pasaste la coordinación.",
+    fallo: "No pudimos pasar la coordinación. Probá de nuevo.",
     permanente: true,
   },
 });
@@ -160,9 +160,9 @@ function Listado({ consulta, miContexto, puedeQuitar, puedeTransferir, alElegir 
                   <Boton
                     disabled={consulta.procesando}
                     onClick={() => alElegir("transferir", miembro)}
-                    aria-label={`Pasarle el liderazgo a ${nombre}`}
+                    aria-label={`Pasar la coordinación a ${nombre}`}
                   >
-                    Pasar el liderazgo
+                    Pasar la coordinación
                   </Boton>
                 )}
                 {puedeQuitar && (

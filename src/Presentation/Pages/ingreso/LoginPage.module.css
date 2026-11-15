@@ -90,14 +90,14 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--color-coral);
+  color: var(--color-petroleo);
   font-weight: var(--texto-button-peso);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
 .alternativa button:hover:not(:disabled) {
-  color: var(--color-coral-hover);
+  color: var(--color-petroleo-hover);
 }
 
 .alternativa button:disabled {

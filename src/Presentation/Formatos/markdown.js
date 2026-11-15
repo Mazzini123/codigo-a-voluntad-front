@@ -1,5 +1,5 @@
 export const AYUDA_MARKDOWN =
-  "Podés darle formato con Markdown: **negrita**, *cursiva*, listas con guiones y enlaces como [texto](https://…).";
+  "Para destacar una palabra, escribila entre dos asteriscos, como **así**. Para hacer una lista, empezá cada renglón con un guion.";
 
 const MARCAS = [
   [/!\[([^\]]*)\]\([^)]*\)/g, "$1"],

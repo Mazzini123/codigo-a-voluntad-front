@@ -1,5 +1,9 @@
 import { useEffect, useRef } from "react";
-import { esperandoIngreso } from "@/Application/Domain/Reglas/registro.js";
+import {
+  esperandoIngreso,
+  PASO_DE_REGISTRO,
+  pasoDeRegistro,
+} from "@/Application/Domain/Reglas/registro.js";
 import { EstadoDeError } from "@/Presentation/Components/App/estados/EstadoDeError.jsx";
 import { Esqueleto } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { EstadoVacio } from "@/Presentation/Components/App/estados/EstadoVacio.jsx";
@@ -23,6 +27,7 @@ import {
 import { usePedidosPendientes } from "@/Presentation/Hooks/membresia/usePedidosPendientes.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import {
+  inicioPorRol,
   RUTA_ALTA_COLECTIVO,
   RUTA_BIENVENIDA,
   RUTA_MIS_SOLICITUDES,
@@ -58,6 +63,8 @@ export function UnirmeAColectivoPage() {
       <TituloDePagina>Unirme a un colectivo</TituloDePagina>
       {enEspera ? (
         <EnlaceVolver to={RUTA_MIS_SOLICITUDES}>Volver a mis solicitudes</EnlaceVolver>
+      ) : pasoDeRegistro(usuario) === PASO_DE_REGISTRO.COMPLETO ? (
+        <EnlaceVolver to={inicioPorRol(usuario.rol)}>Volver</EnlaceVolver>
       ) : (
         <EnlaceVolver to={RUTA_BIENVENIDA}>Elegir otro tipo de cuenta</EnlaceVolver>
       )}
@@ -66,8 +73,8 @@ export function UnirmeAColectivoPage() {
           Unirme a un colectivo
         </h1>
         <p className={estilos.bajada}>
-          Pedí sumarte al colectivo que quieras. Vas a entrar cuando su liderazgo te
-          acepte.
+          Pedí sumarte al colectivo que quieras. Vas a entrar cuando quienes lo coordinan
+          te acepten.
         </p>
       </div>
       <form

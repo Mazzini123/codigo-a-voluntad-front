@@ -11,6 +11,15 @@ const COLECTIVO = { id: "c", rol: "COLECTIVO", perfilId: "c1" };
 const COLABORADORA = { id: "a", rol: "COLABORADORA", perfilId: "co1" };
 const adaptadorOriginal = axiosClient.defaults.adapter;
 let transporte;
+let destacados;
+
+const PEDIDOS_DE_LA_PORTADA = ["/estadisticas", "/proyectos/destacados"];
+
+function pedidosFueraDeLaPortada() {
+  return transporte.mock.calls.filter(
+    ([config]) => !PEDIDOS_DE_LA_PORTADA.includes(config.url),
+  );
+}
 
 function pagina(data) {
   return {
@@ -30,6 +39,7 @@ const PROYECTO = {
 };
 
 beforeEach(() => {
+  destacados = [];
   transporte = vi.fn(async (config) => ({
     config,
     status: 200,
@@ -43,19 +53,21 @@ beforeEach(() => {
             colaboradores: { total: 0 },
             colaboraciones: { total: 0 },
           }
-        : config.url === "/proyectos"
-          ? pagina([PROYECTO])
-          : config.url === "/colectivos/c1/proyectos"
-            ? []
-            : config.url === "/colectivos/c1"
-              ? { id: "c1", nombre: "Colectivo de prueba", proyectos: [] }
-              : config.url === "/proyectos/p1"
-                ? PROYECTO
-                : config.url.endsWith("/colaboraciones")
-                  ? []
-                  : config.url === "/colaboradores/co1"
-                    ? { id: "co1", habilidades: [] }
-                    : pagina([]),
+        : config.url === "/proyectos/destacados"
+          ? destacados
+          : config.url === "/proyectos"
+            ? pagina([PROYECTO])
+            : config.url === "/colectivos/c1/proyectos"
+              ? []
+              : config.url === "/colectivos/c1"
+                ? { id: "c1", nombre: "Colectivo de prueba", proyectos: [] }
+                : config.url === "/proyectos/p1"
+                  ? PROYECTO
+                  : config.url.endsWith("/colaboraciones")
+                    ? []
+                    : config.url === "/colaboradores/co1"
+                      ? { id: "co1", habilidades: [] }
+                      : pagina([]),
   }));
   axiosClient.defaults.adapter = transporte;
 });
@@ -120,9 +132,7 @@ test("el visitante ve la portada con contenido completo sin consultar proyectos"
     1,
   );
   await act(async () => {});
-  expect(
-    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
-  ).toHaveLength(0);
+  expect(pedidosFueraDeLaPortada()).toHaveLength(0);
 });
 
 test("el contenido público permanece disponible mientras se verifica la sesión", async () => {
@@ -170,9 +180,7 @@ test("Publicar un proyecto lleva al registro con la aclaración del paso previo"
   await user.click(publicar);
   await screen.findByRole("heading", { name: "Crear una cuenta" });
   expect(router.state.location.pathname).toBe("/registro");
-  expect(
-    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
-  ).toHaveLength(0);
+  expect(pedidosFueraDeLaPortada()).toHaveLength(0);
 });
 
 test("las respuestas se pueden desplegar individualmente o todas juntas", async () => {
@@ -269,9 +277,7 @@ test("Cómo funciona también enfoca la sección desde la propia landing", async
     within(screen.getByRole("contentinfo")).getByRole("link", { name: "Cómo funciona" }),
   );
   expect(screen.getByRole("heading", { name: "Dos formas de empezar" })).toHaveFocus();
-  expect(
-    transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
-  ).toHaveLength(0);
+  expect(pedidosFueraDeLaPortada()).toHaveLength(0);
 });
 
 test("la portada y el pie permanecen visibles si falla la verificación de sesión", async () => {
@@ -352,4 +358,52 @@ test("el panel privado espera una cuenta verificada en la misma ruta", async () 
     await screen.findByRole("heading", { name: "Resumen del colectivo" }),
   ).toBeVisible();
   expect(router.state.location.pathname).toBe("/colectivo/resumen");
+});
+
+test("el visitante ve los proyectos destacados con su sello y el enlace al listado", async () => {
+  destacados = [{ ...PROYECTO, destacado: true }];
+  montar();
+  const seccion = await screen.findByRole("region", { name: "Proyectos destacados" });
+  expect(
+    within(seccion).getByRole("link", { name: "Proyecto del comedor" }),
+  ).toHaveAttribute("href", "/proyectos/p1");
+  expect(within(seccion).getByText("Destacado")).toBeVisible();
+  expect(
+    within(seccion).getByRole("link", { name: "Ver todos los proyectos" }),
+  ).toHaveAttribute("href", "/proyectos");
+});
+
+test("sin destacados vigentes la portada no muestra la sección", async () => {
+  montar();
+  await screen.findByRole("heading", { level: 1, name: TITULO });
+  await act(async () => {});
+  expect(
+    screen.queryByRole("region", { name: "Proyectos destacados" }),
+  ).not.toBeInTheDocument();
+});
+
+test("si fallan los destacados se ofrece reintentar y el resto de la portada sigue", async () => {
+  const respuesta = transporte.getMockImplementation();
+  let falla = true;
+  transporte.mockImplementation(async (config) => {
+    if (config.url === "/proyectos/destacados" && falla)
+      throw Object.assign(new Error("caída"), { config, isAxiosError: true });
+    if (config.url === "/proyectos/destacados")
+      return {
+        config,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        data: [{ ...PROYECTO, destacado: true }],
+      };
+    return respuesta(config);
+  });
+  const { user } = montar();
+  expect(
+    await screen.findByText("No pudimos cargar los proyectos destacados"),
+  ).toBeVisible();
+  expect(screen.getByRole("heading", { level: 1, name: TITULO })).toBeVisible();
+  falla = false;
+  await user.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(await screen.findByRole("link", { name: "Proyecto del comedor" })).toBeVisible();
 });

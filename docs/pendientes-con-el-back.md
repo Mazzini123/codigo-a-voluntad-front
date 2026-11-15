@@ -1,6 +1,6 @@
 # Pendientes con el back
 
-Estado al 09/11/2026. Entre paréntesis, la spec de donde sale. El detalle está en la sección «A acordar con el back» de cada spec.
+Estado al 14/11/2026. Entre paréntesis, la spec de donde sale. El detalle está en la sección «A acordar con el back» de cada spec.
 
 ## Resuelto en el back (falta que el front lo use)
 
@@ -22,6 +22,7 @@ Estado al 09/11/2026. Entre paréntesis, la spec de donde sale. El detalle está
 - [x] Medios de contacto privados: `GET /colaboradores/:id/medios-de-contacto` y `GET`/`POST`/`DELETE /colectivos/:id/medios-de-contacto`, solo el propio dueño. (02, 03)
 - [x] Las postulaciones anónimas propias aparecen en el listado de la propia persona. (06, 10)
 - [x] Baja de colectivo: la cuenta queda sin perfil; `/auth/me` devuelve `rol: null`. (16)
+- [x] Contextos simultáneos: una cuenta puede tener a la vez un perfil de colaboradora y contextos de colectivo, y cambiar entre ellos. `MODALIDAD_INCOMPATIBLE` ya no existe. Regla nueva: 422 `POSTULACION_EN_COLECTIVO_PROPIO` al postularse a un proyecto de un colectivo donde la cuenta es líder o miembro. (spec del back `contextos-simultaneos-de-cuenta`)
 
 ## Cambios del front (hechos el 09/11/2026)
 
@@ -33,9 +34,18 @@ Estado al 09/11/2026. Entre paréntesis, la spec de donde sale. El detalle está
 - [x] Token en las escrituras y texto propio para 403 (ya estaban).
 - [ ] Probar todo contra el back real con Logto (hasta ahora solo con respuestas simuladas).
 
+## Cambios del front (14/11/2026)
+
+- [x] Parte A de contextos simultáneos: sin `MODALIDAD_INCOMPATIBLE`; con `POSTULACION_EN_COLECTIVO_PROPIO` y «Postularme» deshabilitado, con motivo, para quien participa del colectivo del proyecto.
+- [x] Parte B: sumar el otro tipo de contexto desde «Mi cuenta» y desde Bienvenida; `puedePedirIngreso` sin exclusión (spec 19).
+
 ## Pendiente
 
-- [ ] Verificar el front contra el back real, con auth activada.
+- [ ] Verificar el front contra el back real, con auth activada, incluidos los 422 `POSTULACION_EN_COLECTIVO_PROPIO` y `COLABORACION_PROPIA`.
+- [x] Pregunta B resuelta en el back (opción 1+2, 422 `COLABORACION_PROPIA`): el front deshabilita aceptar, rechazar, desvincular, finalizar y valorar sobre la colaboración propia y muestra el motivo; ante el 422 informa el mismo texto (spec 19).
+- [ ] (Histórico) Propuesta para la pregunta B (a llevar al equipo): no bloquear ni cancelar nada al ingresar a un colectivo, pero impedir en el back que una cuenta actúe sobre su propia colaboración (aceptar, rechazar, finalizar, desvincular y valorar como colectivo), con un código nuevo a acordar. Hoy `MIEMBRO` tiene esos permisos y `ColaboracionService` no verifica quién actúa. Si se adopta, el front suma el mensaje del código y oculta «Aceptar» y «Rechazar» en las postulaciones propias.
+- [ ] Que el `colaborador` de `ColaboracionDto` (`GET /proyectos/:id/colaboraciones`) incluya sus `habilidades` (`HabilidadResumenDto[]`) cuando la postulación es pública. Mientras tanto, Postulaciones recibidas pide `GET /colaboradores/:id` por cada postulante. (revisión Impeccable 05, R2)
+- [ ] Preguntas A y B de la spec del back (invitaciones, `colaboradoras-potenciales`, `proyectos-potenciales` y avisos hacia el colectivo propio; postulaciones anteriores al ingreso): el front no las filtra hasta que se decidan.
 
 ## Decidido (no requiere cambios en el back)
 

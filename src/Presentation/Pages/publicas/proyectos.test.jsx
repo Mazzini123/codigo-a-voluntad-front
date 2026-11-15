@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import axios from "axios";
 import { Navigate, Route } from "react-router-dom";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
@@ -31,7 +31,9 @@ function proyecto(numero, cambios = {}) {
   };
 }
 
-const TODOS = Array.from({ length: 30 }, (_, indice) => proyecto(indice + 1));
+const TODOS = Array.from({ length: 30 }, (_, indice) =>
+  proyecto(indice + 1, indice < 2 ? { destacado: true } : {}),
+);
 const adaptadorOriginal = axiosClient.defaults.adapter;
 let transporte;
 let potenciales;
@@ -396,4 +398,14 @@ describe("filtros", () => {
     expect(await screen.findByText(/de 30 proyectos/)).toBeInTheDocument();
     expect(pedidosA("/colaboradores/co1/proyectos-potenciales")).toHaveLength(0);
   });
+});
+
+test("el sello Destacado aparece solo en las tarjetas cuyo resumen lo trae, sin reordenar", async () => {
+  montar("/");
+  await screen.findByText("Mostrando 1–12 de 30 proyectos");
+  expect(screen.getAllByText("Destacado")).toHaveLength(2);
+  const tarjetas = screen.getAllByRole("article");
+  expect(tarjetas[0]).toHaveAccessibleName("Proyecto 1");
+  expect(within(tarjetas[0]).getByText("Destacado")).toBeVisible();
+  expect(within(tarjetas[2]).queryByText("Destacado")).not.toBeInTheDocument();
 });

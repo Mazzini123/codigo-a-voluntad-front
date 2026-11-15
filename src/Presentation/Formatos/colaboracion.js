@@ -1,4 +1,6 @@
 import { COLABORACION_ESTADO as ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
+import { postulanteVisible } from "@/Application/Domain/Reglas/postulacion.js";
+import { nombreVisible } from "@/Presentation/Formatos/colaboradora.js";
 
 export const ESTADOS = Object.freeze([
   { valor: "", texto: "Todas" },
@@ -10,6 +12,9 @@ export const ESTADOS = Object.freeze([
   { valor: ESTADO.RETIRADA, texto: "Retiradas", singular: "Retirada" },
 ]);
 
+export const MENSAJE_COLABORACION_PROPIA =
+  "Esta colaboración es de tu propio perfil de colaboradora, así que no podés gestionarla desde el colectivo.";
+
 const LARGO_MAXIMO_DEL_PERFIL = 90;
 
 export function filtroDeEstadoValido(solicitado) {
@@ -20,6 +25,11 @@ export function textoDeEstado(estado) {
   return (
     ESTADOS.find(({ valor }) => valor === estado)?.singular ?? "Estado no disponible"
   );
+}
+
+export function nombreDelPostulante(colaboracion) {
+  if (colaboracion?.esPublica === false) return "Postulación anónima";
+  return nombreVisible(postulanteVisible(colaboracion)) || "Persona sin nombre";
 }
 
 export function textoDeContribucion(esPublica) {

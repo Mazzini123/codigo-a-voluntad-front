@@ -155,7 +155,9 @@ test.each([
       false,
     );
     expect(
-      transporte.mock.calls.filter(([config]) => config.url !== "/estadisticas"),
+      transporte.mock.calls.filter(
+        ([config]) => !["/estadisticas", "/proyectos/destacados"].includes(config.url),
+      ),
     ).toHaveLength(0);
   },
 );

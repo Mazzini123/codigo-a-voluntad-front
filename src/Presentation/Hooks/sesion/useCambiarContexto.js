@@ -20,7 +20,8 @@ export function useCambiarContexto() {
   const cambiar = useCallback(
     async (contexto) => {
       const resultado = await ejecutar(contexto);
-      if (resultado.ok) navigate(inicioPorContexto(contexto), { replace: true });
+      if (resultado.ok)
+        navigate(inicioPorContexto(contexto), { replace: true, flushSync: true });
       return resultado;
     },
     [ejecutar, navigate],

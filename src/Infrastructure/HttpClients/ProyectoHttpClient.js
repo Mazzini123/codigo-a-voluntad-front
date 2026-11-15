@@ -12,6 +12,9 @@ export function crearProyectoHttpClient(http) {
     async listar(query = {}, { signal } = {}) {
       return api.get("/proyectos", { params: query, signal });
     },
+    async listarDestacados({ signal } = {}) {
+      return api.get("/proyectos/destacados", { signal });
+    },
     async obtenerPorId(proyectoId, { signal } = {}) {
       return api.get(ruta`/proyectos/${proyectoId}`, {
         signal,

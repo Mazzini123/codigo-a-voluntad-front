@@ -17,7 +17,7 @@ test("el colectivo ve estadísticas y confirma su baja escribiendo el nombre", a
   await page.goto("/colectivo/resumen");
   const estadisticas = page.getByRole("region", { name: "Tus proyectos en números" });
   await expect(
-    estadisticas.getByText("Visualizaciones", { exact: true }).first(),
+    estadisticas.getByText("Visitas", { exact: true }).first(),
   ).toBeVisible();
   await esperarSinViolaciones(page);
   expect(
@@ -44,5 +44,22 @@ test("el colectivo ve estadísticas y confirma su baja escribiendo el nombre", a
   await expect(page.getByRole("region", { name: "Historia" })).toContainText(
     "El colectivo se dio de baja.",
   );
+  expect(noAtendidos).toEqual([]);
+});
+
+test("en el celular, el menú de cuenta entra en la pantalla y muestra el nombre", async ({
+  page,
+}) => {
+  const { noAtendidos } = await conBackFalso(page);
+  await conSesionIniciada(page, { rol: "COLECTIVO", perfilId: "cl-fiorito" });
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/colectivo/resumen");
+  await page.getByRole("button", { name: "Mi cuenta", exact: true }).click();
+  const menu = page.locator("#menu-de-cuenta");
+  await expect(menu.getByText("Asamblea de Fiorito")).toBeVisible();
+  const caja = await menu.boundingBox();
+  expect(caja.x).toBeGreaterThanOrEqual(0);
+  expect(caja.x + caja.width).toBeLessThanOrEqual(320);
+  await esperarSinViolaciones(page);
   expect(noAtendidos).toEqual([]);
 });

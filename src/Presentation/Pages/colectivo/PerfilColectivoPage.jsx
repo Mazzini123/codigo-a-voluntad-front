@@ -32,8 +32,8 @@ function PerfilSoloLectura({ colectivoId }) {
           Perfil del colectivo
         </h1>
         <p className={estilos.bajada}>
-          Solo quien tiene el liderazgo puede editar los datos y los medios de contacto
-          del colectivo.
+          Solo quien coordina el colectivo puede editar sus datos y sus medios de
+          contacto.
         </p>
       </div>
       <Link to={rutaColectivo(colectivoId)} className={estilos.enlace}>

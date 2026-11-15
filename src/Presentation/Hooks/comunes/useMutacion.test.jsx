@@ -122,3 +122,19 @@ test("sin mensaje propio para ese status deja el error como vino", async () => {
   expect(falla.conMensaje).not.toHaveBeenCalled();
   expect(result.current.error).toBe(falla);
 });
+
+test("el mensaje por código gana sobre el mensaje por status", async () => {
+  const conMensaje = vi.fn((mensaje) => ({ mensaje }));
+  const falla = { status: 422, codigo: "REGLA_PROPIA", conMensaje };
+  const mensajes = { 422: "Por status", REGLA_PROPIA: "Por código" };
+  const { result } = renderHook(() =>
+    useMutacion(() => Promise.reject(falla), { mensajes }),
+  );
+
+  await act(async () => {
+    await result.current.ejecutar();
+  });
+
+  expect(conMensaje).toHaveBeenCalledWith("Por código");
+  expect(result.current.error).toEqual({ mensaje: "Por código" });
+});

@@ -9,7 +9,10 @@ import {
 } from "@/Application/Domain/Reglas/registro.js";
 import { useColaboradora } from "@/Presentation/Hooks/colaboradora/useColaboradora.js";
 import { useColectivo } from "@/Presentation/Hooks/colectivo/useColectivo.js";
-import { enlaceDePerfilPara } from "@/Presentation/Routes/navegacion.js";
+import {
+  enlaceDePerfilPara,
+  enlacesParaSumarContexto,
+} from "@/Presentation/Routes/navegacion.js";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
 import { BloqueEsqueleto } from "@/Presentation/Components/App/estados/Esqueleto.jsx";
 import { AccesosDeCuenta } from "./AccesosDeCuenta.jsx";
@@ -21,6 +24,7 @@ import {
 } from "@/Presentation/Routes/rutas.js";
 import { SelectorDeContexto } from "@/Presentation/Components/App/sesion/SelectorDeContexto.jsx";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
+import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 
 const PASOS_SIN_SOLICITUDES = Object.freeze([
   PASO_DE_REGISTRO.NOMBRE,
@@ -72,6 +76,8 @@ export function MenuDeCuenta() {
     (contexto) => contexto.id !== usuario.contextoActual?.id,
   );
 
+  const enlacesParaSumar = enlacesParaSumarContexto(usuario);
+
   function alternar() {
     setAbierto((valor) => !valor);
     setNombreSolicitado(true);
@@ -102,7 +108,8 @@ export function MenuDeCuenta() {
         aria-controls="menu-de-cuenta"
         onClick={alternar}
       >
-        Mi cuenta
+        <Icono nombre="cuenta" tamano={24} className={estilos.icono} />
+        <span className={estilos.texto}>Mi cuenta</span>
       </button>
       <ul
         id="menu-de-cuenta"
@@ -135,6 +142,24 @@ export function MenuDeCuenta() {
               etiqueta="Cambiar a"
               alElegir={() => setAbierto(false)}
             />
+          </li>
+        )}
+        {enlacesParaSumar.length > 0 && (
+          <li className={estilos.contextos}>
+            <span className={estilos.ingresasteComo}>Sumar</span>
+            <ul className={estilos.sumar} aria-label="Sumar a tu cuenta">
+              {enlacesParaSumar.map(({ ruta, texto }) => (
+                <li key={ruta}>
+                  <NavLink
+                    to={ruta}
+                    className={estilos.opcion}
+                    onClick={() => setAbierto(false)}
+                  >
+                    {texto}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
           </li>
         )}
         {usuario.usuarioId && (

@@ -16,6 +16,7 @@ export function AltaDePerfil({
   children,
 }) {
   const idTitulo = useId();
+  const volver = alta.destinoDeVuelta ?? { ruta: volverA, texto: textoVolver };
 
   if (alta.rolConfirmado)
     return <Navigate to={inicioPorRol(alta.rolConfirmado)} replace />;
@@ -23,7 +24,7 @@ export function AltaDePerfil({
   return (
     <section className={estilos.pagina} aria-labelledby={idTitulo}>
       <TituloDePagina>{tituloDePestana}</TituloDePagina>
-      {!alta.perfilCreado && <EnlaceVolver to={volverA}>{textoVolver}</EnlaceVolver>}
+      {!alta.perfilCreado && <EnlaceVolver to={volver.ruta}>{volver.texto}</EnlaceVolver>}
       <div className={estilos.titulos}>
         <h1 id={idTitulo} tabIndex={-1}>
           {titulo}

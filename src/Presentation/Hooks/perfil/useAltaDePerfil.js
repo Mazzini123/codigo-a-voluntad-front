@@ -1,4 +1,9 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
+import {
+  PASO_DE_REGISTRO,
+  pasoDeRegistro,
+} from "@/Application/Domain/Reglas/registro.js";
+import { inicioPorRol } from "@/Presentation/Routes/rutas.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useMutacion } from "@/Presentation/Hooks/comunes/useMutacion.js";
@@ -16,10 +21,18 @@ function pudoHaberseCreado(error) {
   );
 }
 
-export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
+export function useAltaDePerfil({ crearPerfil, rol, tipo, mensaje, unico = false }) {
   const { usuario, recargarCuenta } = useAuth();
   const avisar = useAvisos();
   const registro = useRef(null);
+  const [contextosIniciales] = useState(
+    () =>
+      new Set(
+        (usuario?.contextos ?? [])
+          .filter((contexto) => contexto.tipo === tipo)
+          .map(({ id }) => id),
+      ),
+  );
 
   const registrar = useCallback(
     (signal, request) => crearPerfil(request, { signal }),
@@ -54,11 +67,23 @@ export function useAltaDePerfil({ crearPerfil, rol, mensaje }) {
   );
 
   const perfilCreado = alta.datos;
-  const perfilConfirmado =
-    !perfilCreado || (usuario?.rol === rol && usuario.perfilId === perfilCreado.id);
+  const contextosDelTipo = (usuario?.contextos ?? []).filter(
+    (contexto) => contexto.tipo === tipo,
+  );
+  const hayContextoNuevo = contextosDelTipo.some(({ id }) => !contextosIniciales.has(id));
+  const yaTieneElPerfil = unico ? contextosDelTipo.length > 0 : hayContextoNuevo;
+  const perfilConfirmado = perfilCreado
+    ? usuario?.rol === rol && usuario.perfilId === perfilCreado.id
+    : yaTieneElPerfil;
   const rolConfirmado = perfilConfirmado ? usuario?.rol : null;
 
+  const cuentaCompleta = pasoDeRegistro(usuario) === PASO_DE_REGISTRO.COMPLETO;
+  const destinoDeVuelta = cuentaCompleta
+    ? { ruta: inicioPorRol(usuario.rol), texto: "Volver" }
+    : null;
+
   return {
+    destinoDeVuelta,
     crear,
     creando: alta.enviando,
     error: alta.error,

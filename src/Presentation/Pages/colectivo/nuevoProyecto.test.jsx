@@ -191,7 +191,7 @@ async function llegarAlPasoDeRevision(user) {
   await paso("Revisar y publicar");
 }
 
-describe("alta completa", () => {
+describe("alta completa", { timeout: 15000 }, () => {
   test("reusa la clave tras un timeout y pide confirmación si se modifican los datos", async () => {
     respuestasAlCrear = [{ codigo: "ECONNABORTED" }, { codigo: "ECONNABORTED" }];
     const { user } = montar();

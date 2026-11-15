@@ -166,6 +166,17 @@ afterEach(() => {
 
 const COLABORADORA = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "co1" };
 const COLECTIVO = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "cl1" };
+const contextoDeColectivo = (rol) => ({
+  id: `ctx-cl1-${rol}`,
+  tipo: "COLECTIVO",
+  rol,
+  colectivo: { id: "cl1", nombre: "Asamblea de Fiorito" },
+  colaborador: null,
+});
+const COLABORADORA_CON_COLECTIVO = (rol, colectivoId = "cl1") => ({
+  ...COLABORADORA,
+  contextos: [{ ...contextoDeColectivo(rol), colectivo: { id: colectivoId } }],
+});
 const SIN_PERFIL = { id: "cuenta-3", rol: null, perfilId: null };
 
 function montar(ruta, cuenta = null) {
@@ -484,6 +495,43 @@ describe("quién ve qué acción", () => {
     const boton = await within(tester).findByRole("button", { name: "Postularme" });
     expect(boton).toBeDisabled();
     expect(boton).toHaveAccessibleDescription("La búsqueda de este perfil está cerrada.");
+  });
+
+  test.each(["LIDER", "MIEMBRO"])(
+    "una cuenta que es %s del colectivo del proyecto no puede postularse y ve el motivo",
+    async (rol) => {
+      proyectosDelColectivo = [proyecto];
+      montar("/proyectos/p1", COLABORADORA_CON_COLECTIVO(rol));
+      const analista = await perfil("Analista de datos");
+      const boton = await within(analista).findByRole("button", { name: "Postularme" });
+      expect(boton).toBeDisabled();
+      expect(boton).toHaveAccessibleDescription(
+        "Sos parte del colectivo que publicó este proyecto, así que no podés postularte.",
+      );
+    },
+  );
+
+  test("una cuenta con otro colectivo sí puede postularse", async () => {
+    montar("/proyectos/p1", COLABORADORA_CON_COLECTIVO("LIDER", "cl9"));
+    const analista = await perfil("Analista de datos");
+    expect(
+      await within(analista).findByRole("button", { name: "Postularme" }),
+    ).toBeEnabled();
+  });
+
+  test("si el back responde POSTULACION_EN_COLECTIVO_PROPIO, el diálogo lo explica", async () => {
+    respuestaAlPostular = {
+      status: 422,
+      data: { codigo: "POSTULACION_EN_COLECTIVO_PROPIO" },
+    };
+    const { user } = montar("/proyectos/p1", COLABORADORA);
+    await abrirDialogoDeFrontend(user);
+    await user.click(screen.getByRole("button", { name: "Enviar postulación" }));
+    expect(
+      await within(screen.getByRole("dialog")).findByRole("alert"),
+    ).toHaveTextContent(
+      "Sos parte de este colectivo, así que no podés postularte a sus proyectos.",
+    );
   });
 
   test("un perfil con el límite alcanzado lo dice", async () => {

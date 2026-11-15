@@ -16,6 +16,7 @@ let transporte;
 let dueño;
 let falloDeConsulta;
 let falloDeAccion;
+let codigoDeFallo;
 
 function fila(id, estado, campos = {}) {
   return {
@@ -38,6 +39,7 @@ beforeEach(() => {
   dueño = true;
   falloDeConsulta = false;
   falloDeAccion = null;
+  codigoDeFallo = undefined;
   transporte = vi.fn(async (config) => {
     const { url, method } = config;
     const responder = (data) => ({
@@ -50,7 +52,7 @@ beforeEach(() => {
     const fallar = (status) => {
       throw new axios.AxiosError("error", "ERR_BAD_RESPONSE", config, null, {
         status,
-        data: {},
+        data: codigoDeFallo ? { codigo: codigoDeFallo } : {},
       });
     };
     if (url === "/colectivos/c1")
@@ -184,6 +186,40 @@ test("un conflicto actualiza el estado desde el backend", async () => {
   );
   expect(await screen.findByText(/La postulación cambió/)).toBeVisible();
   expect(screen.getByText("Aceptada")).toBeVisible();
+});
+
+const cuentaConPerfil = {
+  ...cuenta,
+  contextos: [{ tipo: "COLABORADOR", colaborador: { id: "Ada" } }],
+};
+
+test("una postulación del propio perfil no se puede aceptar ni rechazar y explica el motivo", async () => {
+  montar("", cuentaConPerfil);
+  const aceptar = await screen.findByRole("button", { name: "Aceptar" });
+  expect(aceptar).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Rechazar" })).toBeDisabled();
+  expect(
+    screen.getAllByText(/Esta colaboración es de tu propio perfil/).length,
+  ).toBeGreaterThan(0);
+});
+
+test("una postulación de otra persona sigue pudiéndose resolver", async () => {
+  filas = [fila("Beto", "PENDIENTE")];
+  montar("", cuentaConPerfil);
+  expect(await screen.findByRole("button", { name: "Aceptar" })).toBeEnabled();
+});
+
+test("si el back responde COLABORACION_PROPIA se muestra el motivo en lenguaje de la persona", async () => {
+  falloDeAccion = 422;
+  codigoDeFallo = "COLABORACION_PROPIA";
+  const { user } = montar();
+  await user.click(await screen.findByRole("button", { name: "Aceptar" }));
+  await user.click(
+    within(screen.getByRole("dialog")).getByRole("button", { name: "Aceptar" }),
+  );
+  expect(
+    await screen.findByText(/Esta colaboración es de tu propio perfil/),
+  ).toBeVisible();
 });
 
 test.each([

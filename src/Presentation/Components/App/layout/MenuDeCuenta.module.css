@@ -16,9 +16,28 @@
   white-space: nowrap;
 }
 
-@media (width < 22.5rem) {
+.icono {
+  display: none;
+}
+
+@media (width < 30rem) {
   .boton {
-    padding-inline: var(--espacio-2);
+    justify-content: center;
+    inline-size: var(--toque-minimo);
+    padding: 0;
+  }
+
+  .icono {
+    display: block;
+  }
+
+  .texto {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
@@ -36,6 +55,7 @@
   margin: 0;
   padding: var(--espacio-2);
   list-style: none;
+  color: var(--color-tinta);
   background: var(--color-superficie);
   border: var(--borde) solid var(--color-linea);
   border-radius: var(--radio-md);
@@ -44,6 +64,18 @@
 
 .lista.abierta {
   display: block;
+}
+
+@media (width < 48rem) {
+  .cuenta {
+    position: static;
+  }
+
+  .lista {
+    inset-inline: var(--espacio-4);
+    inset-block-start: calc(100% + var(--espacio-2));
+    min-inline-size: 0;
+  }
 }
 
 .opcion {
@@ -104,4 +136,13 @@
   padding: var(--espacio-2) var(--espacio-3) var(--espacio-1);
   margin-block: var(--espacio-1);
   border-block: var(--borde) solid var(--color-linea);
+}
+
+.sumar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }

@@ -155,3 +155,20 @@ test("sin colectivo en el proyecto no muestra nada extra", () => {
   montar();
   expect(screen.queryByText("Huerta Viva")).not.toBeInTheDocument();
 });
+
+test("un proyecto con destacado vigente lleva el sello Destacado antes del título", () => {
+  montar({ proyecto: { ...PROYECTO, destacado: true } });
+  const tarjeta = screen.getByRole("article", { name: "Sistema de turnos del comedor" });
+  const sello = within(tarjeta).getByText("Destacado");
+  const enlace = within(tarjeta).getByRole("link");
+  expect(
+    sello.compareDocumentPosition(enlace) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+});
+
+test("sin destacado en el resumen no se muestra el sello", () => {
+  montar();
+  expect(screen.queryByText("Destacado")).not.toBeInTheDocument();
+  montar({ proyecto: { ...PROYECTO, destacado: false } });
+  expect(screen.queryByText("Destacado")).not.toBeInTheDocument();
+});

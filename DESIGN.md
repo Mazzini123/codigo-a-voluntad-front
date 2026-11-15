@@ -448,6 +448,7 @@ El aviso de la cartelera: dice en texto si algo está vigente. Label en peso 600
 - **Límite alcanzado** y postulación pendiente ("Tu postulación está pendiente"): aviso.
 - **Rechazada** ("Tu postulación fue rechazada"): peligro, con cruz.
 - **Cerrada** y **Finalizado**: neutro, hundido con borde de campo y tinta suave, con un guion.
+- **Destacado** (proyecto que eligió la administración): información, con una estrella. Misma forma que los demás sellos, sin coral, para que varios juntos no compitan. Va solo, en su línea, arriba del título de la tarjeta.
 
 ### Tarjeta de proyecto
 

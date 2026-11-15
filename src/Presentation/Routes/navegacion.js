@@ -1,7 +1,14 @@
 import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
+import { TIPO_CONTEXTO } from "@/Application/Domain/Enums/TIPO_CONTEXTO.js";
+import {
+  PASO_DE_REGISTRO,
+  pasoDeRegistro,
+} from "@/Application/Domain/Reglas/registro.js";
 import { tienePermiso } from "@/Application/Domain/Reglas/permisos.js";
 import {
+  RUTA_ALTA_COLABORADORA,
+  RUTA_ALTA_COLECTIVO,
   RUTA_MENSAJES,
   RUTA_MIEMBROS_COLECTIVO,
   RUTA_MIS_PROYECTOS,
@@ -12,6 +19,7 @@ import {
   RUTA_PROYECTOS,
   RUTA_RESUMEN_COLECTIVO,
   RUTA_SOLICITUDES_COLECTIVO,
+  RUTA_UNIRME_A_COLECTIVO,
 } from "./rutas.js";
 
 export const MINIMO_ENLACES_PARA_MENU = 2;
@@ -87,4 +95,29 @@ const ENLACE_DE_PERFIL = Object.freeze({
 
 export function enlaceDePerfilPara(rol) {
   return ENLACE_DE_PERFIL[rol] ?? null;
+}
+
+const ENLACE_CREAR_COLECTIVO = Object.freeze({
+  ruta: RUTA_ALTA_COLECTIVO,
+  texto: "Crear un colectivo",
+});
+const ENLACE_CREAR_COLABORADORA = Object.freeze({
+  ruta: RUTA_ALTA_COLABORADORA,
+  texto: "Crear mi perfil de colaboradora",
+});
+const ENLACE_UNIRME_A_COLECTIVO = Object.freeze({
+  ruta: RUTA_UNIRME_A_COLECTIVO,
+  texto: "Unirme a un colectivo",
+});
+
+export function enlacesParaSumarContexto(cuenta) {
+  if (pasoDeRegistro(cuenta) !== PASO_DE_REGISTRO.COMPLETO) return [];
+  const tieneColaboradora = (cuenta.contextos ?? []).some(
+    ({ tipo }) => tipo === TIPO_CONTEXTO.COLABORADOR,
+  );
+  return [
+    ENLACE_CREAR_COLECTIVO,
+    ...(tieneColaboradora ? [] : [ENLACE_CREAR_COLABORADORA]),
+    ENLACE_UNIRME_A_COLECTIVO,
+  ];
 }

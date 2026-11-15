@@ -94,6 +94,55 @@ describe("menú de cuenta", () => {
   });
 });
 
+describe("sumar otro perfil desde Mi cuenta", () => {
+  const CONTEXTO_COLABORADORA = {
+    id: "x1",
+    tipo: "COLABORADOR",
+    colaborador: { id: "co1" },
+  };
+  const CONTEXTO_COLECTIVO = { id: "x2", tipo: "COLECTIVO", colectivo: { id: "cl1" } };
+
+  async function abrirMenu(cuenta) {
+    const user = montar({ ...cuenta, usuarioId: "u1" });
+    await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));
+    return user;
+  }
+
+  test("una colaboradora puede crear un colectivo o unirse a uno, pero no crear otro perfil", async () => {
+    await abrirMenu({ ...COLABORADORA, contextos: [CONTEXTO_COLABORADORA] });
+    const sumar = screen.getByRole("list", { name: "Sumar a tu cuenta" });
+    expect(
+      within(sumar)
+        .getAllByRole("link")
+        .map((enlace) => [enlace.textContent, enlace.getAttribute("href")]),
+    ).toEqual([
+      ["Crear un colectivo", "/bienvenida/colectivo/nuevo"],
+      ["Unirme a un colectivo", "/bienvenida/colectivo/unirme"],
+    ]);
+  });
+
+  test("quien solo tiene colectivos puede crear su perfil de colaboradora", async () => {
+    await abrirMenu({ ...COLECTIVO, contextos: [CONTEXTO_COLECTIVO] });
+    const sumar = screen.getByRole("list", { name: "Sumar a tu cuenta" });
+    expect(
+      within(sumar)
+        .getAllByRole("link")
+        .map((enlace) => enlace.textContent),
+    ).toEqual([
+      "Crear un colectivo",
+      "Crear mi perfil de colaboradora",
+      "Unirme a un colectivo",
+    ]);
+  });
+
+  test("durante el registro no se ofrece", async () => {
+    await abrirMenu(SIN_PERFIL);
+    expect(
+      screen.queryByRole("list", { name: "Sumar a tu cuenta" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("cerrar sesión", () => {
   async function abrirConfirmacion(user) {
     await user.click(await screen.findByRole("button", { name: "Mi cuenta" }));

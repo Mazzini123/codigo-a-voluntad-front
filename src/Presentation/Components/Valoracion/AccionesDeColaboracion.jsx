@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import { AUTOR_VALORACION } from "@/Application/Domain/Enums/AUTOR_VALORACION.js";
+import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
+import { esColaboracionPropia } from "@/Application/Domain/Reglas/postulacion.js";
+import { MENSAJE_COLABORACION_PROPIA } from "@/Presentation/Formatos/colaboracion.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useGestionarColaboracion } from "@/Presentation/Hooks/valoracion/useGestionarColaboracion.js";
@@ -37,6 +40,7 @@ export function AccionesDeColaboracion({
   const aceptada = colaboracion.estado === COLABORACION_ESTADO.ACEPTADA;
   const finalizada = colaboracion.estado === COLABORACION_ESTADO.FINALIZADA;
   const enviando = mutacion.enviando || actualizando;
+  const propia = esColectivo && esColaboracionPropia(usuario, colaboracion);
 
   function abrir(tipo) {
     setMensaje(null);
@@ -83,9 +87,11 @@ export function AccionesDeColaboracion({
       }
     }
     setMensaje(
-      resultado.error?.status === 409
-        ? "La colaboración cambió o ya fue valorada. No pudimos actualizarla; cerrá el diálogo y reintentá la consulta."
-        : "No pudimos completar la acción. Probá de nuevo.",
+      resultado.error?.codigo === CODIGO_ERROR.COLABORACION_PROPIA
+        ? MENSAJE_COLABORACION_PROPIA
+        : resultado.error?.status === 409
+          ? "La colaboración cambió o ya fue valorada. No pudimos actualizarla; cerrá el diálogo y reintentá la consulta."
+          : "No pudimos completar la acción. Probá de nuevo.",
     );
   }
 
@@ -102,7 +108,8 @@ export function AccionesDeColaboracion({
       <div className={estilos.acciones}>
         {aceptada && (
           <Boton
-            disabled={ocupado || enviando || requiereActualizar}
+            disabled={ocupado || enviando || requiereActualizar || propia}
+            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
             onClick={() => abrir("finalizar")}
           >
             Finalizar colaboración
@@ -110,7 +117,8 @@ export function AccionesDeColaboracion({
         )}
         {finalizada && !valoracion && (
           <Boton
-            disabled={ocupado || enviando || requiereActualizar}
+            disabled={ocupado || enviando || requiereActualizar || propia}
+            motivoDeshabilitado={propia ? MENSAJE_COLABORACION_PROPIA : undefined}
             onClick={() => abrir("valorar")}
           >
             Valorar
