@@ -140,7 +140,9 @@ test("las estadísticas del colectivo conservan unidades, enlaces y total indepe
     "/proyectos/p1",
   );
   expect(within(tabla).getByText("33,3")).toBeVisible();
-  expect(screen.getByText(/Las visitas no cuentan las del propio colectivo/)).toBeVisible();
+  expect(
+    screen.getByText(/Las visitas no cuentan las del propio colectivo/),
+  ).toBeVisible();
   expect(pedidos.find((p) => p.url.endsWith("/estadisticas")).requiereSesion).toBe(true);
 });
 
