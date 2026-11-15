@@ -1,0 +1,21 @@
+.nombre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  max-inline-size: var(--ancho-texto);
+  margin-inline: auto;
+}
+
+.bajada {
+  color: var(--color-tinta-suave);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.error {
+  color: var(--color-peligro);
+}

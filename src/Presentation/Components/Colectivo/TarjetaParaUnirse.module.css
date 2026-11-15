@@ -1,0 +1,69 @@
+.tarjeta,
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  block-size: 100%;
+  padding: var(--espacio-5);
+  background: var(--color-superficie);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.tarjeta {
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.nombre {
+  min-inline-size: 0;
+  color: var(--color-petroleo);
+  font-weight: var(--texto-headline-peso);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.tipo {
+  font-size: var(--texto-label-tamano);
+  color: var(--color-tinta-suave);
+}
+
+.descripcion {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  color: var(--color-tinta-suave);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3) var(--espacio-4);
+  margin-block-start: auto;
+  padding-block-start: var(--espacio-3);
+  border-block-start: var(--borde) solid var(--color-linea);
+}
+
+.perfil {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  font-weight: var(--texto-button-peso);
+}
+
+.enviado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-block-size: var(--toque-minimo);
+  color: var(--color-petroleo);
+  font-weight: var(--texto-label-peso);
+}

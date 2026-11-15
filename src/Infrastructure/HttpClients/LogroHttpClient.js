@@ -1,44 +1,31 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/ILogroHttpClient.js').ILogroHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearLogroHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(proyectoId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/logros`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/logros`, { signal });
     },
     async obtenerPorId(proyectoId, logroId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/logros/${encodeURIComponent(logroId)}`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/logros/${logroId}`, { signal });
     },
     async crear(proyectoId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/logros`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/proyectos/${proyectoId}/logros`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async actualizar(proyectoId, logroId, request, { signal } = {}) {
-      const response = await http.put(
-        `/proyectos/${encodeURIComponent(proyectoId)}/logros/${encodeURIComponent(logroId)}`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.put(ruta`/proyectos/${proyectoId}/logros/${logroId}`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async eliminar(proyectoId, logroId, { signal } = {}) {
-      await http.delete(
-        `/proyectos/${encodeURIComponent(proyectoId)}/logros/${encodeURIComponent(logroId)}`,
-        { signal },
-      );
+      await http.delete(ruta`/proyectos/${proyectoId}/logros/${logroId}`, {
+        signal,
+        requiereSesion: true,
+      });
     },
   };
 }

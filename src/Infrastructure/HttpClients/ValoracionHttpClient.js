@@ -1,30 +1,20 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IValoracionHttpClient.js').IValoracionHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearValoracionHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async valorar(proyectoId, colaboracionId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/valoraciones`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/valoraciones`,
         request,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async obtenerDeColectivo(colectivoId, { signal } = {}) {
-      const response = await http.get(
-        `/colectivos/${encodeURIComponent(colectivoId)}/valoraciones`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/colectivos/${colectivoId}/valoraciones`, { signal });
     },
     async obtenerDeColaborador(colaboradorId, { signal } = {}) {
-      const response = await http.get(
-        `/colaboradores/${encodeURIComponent(colaboradorId)}/valoraciones`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/colaboradores/${colaboradorId}/valoraciones`, { signal });
     },
   };
 }

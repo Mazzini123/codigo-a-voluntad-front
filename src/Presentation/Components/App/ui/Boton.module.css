@@ -1,0 +1,104 @@
+.contenedor {
+  display: inline-flex;
+  align-self: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--espacio-2);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: var(--toque-minimo);
+  padding: var(--relleno-boton);
+  border: var(--borde-control) solid transparent;
+  border-radius: var(--radio-md);
+  font-family: var(--fuente-texto);
+  font-size: var(--texto-button-tamano);
+  font-weight: var(--texto-button-peso);
+  line-height: var(--texto-button-altura);
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--duracion-hover),
+    color var(--duracion-hover),
+    border-color var(--duracion-hover),
+    transform var(--duracion-presion);
+}
+
+.boton:not(:disabled):active {
+  transform: translateY(var(--borde));
+}
+
+.primario {
+  background: var(--color-coral);
+  color: var(--color-blanco);
+}
+
+.primario:not(:disabled):hover,
+.primario:not(:disabled):active {
+  background: var(--color-coral-hover);
+}
+
+.secundario {
+  background: var(--color-superficie);
+  border-color: var(--color-petroleo);
+  color: var(--color-petroleo);
+}
+
+.secundario:not(:disabled):hover,
+.secundario:not(:disabled):active {
+  background: var(--color-petroleo-tenue);
+  color: var(--color-petroleo-hover);
+}
+
+.peligroso {
+  background: var(--color-superficie);
+  border-color: var(--color-peligro);
+  color: var(--color-peligro);
+}
+
+.peligroso:not(:disabled):hover,
+.peligroso:not(:disabled):active {
+  background: var(--color-peligro-tenue);
+  color: var(--color-peligro-hover);
+}
+
+.peligrosoConfirmar {
+  background: var(--color-peligro);
+  color: var(--color-blanco);
+}
+
+.peligrosoConfirmar:not(:disabled):hover,
+.peligrosoConfirmar:not(:disabled):active {
+  background: var(--color-peligro-hover);
+}
+
+.boton:disabled:not([aria-busy="true"]) {
+  background: var(--color-hundido);
+  border-color: transparent;
+  color: var(--color-tinta-suave);
+}
+
+.indicador {
+  width: var(--icono-sm);
+  height: var(--icono-sm);
+  border: calc(var(--borde) * 2) solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radio-pildora);
+  animation: girar var(--duracion-giro) linear infinite;
+}
+
+.motivo {
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  color: var(--color-tinta-suave);
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,40 @@
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2) var(--espacio-3);
+  overflow-wrap: anywhere;
+}
+
+.fila > div {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.fila h2,
+.fila h3 {
+  color: var(--color-petroleo-hover);
+  font-size: var(--texto-body-tamano);
+  font-weight: var(--texto-headline-peso);
+  text-wrap: wrap;
+}
+
+.descripcion {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-tinta-suave);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-3);
+  margin-block-start: var(--espacio-2);
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}

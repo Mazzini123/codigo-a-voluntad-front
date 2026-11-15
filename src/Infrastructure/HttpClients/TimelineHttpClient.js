@@ -1,15 +1,10 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/ITimelineHttpClient.js').ITimelineHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearTimelineHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async obtenerDeColectivo(colectivoId, { signal } = {}) {
-      const response = await http.get(
-        `/colectivos/${encodeURIComponent(colectivoId)}/timeline`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/colectivos/${colectivoId}/timeline`, { signal });
     },
   };
 }

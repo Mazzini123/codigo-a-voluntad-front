@@ -1,19 +1,22 @@
-import { crearListarProyectos } from "../../Application/UseCases/Proyecto/ListarProyectos.js";
-import { crearObtenerProyecto } from "../../Application/UseCases/Proyecto/ObtenerProyecto.js";
-import { crearCrearProyecto } from "../../Application/UseCases/Proyecto/CrearProyecto.js";
-import { crearListarProyectosDeColectivo } from "../../Application/UseCases/Proyecto/ListarProyectosDeColectivo.js";
-import { crearActualizarProyecto } from "../../Application/UseCases/Proyecto/ActualizarProyecto.js";
-import { crearFinalizarProyecto } from "../../Application/UseCases/Proyecto/FinalizarProyecto.js";
-import { crearObtenerContactoDeColaborador } from "../../Application/UseCases/Proyecto/ObtenerContactoDeColaborador.js";
-import { crearProyectoHttpClient } from "../../Infrastructure/HttpClients/ProyectoHttpClient.js";
-import { axiosClient } from "../../Infrastructure/Http/axiosClient.js";
+import { crearListarProyectos } from "@/Application/UseCases/Proyecto/ListarProyectos.js";
+import { crearListarProyectosDestacados } from "@/Application/UseCases/Proyecto/ListarProyectosDestacados.js";
+import { crearObtenerProyecto } from "@/Application/UseCases/Proyecto/ObtenerProyecto.js";
+import { crearCrearProyecto } from "@/Application/UseCases/Proyecto/CrearProyecto.js";
+import { crearListarProyectosDeColectivo } from "@/Application/UseCases/Proyecto/ListarProyectosDeColectivo.js";
+import { crearActualizarProyecto } from "@/Application/UseCases/Proyecto/ActualizarProyecto.js";
+import { crearFinalizarProyecto } from "@/Application/UseCases/Proyecto/FinalizarProyecto.js";
+import { crearObtenerContactoDeColaborador } from "@/Application/UseCases/Proyecto/ObtenerContactoDeColaborador.js";
+import { crearProyectoHttpClient } from "@/Infrastructure/HttpClients/ProyectoHttpClient.js";
+import { axiosClient } from "@/Infrastructure/Http/axiosClient.js";
 
-/** @param {import('axios').AxiosInstance} [http] */
 export function crearProyectoDependencies(http = axiosClient) {
   const httpClient = crearProyectoHttpClient(http);
   return {
     listarProyectos: crearListarProyectos(httpClient),
+    listarProyectosDestacados: crearListarProyectosDestacados(httpClient),
     obtenerProyecto: crearObtenerProyecto(httpClient),
+    listarParticipaciones: (id, opciones) =>
+      httpClient.listarParticipaciones(id, opciones),
     crearProyecto: crearCrearProyecto(httpClient),
     listarProyectosDeColectivo: crearListarProyectosDeColectivo(httpClient),
     actualizarProyecto: crearActualizarProyecto(httpClient),

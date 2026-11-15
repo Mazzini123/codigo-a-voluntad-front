@@ -1,0 +1,321 @@
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { informarFalla } from "@/Presentation/Components/App/sesion/informarFalla.js";
+import { ContextoDeSesion } from "@/Presentation/Context/ContextoDeSesion.js";
+import {
+  contextoParaRetomar,
+  necesitaPedidosPendientes,
+} from "@/Application/Domain/Reglas/registro.js";
+import { authDependencies } from "@/Presentation/Dependencies/authDependencies.js";
+import {
+  configuracionAuth,
+  recordarVolverA,
+  tomarVolverA,
+} from "@/Presentation/Dependencies/identidadDependencies.js";
+import {
+  cambiarContextoHttp,
+  cambiarSesionHttp,
+  configurarAuth,
+  desconfigurarAuth,
+  sesionHttpVigente,
+} from "@/Presentation/Dependencies/httpDependencies.js";
+import { useConsulta } from "@/Presentation/Hooks/comunes/useConsulta.js";
+import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
+import { RUTA_CALLBACK, RUTA_INICIO, RUTA_LOGIN } from "@/Presentation/Routes/rutas.js";
+
+const AVISO_VENCIDA = "Tu sesión venció. Iniciá sesión de nuevo.";
+const AVISO_CONTEXTO =
+  "Tu sesión cambió en otra ventana o en tu colectivo. Actualizamos tus datos.";
+const ESPERA_AL_SALIR_MS = 2000;
+
+function conLimite(promesa, ms) {
+  return Promise.race([
+    promesa,
+    new Promise((resolver) => {
+      setTimeout(resolver, ms);
+    }),
+  ]);
+}
+
+async function conPedidosPendientes(cuenta, dependencies, signal) {
+  if (
+    !necesitaPedidosPendientes(cuenta) ||
+    !dependencies.listarColectivosConSolicitudPendiente
+  )
+    return cuenta;
+  const pedidosPendientes = await dependencies.listarColectivosConSolicitudPendiente({
+    signal,
+  });
+  signal.throwIfAborted();
+  return { ...cuenta, pedidosPendientes };
+}
+
+class ErrorAlRecargarCuentaDelAlta extends Error {
+  constructor(cause) {
+    super("No pudimos actualizar tu cuenta", { cause });
+  }
+}
+
+export function AuthProvider({
+  usarSesion = configuracionAuth.usarSesion,
+  CallbackComponent = configuracionAuth.CallbackComponent,
+  dependencies: dependenciasRecibidas,
+  children,
+}) {
+  const sesion = usarSesion();
+  const [perfilDadoDeBaja, setPerfilDadoDeBaja] = useState(false);
+  const {
+    autenticado,
+    cargando: esperandoIdentidad = false,
+    error: errorDeIngreso = null,
+    iniciar,
+    cerrar,
+    limpiar,
+    obtenerToken: tokenDelProveedor,
+    simulada = null,
+    sinConfigurar = false,
+  } = sesion;
+  const dependencies = dependenciasRecibidas ?? authDependencies;
+  const avisar = useAvisos();
+  const navigate = useNavigate();
+  const { pathname, search, hash } = useLocation();
+  const enCallback = pathname === RUTA_CALLBACK;
+  const vencimientoAvisado = useRef(false);
+  const manejarVencimiento = useRef(() => {});
+  const descartada = useRef(false);
+  const actual = useRef({ autenticado, tokenDelProveedor });
+  const contextoActualId = useRef(null);
+  const registroConfirmado = useRef(null);
+  const manejarCambioDeContexto = useRef(() => {});
+  const claveSesionHttp = useMemo(() => ({ autenticada: autenticado }), [autenticado]);
+
+  useLayoutEffect(() => {
+    actual.current = { autenticado, tokenDelProveedor };
+  });
+
+  const estaAutenticada = useCallback(
+    async () => !descartada.current && actual.current.autenticado,
+    [],
+  );
+  const obtenerToken = useCallback(async () => {
+    if (descartada.current || !actual.current.autenticado) return null;
+    return (await actual.current.tokenDelProveedor()) ?? null;
+  }, []);
+
+  useLayoutEffect(() => {
+    configurarAuth({
+      clave: claveSesionHttp,
+      obtenerToken,
+      alExpirar: () => manejarVencimiento.current(),
+      permiteSinToken: simulada ? estaAutenticada : undefined,
+      obtenerContextoId: () => contextoActualId.current,
+      alCambiarContexto: () => manejarCambioDeContexto.current(),
+    });
+  }, [claveSesionHttp, obtenerToken, estaAutenticada, simulada]);
+  useLayoutEffect(() => {
+    vencimientoAvisado.current = false;
+    return () => desconfigurarAuth(claveSesionHttp);
+  }, [claveSesionHttp]);
+
+  const buscarCuenta = useCallback(
+    async (signal, { desdeAlta = false, sinRetomar = false } = {}) => {
+      try {
+        const autenticada =
+          !vencimientoAvisado.current && !descartada.current && autenticado;
+        if (!autenticada) return { cuenta: null };
+
+        if (
+          registroConfirmado.current?.clave !== claveSesionHttp ||
+          registroConfirmado.current?.dependencies !== dependencies
+        ) {
+          await dependencies.registrarUsuario({ signal });
+          signal.throwIfAborted();
+          registroConfirmado.current = { clave: claveSesionHttp, dependencies };
+        }
+        const cuenta = await dependencies.obtenerCuentaActual({ signal });
+        const unico = sinRetomar ? null : contextoParaRetomar(cuenta);
+        if (!unico || !dependencies.seleccionarContexto) {
+          return { cuenta: await conPedidosPendientes(cuenta, dependencies, signal) };
+        }
+        try {
+          await dependencies.seleccionarContexto(unico.id, { signal });
+        } catch (falla) {
+          if (signal.aborted) throw falla;
+          return { cuenta: await conPedidosPendientes(cuenta, dependencies, signal) };
+        }
+        signal.throwIfAborted();
+        const retomada = await dependencies.obtenerCuentaActual({ signal });
+        return { cuenta: await conPedidosPendientes(retomada, dependencies, signal) };
+      } catch (error) {
+        if (desdeAlta) throw new ErrorAlRecargarCuentaDelAlta(error);
+        throw error;
+      }
+    },
+    [autenticado, claveSesionHttp, dependencies],
+  );
+  const { datos, error, cargando, ejecutar, reintentar } = useConsulta(buscarCuenta, {
+    inmediato: !esperandoIdentidad && !enCallback,
+  });
+  const cuentaVerificada = datos?.cuenta ?? null;
+  const falloDeRecargaDelAlta = error instanceof ErrorAlRecargarCuentaDelAlta;
+  const falloDeCuenta = falloDeRecargaDelAlta ? error.cause : error;
+  const conservarCuentaDelAlta = falloDeRecargaDelAlta && Boolean(cuentaVerificada);
+  const errorDeCuenta = conservarCuentaDelAlta || perfilDadoDeBaja ? null : falloDeCuenta;
+  const usuarioSinBaja = errorDeCuenta ? null : cuentaVerificada;
+  const usuario = useMemo(
+    () =>
+      perfilDadoDeBaja && usuarioSinBaja
+        ? { ...usuarioSinBaja, rol: null, perfilId: null }
+        : usuarioSinBaja,
+    [perfilDadoDeBaja, usuarioSinBaja],
+  );
+  const verificandoCuenta = cargando || (!datos && !error);
+  const idDelContexto = usuario?.contextoActual?.id ?? null;
+
+  useLayoutEffect(() => {
+    const anterior = contextoActualId.current;
+    contextoActualId.current = idDelContexto;
+    if (anterior && anterior !== idDelContexto) cambiarContextoHttp(claveSesionHttp);
+  }, [idDelContexto, claveSesionHttp]);
+
+  const recargandoPorContexto = useRef(false);
+  useLayoutEffect(() => {
+    manejarCambioDeContexto.current = () => {
+      if (recargandoPorContexto.current) return;
+      recargandoPorContexto.current = true;
+      avisar.info(AVISO_CONTEXTO);
+      void ejecutar().finally(() => {
+        recargandoPorContexto.current = false;
+      });
+    };
+  }, [avisar, ejecutar]);
+
+  useLayoutEffect(() => {
+    manejarVencimiento.current = () => {
+      if (vencimientoAvisado.current) return;
+      vencimientoAvisado.current = true;
+      avisar.info(AVISO_VENCIDA);
+      void Promise.resolve()
+        .then(() => limpiar())
+        .then(() => {
+          descartada.current = true;
+        })
+        .catch((falla) => informarFalla("No pudimos limpiar la sesión vencida", falla));
+      void ejecutar().then((limpiada) => {
+        if (limpiada) {
+          navigate(RUTA_LOGIN, {
+            replace: true,
+            state: { desde: { pathname, search, hash } },
+          });
+        }
+      });
+    };
+  }, [avisar, limpiar, ejecutar, navigate, pathname, search, hash]);
+
+  const iniciarSesion = useCallback(
+    ({ desde = null, registro = false } = {}) => {
+      recordarVolverA(desde);
+      return iniciar({ registro });
+    },
+    [iniciar],
+  );
+
+  const completarIngreso = useCallback(async () => {
+    setPerfilDadoDeBaja(false);
+    registroConfirmado.current = null;
+    vencimientoAvisado.current = false;
+    descartada.current = false;
+    cambiarSesionHttp(claveSesionHttp, true);
+    await ejecutar();
+    return tomarVolverA();
+  }, [claveSesionHttp, ejecutar]);
+
+  const seleccionarContexto = useCallback(
+    async (contextoId) => {
+      await dependencies.seleccionarContexto(contextoId);
+      await ejecutar();
+    },
+    [dependencies, ejecutar],
+  );
+
+  const cambiarNombre = useCallback(
+    async (nombre) => {
+      const resultado = await dependencies.cambiarNombreDeUsuario(nombre);
+      await ejecutar();
+      return resultado;
+    },
+    [dependencies, ejecutar],
+  );
+
+  const cerrarSesion = useCallback(async () => {
+    recordarVolverA(null);
+    if (dependencies.limpiarContexto && actual.current.autenticado) {
+      await conLimite(
+        dependencies.limpiarContexto({ timeout: ESPERA_AL_SALIR_MS }).catch(() => null),
+        ESPERA_AL_SALIR_MS,
+      );
+    }
+    const generacion = cambiarSesionHttp(claveSesionHttp, false);
+    try {
+      await cerrar();
+      descartada.current = true;
+    } catch (falla) {
+      informarFalla("No pudimos cerrar la sesión", falla);
+      if (sesionHttpVigente(generacion)) {
+        cambiarSesionHttp(claveSesionHttp, true);
+        avisar.error("No pudimos cerrar tu sesión. Probá de nuevo.");
+      }
+      return;
+    }
+    await ejecutar();
+    navigate(RUTA_INICIO, { replace: true, flushSync: true });
+  }, [avisar, claveSesionHttp, cerrar, dependencies, ejecutar, navigate]);
+
+  const invalidarPerfil = useCallback(async () => {
+    setPerfilDadoDeBaja(true);
+    await ejecutar({ sinRetomar: true });
+  }, [ejecutar]);
+
+  const valor = useMemo(
+    () => ({
+      usuario,
+      sesionSimulada: simulada,
+      ingresoSinConfigurar: sinConfigurar,
+      estaAutenticado: Boolean(usuario),
+      cargando: esperandoIdentidad || (verificandoCuenta && !usuario),
+      errorDeCuenta,
+      errorDeIngreso,
+      CallbackComponent,
+      iniciarSesion,
+      completarIngreso,
+      cerrarSesion,
+      invalidarPerfil,
+      perfilDadoDeBaja,
+      seleccionarContexto,
+      cambiarNombre,
+      recargarCuenta: ejecutar,
+      reintentarCuenta: reintentar,
+    }),
+    [
+      usuario,
+      simulada,
+      sinConfigurar,
+      verificandoCuenta,
+      esperandoIdentidad,
+      errorDeCuenta,
+      errorDeIngreso,
+      CallbackComponent,
+      iniciarSesion,
+      completarIngreso,
+      cerrarSesion,
+      invalidarPerfil,
+      perfilDadoDeBaja,
+      seleccionarContexto,
+      cambiarNombre,
+      ejecutar,
+      reintentar,
+    ],
+  );
+
+  return <ContextoDeSesion.Provider value={valor}>{children}</ContextoDeSesion.Provider>;
+}

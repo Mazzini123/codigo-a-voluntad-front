@@ -1,30 +1,19 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IAvanceHttpClient.js').IAvanceHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearAvanceHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(proyectoId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/avances`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/avances`, { signal });
     },
     async obtenerPorId(proyectoId, avanceId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/avances/${encodeURIComponent(avanceId)}`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/avances/${avanceId}`, { signal });
     },
     async registrar(proyectoId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/avances`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/proyectos/${proyectoId}/avances`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
   };
 }

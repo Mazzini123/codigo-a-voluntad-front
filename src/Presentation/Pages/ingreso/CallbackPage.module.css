@@ -1,0 +1,19 @@
+.callback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+}
+
+.estado {
+  color: var(--color-tinta-suave);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  font-weight: var(--texto-button-peso);
+}

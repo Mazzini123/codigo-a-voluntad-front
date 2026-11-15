@@ -1,52 +1,38 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IPerfilHttpClient.js').IPerfilHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearPerfilHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async listar(proyectoId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/perfiles`, { signal });
     },
     async obtenerPorId(proyectoId, perfilId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}`,
-        { signal },
-      );
-      return response.data;
+      return api.get(ruta`/proyectos/${proyectoId}/perfiles/${perfilId}`, { signal });
     },
     async crear(proyectoId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/proyectos/${proyectoId}/perfiles`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async actualizar(proyectoId, perfilId, request, { signal } = {}) {
-      const response = await http.put(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.put(ruta`/proyectos/${proyectoId}/perfiles/${perfilId}`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async eliminar(proyectoId, perfilId, { signal } = {}) {
-      await http.delete(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}`,
-        { signal },
-      );
+      await http.delete(ruta`/proyectos/${proyectoId}/perfiles/${perfilId}`, {
+        signal,
+        requiereSesion: true,
+      });
     },
     async agregarHabilidadRequerida(proyectoId, perfilId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/habilidades-requeridas`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/habilidades-requeridas`,
         request,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async quitarHabilidadRequerida(
       proyectoId,
@@ -54,19 +40,17 @@ export function crearPerfilHttpClient(http) {
       codigoHabilidad,
       { signal } = {},
     ) {
-      const response = await http.delete(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/habilidades-requeridas/${encodeURIComponent(codigoHabilidad)}`,
-        { signal },
+      return api.delete(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/habilidades-requeridas/${codigoHabilidad}`,
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async agregarHabilidadOpcional(proyectoId, perfilId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/habilidades-opcionales`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/habilidades-opcionales`,
         request,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async quitarHabilidadOpcional(
       proyectoId,
@@ -74,11 +58,10 @@ export function crearPerfilHttpClient(http) {
       codigoHabilidad,
       { signal } = {},
     ) {
-      const response = await http.delete(
-        `/proyectos/${encodeURIComponent(proyectoId)}/perfiles/${encodeURIComponent(perfilId)}/habilidades-opcionales/${encodeURIComponent(codigoHabilidad)}`,
-        { signal },
+      return api.delete(
+        ruta`/proyectos/${proyectoId}/perfiles/${perfilId}/habilidades-opcionales/${codigoHabilidad}`,
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
   };
 }

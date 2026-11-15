@@ -1,0 +1,35 @@
+.recortada {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.info,
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+  border-radius: var(--radio-md);
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+}
+
+.info {
+  background: var(--color-info-tenue);
+  color: var(--color-info);
+}
+
+.error {
+  background: var(--color-peligro-tenue);
+  color: var(--color-peligro);
+  font-weight: var(--texto-label-peso);
+}
+
+.info svg,
+.error svg {
+  flex-shrink: 0;
+}

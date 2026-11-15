@@ -1,62 +1,71 @@
-/**
- * @param {import('axios').AxiosInstance} http
- * @returns {import('../../Application/Domain/HttpClients/IColaboracionHttpClient.js').IColaboracionHttpClient}
- */
+import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
+
 export function crearColaboracionHttpClient(http) {
+  const api = crearPedidos(http);
   return {
     async desvincular(proyectoId, colaboracionId, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/desvinculacion`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/desvinculacion`,
         undefined,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
+    },
+    async retirar(proyectoId, colaboracionId, { signal } = {}) {
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/retiro`,
+        undefined,
+        { signal, requiereSesion: true },
+      );
     },
     async registrar(proyectoId, request, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones`,
-        request,
-        { signal },
-      );
-      return response.data;
+      return api.post(ruta`/proyectos/${proyectoId}/colaboraciones`, request, {
+        signal,
+        requiereSesion: true,
+      });
     },
-    async listarPorProyecto(proyectoId, { signal } = {}) {
-      const response = await http.get(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones`,
-        { signal },
-      );
-      return response.data;
+    async listarPorProyecto(proyectoId, { signal, page = 1, limit = 20, estado } = {}) {
+      return api.get(ruta`/proyectos/${proyectoId}/colaboraciones`, {
+        signal,
+        params: { page, limit, ...(estado ? { estado } : {}) },
+        requiereSesion: true,
+      });
     },
-    async listarPorColaborador(colaboradorId, { signal } = {}) {
-      const response = await http.get(
-        `/colaboradores/${encodeURIComponent(colaboradorId)}/colaboraciones`,
-        { signal },
-      );
-      return response.data;
+    async listarPendientesDeColectivo(
+      colectivoId,
+      { signal, page = 1, limit = 20 } = {},
+    ) {
+      return api.get(ruta`/colectivos/${colectivoId}/postulaciones`, {
+        signal,
+        params: { page, limit },
+        requiereSesion: true,
+      });
+    },
+    async listarPorColaborador(colaboradorId, { signal, requiereSesion = false } = {}) {
+      return api.get(ruta`/colaboradores/${colaboradorId}/colaboraciones`, {
+        signal,
+        requiereSesion,
+      });
     },
     async aceptar(proyectoId, colaboracionId, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/aceptacion`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/aceptacion`,
         undefined,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async rechazar(proyectoId, colaboracionId, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/rechazo`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/rechazo`,
         undefined,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
     async finalizar(proyectoId, colaboracionId, { signal } = {}) {
-      const response = await http.post(
-        `/proyectos/${encodeURIComponent(proyectoId)}/colaboraciones/${encodeURIComponent(colaboracionId)}/finalizacion`,
+      return api.post(
+        ruta`/proyectos/${proyectoId}/colaboraciones/${colaboracionId}/finalizacion`,
         undefined,
-        { signal },
+        { signal, requiereSesion: true },
       );
-      return response.data;
     },
   };
 }

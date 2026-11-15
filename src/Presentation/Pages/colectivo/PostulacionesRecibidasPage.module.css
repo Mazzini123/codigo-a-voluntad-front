@@ -1,0 +1,42 @@
+.pagina,
+.grupo,
+.lista,
+.fila {
+  display: grid;
+  gap: var(--espacio-4);
+  min-inline-size: 0;
+}
+
+.pagina {
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+}
+
+.fila {
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}
+
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  justify-self: start;
+}
+
+.filtro {
+  max-inline-size: var(--ancho-aviso);
+}

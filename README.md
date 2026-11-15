@@ -9,8 +9,10 @@ Arquitectura cliente pesado: este proyecto consume la API JSON del [backend](htt
 - React + Vite
 - React Router
 - Axios
-- ESLint (con `jsx-a11y`) + Prettier
+- ESLint (con `jsx-a11y` y `react`) + Prettier
 - Vitest + Testing Library
+- Playwright + axe para las pruebas de punta a punta
+- `react-markdown` para las descripciones con formato
 
 ## Cómo levantarlo
 
@@ -26,14 +28,57 @@ La app queda en <http://localhost:5173>. El backend tiene que estar corriendo (p
 
 ## Variables de entorno
 
-| Variable            | Descripción                             | Ejemplo                 |
-| ------------------- | --------------------------------------- | ----------------------- |
-| `VITE_API_URL`      | Destino del proxy de Vite en desarrollo | `http://localhost:8000` |
-| `VITE_API_BASE_URL` | URL base que usa Axios                  | `/api`                  |
+| Variable                  | Descripción                                      | Ejemplo                         |
+| ------------------------- | ------------------------------------------------ | ------------------------------- |
+| `VITE_API_URL`            | Destino del proxy de Vite en desarrollo          | `http://localhost:8000`         |
+| `VITE_API_BASE_URL`       | URL base que usa Axios                           | `/api`                          |
+| `VITE_LOGTO_ENDPOINT`     | URL del tenant de Logto (vacía: sin sesión)      | `https://xxxx.logto.app`        |
+| `VITE_LOGTO_APP_ID`       | ID de la aplicación "Single page app" en Logto   | `abc123…`                       |
+| `VITE_LOGTO_API_RESOURCE` | Identificador del API resource del back en Logto | `https://api.codigo-a-voluntad` |
 
 En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante el proxy de Vite, eliminando el prefijo `/api`.
 
 En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o servir `/api` mediante un reverse proxy. El servidor del frontend debe resolver las rutas de React Router a `index.html`.
+
+## Ingreso con Logto
+
+El ingreso y el registro los resuelve [Logto](https://logto.io) con `@logto/react` (Logto Cloud o un tenant propio). La estructura sigue la integración de Facundo: `Infrastructure/Auth/authFactory.js` elige el proveedor y devuelve `{ Provider, usarSesion, CallbackComponent }`; `main.jsx` monta el `Provider` (un único `LogtoProvider` en `logto/`) y `Presentation/Context/AuthProvider.jsx` consume solo `usarSesion()` y expone `useAuth()`. `VITE_AUTH_PROVIDER` (`logto` o `simulada`) fuerza el proveedor; vacío elige solo según las variables. La app redirige a Logto para el ingreso. Al volver a `/auth/callback`, pide un access token para la API, envía `POST /auth/registro` y espera el resultado antes de consultar `GET /auth/me`. El rol de la plataforma sale del backend.
+
+«Ingresar» y «Crear una cuenta» en el header abren directamente la pantalla correspondiente de Logto y conservan el destino de origen. `/login` y `/registro` siguen disponibles para enlaces existentes, rutas protegidas y recuperación de errores.
+
+1. En la consola de Logto, crear una aplicación de tipo **Single page app**:
+   - Redirect URI: `http://localhost:5173/auth/callback` (y la de producción).
+   - Post sign-out redirect URI: `http://localhost:5173/` (y la de producción).
+   - Copiar el **App ID** en `VITE_LOGTO_APP_ID` y el **endpoint** del tenant en `VITE_LOGTO_ENDPOINT`.
+2. En **API resources**, crear el recurso del back con el identificador de `VITE_LOGTO_API_RESOURCE`. El back valida que el token tenga esa audiencia.
+3. Recomendado: vencimiento corto del access token y rotación del refresh token (el SDK guarda la sesión en `localStorage`; ver `docs/decisiones.md`).
+
+Las tres variables de Logto son necesarias para autenticar. Con configuración incompleta, el header abre las pantallas locales `/login` y `/registro`, que explican que el acceso todavía no está habilitado y permiten seguir explorando proyectos. Los formularios de credenciales viven en Logto.
+
+### Integración con la rama de Logto
+
+La sesión se adaptó a la estructura de esa rama (`authFactory`, `Provider`, `usarSesion`, `CallbackComponent`, `AuthProvider`, `useAuth`), no al revés. Se adoptan los nombres de la integración de Facundo: `/auth/callback` como ruta de retorno (`Infrastructure/Auth/authRoutes.js`) y `VITE_LOGTO_API_RESOURCE` para el identificador del recurso. El equipo debe registrar las URI de cada origen real (el puerto también forma parte del origen).
+
+El registro interno se confirma una vez al iniciar o restaurar la sesión en el frontend. `POST /auth/registro` es idempotente y la consulta posterior `GET /auth/me` trae el usuario interno, el contexto actual y los contextos disponibles con sus permisos. Si el nombre está pendiente, el frontend lo pide y lo guarda con `PUT /auth/usuario`. Después permite crear o elegir un contexto y envía su ID en `X-Context-Id` en las operaciones que lo requieren. Una recarga de la cuenta durante la misma sesión consulta `/auth/me` directamente. [Integración con Logto React](specs/active/integracion-logto-react.md)
+
+Después de dar de baja su perfil de colaboradora, la persona puede crear un perfil nuevo con la misma cuenta. El historial queda asociado al perfil anterior. [Baja del perfil de colaboradora](specs/active/15-baja-del-perfil-de-colaboradora.md)
+
+### Modo demo sin backend
+
+```bash
+npm run demo
+```
+
+Abrir <http://localhost:5174>. No necesita backend, Logto ni cambios en `.env`.
+La barra **Modo demo** permite elegir visitante, colectivo, colaboradora o cuenta sin perfil.
+Arranca como colectivo, con proyectos, postulaciones, estad?sticas, avances, historia y valoraciones de ejemplo.
+Como colaboradora pod?s ver las postulaciones, valorar al colectivo y recorrer Mensajes.
+Los cambios son ficticios y se conservan en esa pesta?a, incluso al cambiar de rol o recargar.
+**Reiniciar ejemplos** restaura los datos iniciales. La demo solo funciona en desarrollo y no se incluye en producci?n.
+
+### Sesión simulada (solo desarrollo)
+
+Para simular solamente el ingreso y el rol sin Logto (los datos siguen requiriendo backend), poner en `.env` `VITE_SESION_SIMULADA=COLECTIVO`, `COLABORADORA` o `SIN_PERFIL` y reiniciar `npm run dev`. "Ingresar" deja la sesión del rol elegido (pasando por `/callback`, como con Logto) y el menú "Mi cuenta" lo indica. No manda token al back y no existe en el build de producción. Con `VITE_SESION_SIMULADA_PERFIL_ID` la cuenta simulada usa el `id` de un colectivo o una colaboradora real del back (según el rol) como su perfil; con `SIN_PERFIL`, al completar un alta adopta el perfil creado. Para cambiar de rol, editar `.env`, reiniciar y cerrar sesión.
 
 ## Scripts
 
@@ -47,22 +92,28 @@ En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o
 | `npm run format:check` | Verifica el formato sin modificar        |
 | `npm test`             | Corre los tests una vez                  |
 | `npm run test:watch`   | Tests en modo observación                |
+| `npm run test:e2e`     | Pruebas de punta a punta con Playwright  |
+
+### Pruebas de punta a punta
+
+`tests/e2e/` recorre en un navegador real los flujos principales: crear el perfil de un colectivo, buscar un proyecto y postularse, publicar un proyecto y aceptar una postulación. En cada pantalla corre axe con las reglas WCAG 2.2 AA. No necesitan el back ni Logto: Playwright levanta cuatro `vite` (visitante, sin perfil, colaboradora y colectivo, en los puertos 5181 a 5184) con la sesión simulada y responde los pedidos a `/api` con un back en memoria (`tests/e2e/apoyo/backFalso.js`). Cada carpeta de `tests/e2e/` corre con la sesión de su nombre.
+
+La primera vez hay que bajar el navegador: `npx playwright install chromium`. Si no se puede bajar, `CHROME_PATH=/ruta/a/chrome npm run test:e2e` usa un Chrome ya instalado. En CI corren en un trabajo aparte y, si fallan, dejan el reporte como artefacto.
 
 ## Estructura
 
 ```text
 src/
-├── Presentation/    Pages, Components, Hooks, Dependencies y Routes
+├── Presentation/    App, Pages, Components, Hooks, Formularios, Formatos, Dependencies, Routes y Styles
 ├── Application/     UseCases y Domain (DTOs, requests y contratos HttpClient)
-├── Infrastructure/  Instancia de Axios e implementaciones HttpClient
-└── Styles/          Estilos globales y archivos de estilos por entidad
+└── Infrastructure/  Instancia de Axios, implementaciones HttpClient y Auth (adaptador de Logto)
 ```
 
 Flujo: `page/component` → `hook` → `useCase` → `httpClient` → `axios`. Se usan directamente los DTOs y requests del backend. Dependencies compone los clientes y casos de uso.
 
-Components, Requests y UseCases se agrupan por entidad; Entities, HttpClients, Dependencies, Hooks, Pages y Styles contienen archivos sueltos. La aplicación usa JavaScript/JSX; los DTOs, requests y contratos se documentan con anotaciones JSDoc en archivos `.js`.
+Components, Hooks, Pages, Formularios, Entities, Requests y UseCases se agrupan por entidad, área o función; HttpClients, Dependencies y Formatos contienen archivos sueltos, uno por módulo. Los estilos globales (`tokens.css` y `base.css`) están en `Presentation/Styles/`; el resto, `X.module.css` junto a cada componente. La aplicación usa JavaScript/JSX, sin comentarios ni JSDoc en el código.
 
-Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/useHabilidades.js`).
+Se importa desde `src` con el alias `@` (por ejemplo, `@/Presentation/Hooks/habilidad/useHabilidades.js`).
 
 El [plan de desarrollo de entidades](docs/PLAN-ENTIDADES.md) contiene el detalle de la arquitectura, los endpoints, el ejemplo de Habilidad y los pasos para incorporar cada entidad.
 
@@ -74,3 +125,8 @@ El [plan de desarrollo de entidades](docs/PLAN-ENTIDADES.md) contiene el detalle
 - `fix/<nombre>` y `chore/<nombre>`: correcciones y configuración.
 
 Cada cambio entra a `develop` por Pull Request, con al menos una revisión y con `lint`, `format:check` y `test` en verde.
+
+## Estilo de código
+
+El equipo usa el mismo formato en backend y frontend. Las reglas, la configuración
+del editor y los comandos de verificación están en [ESTILO.md](ESTILO.md).

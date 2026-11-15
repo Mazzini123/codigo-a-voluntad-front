@@ -1,0 +1,15 @@
+.sello {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--espacio-1);
+  padding: var(--espacio-1) var(--espacio-2);
+  border: var(--borde) solid var(--color-info);
+  border-radius: var(--radio-sm);
+  background: var(--color-info-tenue);
+  color: var(--color-info);
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+}
