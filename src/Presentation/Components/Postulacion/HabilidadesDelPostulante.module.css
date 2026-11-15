@@ -1,0 +1,42 @@
+.bloque,
+.grupo {
+  display: grid;
+  gap: var(--espacio-2);
+  min-inline-size: 0;
+}
+
+.bloque {
+  gap: var(--espacio-3);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  color: var(--color-tinta-suave);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nota {
+  margin: 0;
+  color: var(--color-tinta-suave);
+}
+
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.error p {
+  margin: 0;
+}

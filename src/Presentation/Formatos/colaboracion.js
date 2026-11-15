@@ -27,6 +27,43 @@ export function textoDeEstado(estado) {
   );
 }
 
+const TIPO_DE_SELLO_POR_ESTADO = Object.freeze({
+  [ESTADO.PENDIENTE]: "pendiente",
+  [ESTADO.ACEPTADA]: "aceptada",
+  [ESTADO.RECHAZADA]: "rechazada",
+  [ESTADO.FINALIZADA]: "finalizado",
+});
+
+export function selloDePostulacion(estado) {
+  return {
+    tipo: TIPO_DE_SELLO_POR_ESTADO[estado] ?? "cerrada",
+    texto: textoDeEstado(estado),
+  };
+}
+
+export function tituloDelGrupo(perfil, indice) {
+  return perfil.titulo || recortar(perfil.descripcion ?? "") || `Perfil ${indice + 1}`;
+}
+
+export function textoEncajeDelPostulante({ tiene, total }) {
+  return `Tiene ${tiene} de ${total} ${total === 1 ? "habilidad requerida" : "habilidades requeridas"}`;
+}
+
+export function confirmacionDeAceptar(colaboracion) {
+  if (colaboracion?.esPublica === false) {
+    return {
+      titulo: "¿Aceptar la postulación anónima?",
+      descripcion:
+        "La persona pasa a colaborar en este perfil y ocupa un lugar. Como su contribución es anónima, no se comparten datos de contacto.",
+    };
+  }
+  const nombre = nombreDelPostulante(colaboracion);
+  return {
+    titulo: `¿Aceptar a ${nombre}?`,
+    descripcion: `${nombre} pasa a colaborar en este perfil y ocupa un lugar. Vas a poder ver sus datos de contacto para coordinar el trabajo.`,
+  };
+}
+
 export function nombreDelPostulante(colaboracion) {
   if (colaboracion?.esPublica === false) return "Postulación anónima";
   return nombreVisible(postulanteVisible(colaboracion)) || "Persona sin nombre";

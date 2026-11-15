@@ -22,6 +22,8 @@ export function AccionesDeColaboracion({
   colaboracion,
   alActualizar,
   ocupado = false,
+  antes,
+  children,
 }) {
   const { usuario } = useAuth();
   const avisar = useAvisos();
@@ -106,6 +108,7 @@ export function AccionesDeColaboracion({
         </p>
       )}
       <div className={estilos.acciones}>
+        {antes}
         {aceptada && (
           <Boton
             disabled={ocupado || enviando || requiereActualizar || propia}
@@ -124,6 +127,7 @@ export function AccionesDeColaboracion({
             Valorar
           </Boton>
         )}
+        {children}
       </div>
       {requiereActualizar && (
         <p>
