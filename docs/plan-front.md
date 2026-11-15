@@ -9,7 +9,7 @@
 - **Un test de integración en el front** (propuesta: postularse a un perfil, o el login) y uno en los controladores del back.
 - **Entregar la justificación del cumplimiento de los requerimientos no funcionales:** cada lineamiento de UI se justifica con los criterios aplicados (ver sección 7).
 - **Patrones de e-commerce:** buscador arriba, tarjetas de proyecto como productos, filtros a un costado, detalle con la acción principal ("Postularme") bien visible.
-- **Despliegue:** front empaquetado servido por NGINX junto al back en un único servidor, con Docker. El front tiene su propio repo e imagen.
+- **Despliegue:** front empaquetado servido por Caddy (antes se pensó NGINX; ver `decisiones.md`, 15/11/2026) junto al back en un único servidor, con Docker. El front tiene su propio repo e imagen.
 - **Para el parcial:** saber explicar, para un requerimiento nuevo, los componentes, estados, flujo de navegación y accesibilidad de la interfaz.
 
 ## 2. Roles
@@ -80,7 +80,7 @@ src/
 - **Filtros, búsqueda y página en la URL** (`useSearchParams`, §21.5.4).
 - **Estados de carga con skeletons, vacíos y de error con "Reintentar"** en cada pantalla que consulta al back. Una lista vacía no es un error (§22.2).
 - **En desarrollo:** proxy de Vite en `/api` hacia el back.
-- **Despliegue:** imagen propia (build con Node + NGINX con fallback a `index.html` y proxy de `/api`).
+- **Despliegue:** imagen propia (build con Node + Caddy con fallback a `index.html`, proxy de `/api` y HTTPS automático).
 
 ### 5.1 Base transversal (antes de la primera pantalla)
 

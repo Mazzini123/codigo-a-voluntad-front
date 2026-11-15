@@ -38,7 +38,25 @@ La app queda en <http://localhost:5173>. El backend tiene que estar corriendo (p
 
 En desarrollo, las llamadas a `/api/...` se redirigen a `VITE_API_URL` mediante el proxy de Vite, eliminando el prefijo `/api`.
 
-En producción, configurar `VITE_API_BASE_URL` con la URL pública del backend o servir `/api` mediante un reverse proxy. El servidor del frontend debe resolver las rutas de React Router a `index.html`.
+En producción, `/api` lo resuelve el servidor web (ver "Despliegue").
+
+## Despliegue
+
+La imagen de producción se arma en dos etapas (`Dockerfile`):
+
+```
+node:22-alpine ── npm ci + npm run build ──▶ dist/ ──copiar──▶ caddy:2-alpine (/srv)
+```
+
+La primera etapa solo compila y se descarta; la imagen final tiene Caddy y los archivos estáticos. Caddy (`Caddyfile`):
+
+- sirve `dist/` y devuelve `index.html` para las rutas de React Router (recargar `/proyectos/123` no da 404);
+- reenvía `/api/*` a `api:8000` quitando el prefijo, así front y API comparten origen y no hace falta CORS entre ellos;
+- con la variable `DOMINIO`, obtiene y renueva solo el certificado HTTPS. El login con Logto necesita HTTPS.
+
+Las `VITE_*` se escriben en el JavaScript al compilar: llegan como argumentos de build, no se leen al arrancar el contenedor. Si cambian, hay que reconstruir la imagen. El `.env` local no entra en la imagen (`.dockerignore`).
+
+La imagen no se levanta sola: el servicio `web` está en `docker-compose.prod.yml` del repo del back, que espera este repo clonado al lado (`../codigo-a-voluntad-front`). Los pasos están en el README del back, sección "Despliegue". `public/_redirects` queda para Netlify; Caddy no lo usa.
 
 ## Ingreso con Logto
 

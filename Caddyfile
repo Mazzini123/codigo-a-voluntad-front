@@ -1,0 +1,29 @@
+# Servidor web de producción: sirve el front y reenvía /api a la API.
+# Con DOMINIO definido, Caddy obtiene y renueva solo el certificado HTTPS
+# (Let's Encrypt). Sin DOMINIO escucha en :80, sin HTTPS, para probar en local.
+{$DOMINIO::80} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# /api/proyectos → http://api:8000/proyectos (handle_path quita el prefijo /api).
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+
+		# Los archivos de /assets llevan un hash en el nombre: se pueden cachear sin vencimiento.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+
+		# Rutas de React Router (/proyectos/123): si no existe el archivo, devuelve index.html.
+		try_files {path} /index.html
+		file_server
+	}
+}
