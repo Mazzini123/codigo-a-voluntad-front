@@ -1,8 +1,25 @@
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
+import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
+import { TIPO_CONTEXTO } from "@/Application/Domain/Enums/TIPO_CONTEXTO.js";
 
 const CLAVE = "codigo-a-voluntad:sesion-simulada";
 const CLAVE_PERFIL = "codigo-a-voluntad:sesion-simulada:perfil";
 let cuentaSinPersistir = null;
+
+const CONTEXTO_DE_ADMINISTRACION = {
+  id: "contexto-administracion-simulado",
+  tipo: TIPO_CONTEXTO.ADMINISTRACION,
+  rol: "ADMIN",
+  colectivo: null,
+  colaborador: null,
+  permisos: [
+    PERMISO.PROYECTO_DESTACAR,
+    PERMISO.REVISION_VER,
+    PERMISO.REVISION_RESOLVER,
+    PERMISO.AUDITORIA_VER,
+    PERMISO.ADMIN_GESTIONAR,
+  ],
+};
 
 const CUENTAS = {
   COLECTIVO: {
@@ -16,12 +33,20 @@ const CUENTAS = {
     perfilId: "colaboradora-simulada",
   },
   SIN_PERFIL: { id: "cuenta-simulada", rol: null, perfilId: null },
+  ADMINISTRACION: {
+    id: "cuenta-simulada",
+    rol: ROL_CUENTA.ADMINISTRACION,
+    perfilId: null,
+    contextoActual: CONTEXTO_DE_ADMINISTRACION,
+    contextos: [CONTEXTO_DE_ADMINISTRACION],
+  },
 };
 
 export const ETIQUETAS_SIMULADAS = {
   COLECTIVO: "Colectivo",
   COLABORADORA: "Colaboradora",
   SIN_PERFIL: "Sin perfil",
+  ADMINISTRACION: "Administración",
 };
 
 export function leerSesionSimulada(valor) {
@@ -29,7 +54,7 @@ export function leerSesionSimulada(valor) {
   if (!tipo) return null;
   if (CUENTAS[tipo]) return tipo;
   console.warn(
-    `VITE_SESION_SIMULADA="${valor}" no es válida (COLECTIVO, COLABORADORA o SIN_PERFIL). Se ignora.`,
+    `VITE_SESION_SIMULADA="${valor}" no es válida (COLECTIVO, COLABORADORA, ADMINISTRACION o SIN_PERFIL). Se ignora.`,
   );
   return null;
 }

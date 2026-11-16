@@ -7,6 +7,9 @@ const ROLES = {
 };
 
 export function nombreDelContexto(contexto) {
+  if (contexto.tipo === TIPO_CONTEXTO.ADMINISTRACION) {
+    return "Administración de la plataforma";
+  }
   if (contexto.tipo === TIPO_CONTEXTO.COLECTIVO) {
     return contexto.colectivo?.nombre ?? "Colectivo";
   }
@@ -14,6 +17,9 @@ export function nombreDelContexto(contexto) {
 }
 
 export function detalleDelContexto(contexto) {
+  if (contexto.tipo === TIPO_CONTEXTO.ADMINISTRACION) {
+    return "Plataforma · Administradora";
+  }
   if (contexto.tipo === TIPO_CONTEXTO.COLECTIVO) {
     return `Colectivo · ${ROLES[contexto.rol] ?? "Miembro"}`;
   }

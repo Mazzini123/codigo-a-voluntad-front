@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { conBackFalso } from "./backFalso.js";
 import { conSesionIniciada } from "./sesion.js";
-import { esperarSinViolaciones } from "./accesibilidad.js";
+import { esperarSinScrollHorizontal, esperarSinViolaciones } from "./accesibilidad.js";
 import { unaColaboradora } from "./datos.js";
 
 export async function finalizarYValorar(page, rol) {
@@ -70,21 +70,6 @@ export async function finalizarYValorar(page, rol) {
     page.getByRole("region", { name: "Valoraciones recibidas" }),
   ).toContainText("Trabajamos muy bien en equipo.");
   await esperarSinViolaciones(page);
-  expect(
-    await page.evaluate(() =>
-      [...document.querySelectorAll("body *")]
-        .filter(
-          (elemento) => elemento.getBoundingClientRect().right > window.innerWidth + 1,
-        )
-        .map((elemento) => ({
-          etiqueta: elemento.tagName,
-          clase: elemento.className,
-          texto: elemento.textContent.slice(0, 80),
-        })),
-    ),
-  ).toEqual([]);
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-  ).toBe(true);
+  await esperarSinScrollHorizontal(page);
   expect(noAtendidos).toEqual([]);
 }

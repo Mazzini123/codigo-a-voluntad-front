@@ -1,8 +1,10 @@
 import { PantallaDiferida } from "./PantallaDiferida.jsx";
 import { createRoutesFromElements, Route } from "react-router-dom";
 import { MarcoDeLaApp } from "@/Presentation/Components/App/layout/MarcoDeLaApp.jsx";
+import { MarcoDeAdministracion } from "@/Presentation/Components/Administracion/MarcoDeAdministracion.jsx";
 import { MarcoDelPanelDelColectivo } from "@/Presentation/Components/Colectivo/MarcoDelPanelDelColectivo.jsx";
 import { Raiz } from "@/Presentation/Components/App/layout/Raiz.jsx";
+import { AdministracionPage } from "@/Presentation/Pages/administracion/AdministracionPage.jsx";
 import { BienvenidaPage } from "@/Presentation/Pages/ingreso/BienvenidaPage.jsx";
 import { CallbackPage } from "@/Presentation/Pages/ingreso/CallbackPage.jsx";
 import { ColaboradoraPage } from "@/Presentation/Pages/publicas/ColaboradoraPage.jsx";
@@ -21,8 +23,15 @@ import { SinPermisoPage } from "@/Presentation/Pages/sistema/SinPermisoPage.jsx"
 import { RutaProtegida } from "./RutaProtegida.jsx";
 import { GuardaDeRegistro } from "./GuardaDeRegistro.jsx";
 import { RutaDelDueno } from "./RutaDelDueno.jsx";
+import { RutaConPermiso } from "./RutaConPermiso.jsx";
+import { RutaDeAdministracion } from "./RutaDeAdministracion.jsx";
+import { PERMISO } from "@/Application/Domain/Enums/PERMISO.js";
 import { ROL_CUENTA } from "@/Application/Domain/Enums/ROL_CUENTA.js";
 import {
+  RUTA_ADMIN,
+  RUTA_ADMIN_DESTACADOS,
+  RUTA_ADMIN_REVISIONES,
+  RUTA_ADMIN_AUDITORIA,
   RUTA_ADMINISTRAR_PROYECTO,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
@@ -73,6 +82,15 @@ const cargarColaboradorasPotenciales = () =>
   import("@/Presentation/Pages/colectivo/ColaboradorasPotencialesPage.jsx");
 const cargarContactoDeColaboradora = () =>
   import("@/Presentation/Pages/colectivo/ContactoDeColaboradoraPage.jsx");
+
+const cargarDestacadosDeAdministracion = () =>
+  import("@/Presentation/Pages/administracion/DestacadosPage.jsx");
+
+const cargarRevisionesDeAdministracion = () =>
+  import("@/Presentation/Pages/administracion/RevisionesPage.jsx");
+
+const cargarAuditoriaDeAdministracion = () =>
+  import("@/Presentation/Pages/administracion/AuditoriaPage.jsx");
 
 const cargarNombrePage = () =>
   import("@/Presentation/Pages/ingreso/NombrePage.jsx").then((modulo) => ({
@@ -244,6 +262,53 @@ export const rutas = createRoutesFromElements(
             path={RUTA_NUEVO_PROYECTO}
             element={<PantallaDiferida cargar={cargarNuevoProyectoPage} />}
           />
+        </Route>
+        <Route element={<RutaDeAdministracion />}>
+          <Route
+            element={<MarcoDeAdministracion />}
+            handle={{ tipoDePantalla: TIPO_DE_PANTALLA.PANEL }}
+          >
+            <Route path={RUTA_ADMIN} element={<AdministracionPage />} />
+            <Route
+              element={
+                <RutaConPermiso
+                  permiso={PERMISO.PROYECTO_DESTACAR}
+                  sinPermiso="Tu cuenta no puede administrar los destacados."
+                />
+              }
+            >
+              <Route
+                path={RUTA_ADMIN_DESTACADOS}
+                element={<PantallaDiferida cargar={cargarDestacadosDeAdministracion} />}
+              />
+            </Route>
+            <Route
+              element={
+                <RutaConPermiso
+                  permiso={PERMISO.REVISION_VER}
+                  sinPermiso="Tu cuenta no puede ver las revisiones."
+                />
+              }
+            >
+              <Route
+                path={RUTA_ADMIN_REVISIONES}
+                element={<PantallaDiferida cargar={cargarRevisionesDeAdministracion} />}
+              />
+            </Route>
+            <Route
+              element={
+                <RutaConPermiso
+                  permiso={PERMISO.AUDITORIA_VER}
+                  sinPermiso="Tu cuenta no puede ver la auditoría."
+                />
+              }
+            >
+              <Route
+                path={RUTA_ADMIN_AUDITORIA}
+                element={<PantallaDiferida cargar={cargarAuditoriaDeAdministracion} />}
+              />
+            </Route>
+          </Route>
         </Route>
         <Route element={<RutaProtegida roles={[ROL_CUENTA.COLABORADORA]} />}>
           <Route

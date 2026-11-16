@@ -2,7 +2,30 @@ import { expect, test } from "@playwright/test";
 import { finalizarYValorar } from "../apoyo/valorar.js";
 import { conBackFalso } from "../apoyo/backFalso.js";
 import { conSesionIniciada } from "../apoyo/sesion.js";
-import { esperarSinViolaciones } from "../apoyo/accesibilidad.js";
+import {
+  esperarSinScrollHorizontal,
+  esperarSinViolaciones,
+} from "../apoyo/accesibilidad.js";
+
+for (const ruta of ["/colectivo/resumen", "/colectivo/proyectos"]) {
+  test(`en el celular, el menú principal de ${ruta} muestra todos los enlaces con el panel marcado`, async ({
+    page,
+  }) => {
+    const { noAtendidos } = await conBackFalso(page);
+    await conSesionIniciada(page, { rol: "COLECTIVO", perfilId: "cl-fiorito" });
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto(ruta);
+    await page.getByRole("button", { name: "Menú" }).click();
+    const principal = page.getByRole("navigation", { name: "Principal" });
+    await expect(principal.getByRole("link", { name: "Proyectos" })).toBeVisible();
+    const actual = principal.getByRole("link", { name: "Panel del colectivo" });
+    await expect(actual).toBeVisible();
+    await expect(actual).toHaveAttribute("aria-current", "page");
+    await esperarSinViolaciones(page);
+    await esperarSinScrollHorizontal(page);
+    expect(noAtendidos).toEqual([]);
+  });
+}
 
 test("el colectivo acepta, finaliza y valora una colaboración", async ({ page }) => {
   await finalizarYValorar(page, "COLECTIVO");

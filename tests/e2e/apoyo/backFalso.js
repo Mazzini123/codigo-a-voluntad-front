@@ -20,6 +20,27 @@ class Respuesta {
 }
 
 const creado = (cuerpo) => new Respuesta(201, cuerpo);
+const sinContenido = () => new Respuesta(204, null);
+
+function paginar(lista, consulta) {
+  const porPagina = Number(consulta.get("limit")) || 12;
+  const numero = Number(consulta.get("page")) || 1;
+  return {
+    data: lista.slice((numero - 1) * porPagina, numero * porPagina),
+    meta: {
+      page: numero,
+      per_page: porPagina,
+      total: lista.length,
+      total_pages: Math.ceil(lista.length / porPagina),
+    },
+  };
+}
+
+const CUPO_DE_DESTACADOS = 6;
+const ADMINISTRACION_SIMULADA = {
+  usuarioId: "cuenta-simulada",
+  contextoId: "contexto-administracion-simulado",
+};
 
 function crearEstadoInicial() {
   const proyectoAjeno = unProyecto("p1");
@@ -27,6 +48,10 @@ function crearEstadoInicial() {
     proyectos: new Map([["p1", { ...proyectoAjeno, colectivoId: "cl-fiorito" }]]),
     colectivos: new Map([["cl-fiorito", unColectivo("cl-fiorito")]]),
     colaboradores: new Map(),
+    destacados: new Map(),
+    revisiones: new Map(),
+    auditoria: [],
+    fallas: new Set(),
     secuencia: 0,
   };
 }
@@ -42,6 +67,7 @@ function sinColectivo(proyecto, estado) {
       "Colectivo",
   };
   delete copia.colectivoId;
+  if (estado.destacados.has(proyecto.id)) copia.destacado = true;
   return copia;
 }
 
@@ -135,9 +161,136 @@ function valoraciones(estado, id, esColectivo) {
   };
 }
 
+function proyectosListados(estado, consulta) {
+  const etiqueta = consulta.get("etiqueta");
+  const filtroDeEstado = consulta.get("estado");
+  const lista = [...estado.proyectos.values()]
+    .filter((p) => !filtroDeEstado || p.estado === filtroDeEstado)
+    .filter((p) => !etiqueta || p.etiquetas.includes(etiqueta))
+    .map((p) => sinColectivo(p, estado));
+  return [...lista.filter((p) => p.destacado), ...lista.filter((p) => !p.destacado)];
+}
+
+function auditar(estado, accion, entidad, detalle) {
+  estado.auditoria.push({
+    id: `aud-${++estado.secuencia}`,
+    ...ADMINISTRACION_SIMULADA,
+    accion,
+    entidad,
+    detalle,
+    fecha: new Date().toISOString(),
+  });
+}
+
+function destacar(estado, id, { hasta }) {
+  const proyecto = estado.proyectos.get(id);
+  if (!proyecto) return null;
+  if (proyecto.estado !== "ABIERTO")
+    return new Respuesta(422, { message: "No es elegible." });
+  const cambio = estado.destacados.has(id);
+  if (!cambio && estado.destacados.size >= CUPO_DE_DESTACADOS)
+    return new Respuesta(409, { message: "Cupo completo." });
+  const destacado = {
+    desde: estado.destacados.get(id)?.desde ?? new Date().toISOString(),
+    hasta: `${hasta.slice(0, 10)}T23:59:59.000-03:00`,
+  };
+  estado.destacados.set(id, destacado);
+  auditar(
+    estado,
+    "PROYECTO_DESTACADO",
+    { tipo: "PROYECTO", id },
+    { hasta: destacado.hasta, cambio },
+  );
+  return { id, destacado };
+}
+
+function resolverRevision(estado, id, { estado: resolucion, nota }) {
+  const revision = estado.revisiones.get(id);
+  if (!revision) return null;
+  if (revision.estado !== "PENDIENTE")
+    return new Respuesta(409, { message: "Ya resuelta." });
+  if (!["REVISADA", "DESCARTADA"].includes(resolucion))
+    return new Respuesta(400, { message: "Estado inválido." });
+  Object.assign(revision, {
+    estado: resolucion,
+    nota: nota || null,
+    resueltaPor: ADMINISTRACION_SIMULADA.usuarioId,
+    resueltaEn: new Date().toISOString(),
+  });
+  auditar(estado, "REVISION_RESUELTA", { tipo: "REVISION", id }, { estado: resolucion });
+  return revision;
+}
+
+function filtrarAuditoria(estado, consulta) {
+  const igual = (campo, valor) => !consulta.get(campo) || valor === consulta.get(campo);
+  const desde = Date.parse(consulta.get("desde") ?? "") || -Infinity;
+  const hasta = Date.parse(consulta.get("hasta") ?? "") || Infinity;
+  return estado.auditoria
+    .filter(
+      (a) =>
+        igual("accion", a.accion) &&
+        igual("entidadTipo", a.entidad?.tipo) &&
+        igual("entidadId", a.entidad?.id) &&
+        Date.parse(a.fecha) >= desde &&
+        Date.parse(a.fecha) <= hasta,
+    )
+    .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+}
+
+function rutasDeAdministracion(estado) {
+  return [
+    [
+      "GET",
+      /^\/proyectos\/destacados$/,
+      () =>
+        [...estado.destacados.keys()]
+          .filter((id) => estado.proyectos.has(id))
+          .map((id) => sinColectivo(estado.proyectos.get(id), estado)),
+    ],
+    [
+      "PUT",
+      /^\/administracion\/proyectos\/([^/]+)\/destacado$/,
+      ([id], cuerpo) => destacar(estado, id, cuerpo),
+    ],
+    [
+      "DELETE",
+      /^\/administracion\/proyectos\/([^/]+)\/destacado$/,
+      ([id]) => {
+        if (!estado.destacados.delete(id)) return null;
+        auditar(estado, "PROYECTO_DESTACADO_QUITADO", { tipo: "PROYECTO", id }, null);
+        return sinContenido();
+      },
+    ],
+    [
+      "GET",
+      /^\/administracion\/revisiones$/,
+      (_, __, consulta) =>
+        paginar(
+          [...estado.revisiones.values()].filter(
+            (r) =>
+              (!consulta.get("estado") || r.estado === consulta.get("estado")) &&
+              (!consulta.get("motivo") || r.motivo === consulta.get("motivo")),
+          ),
+          consulta,
+        ),
+    ],
+    [
+      "POST",
+      /^\/administracion\/revisiones\/([^/]+)\/resolucion$/,
+      ([id], cuerpo) => resolverRevision(estado, id, cuerpo),
+    ],
+    [
+      "GET",
+      /^\/administracion\/auditoria$/,
+      (_, __, consulta) => paginar(filtrarAuditoria(estado, consulta), consulta),
+    ],
+  ];
+}
+
 function rutas(estado) {
   const nuevoId = (prefijo) => `${prefijo}-${++estado.secuencia}`;
   return [
+    ...rutasDeAdministracion(estado),
     ["GET", /^\/catalogos\/provincias$/, () => ["Buenos Aires"]],
     ["GET", /^\/estadisticas$/, () => estadisticas(estado)],
     ["GET", /^\/colectivos\/([^/]+)\/estadisticas$/, ([id]) => estadisticas(estado, id)],
@@ -233,12 +386,10 @@ function rutas(estado) {
     [
       "GET",
       /^\/proyectos$/,
-      () =>
-        pagina(
-          [...estado.proyectos.values()].map((proyecto) =>
-            sinColectivo(proyecto, estado),
-          ),
-        ),
+      (_, __, consulta) =>
+        consulta.get("estado")
+          ? paginar(proyectosListados(estado, consulta), consulta)
+          : pagina(proyectosListados(estado, consulta)),
     ],
     [
       "GET",
@@ -401,14 +552,25 @@ export async function conBackFalso(page, preparar = () => {}) {
     const url = new URL(pedido.url());
     const camino = url.pathname.replace(/^\/api/, "");
     const metodo = pedido.method();
+    if (estado.fallas.has(`${metodo} ${camino}`))
+      return route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: '{"message":"Falla simulada."}',
+      });
     for (const [verbo, patron, atender] of tabla) {
       const coincide = verbo === metodo && camino.match(patron);
       if (!coincide) continue;
-      const resultado = atender(coincide.slice(1), pedido.postDataJSON?.() ?? null);
+      const resultado = atender(
+        coincide.slice(1),
+        pedido.postDataJSON?.() ?? null,
+        url.searchParams,
+      );
       const { status, cuerpo } =
         resultado instanceof Respuesta
           ? resultado
           : new Respuesta(resultado == null ? 404 : 200, resultado);
+      if (status === 204) return route.fulfill({ status });
       return route.fulfill({
         status,
         contentType: "application/json",

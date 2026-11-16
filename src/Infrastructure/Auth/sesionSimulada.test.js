@@ -10,6 +10,7 @@ test("lee los tres tipos válidos e ignora el resto", () => {
   expect(leerSesionSimulada("COLECTIVO")).toBe("COLECTIVO");
   expect(leerSesionSimulada(" colaboradora ")).toBe("COLABORADORA");
   expect(leerSesionSimulada("SIN_PERFIL")).toBe("SIN_PERFIL");
+  expect(leerSesionSimulada(" administracion ")).toBe("ADMINISTRACION");
   expect(leerSesionSimulada("")).toBeNull();
   expect(leerSesionSimulada(undefined)).toBeNull();
   expect(leerSesionSimulada("ADMIN")).toBeNull();
@@ -109,4 +110,25 @@ test("la sesión simulada guarda el nombre que se carga", async () => {
   const cliente = crearAuthHttpClientSimulado("COLECTIVO");
   await cliente.cambiarNombre({ nombre: "Ana" });
   expect((await cliente.obtenerCuentaActual()).usuario.nombre).toBe("Ana");
+});
+
+test("la cuenta simulada de ADMINISTRACION trae su contexto sin colectivo ni perfil", async () => {
+  const cuenta =
+    await crearAuthHttpClientSimulado("ADMINISTRACION").obtenerCuentaActual();
+  expect(cuenta.rol).toBe("ADMINISTRACION");
+  expect(cuenta.perfilId).toBeNull();
+  expect(cuenta.contextoActual).toMatchObject({
+    tipo: "ADMINISTRACION",
+    rol: "ADMIN",
+    colectivo: null,
+    colaborador: null,
+  });
+  expect(cuenta.contextoActual.permisos).toEqual([
+    "PROYECTO_DESTACAR",
+    "REVISION_VER",
+    "REVISION_RESOLVER",
+    "AUDITORIA_VER",
+    "ADMIN_GESTIONAR",
+  ]);
+  expect(cuenta.contextos).toEqual([cuenta.contextoActual]);
 });

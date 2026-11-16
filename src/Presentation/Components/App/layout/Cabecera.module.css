@@ -33,10 +33,6 @@
   .barra {
     row-gap: 0;
   }
-
-  .enlaces > li:has(> [aria-current="page"]) {
-    display: var(--mostrar-enlace-actual-cabecera, list-item);
-  }
 }
 
 .marca {

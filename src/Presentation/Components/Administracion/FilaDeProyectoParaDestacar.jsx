@@ -1,0 +1,37 @@
+import { Link } from "react-router-dom";
+import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
+import { SelloDeDestacado } from "@/Presentation/Components/Proyecto/listado/SelloDeDestacado.jsx";
+import { rutaProyecto } from "@/Presentation/Routes/rutas.js";
+import estilos from "./FilaDeProyectoParaDestacar.module.css";
+
+export function FilaDeProyectoParaDestacar({ proyecto, acciones, destacado = false }) {
+  return (
+    <li className={estilos.fila}>
+      <div className={estilos.datos}>
+        {destacado && <SelloDeDestacado />}
+        <h3>
+          <Link to={rutaProyecto(proyecto.id)}>{proyecto.titulo}</Link>
+        </h3>
+        {proyecto.colectivo?.nombre && (
+          <p className={estilos.colectivo}>{proyecto.colectivo.nombre}</p>
+        )}
+      </div>
+      <div className={estilos.acciones}>
+        {acciones.map(
+          ({ texto, accion, variante, deshabilitado, descripcion, nombreAccesible }) => (
+            <Boton
+              key={texto}
+              variante={variante}
+              disabled={deshabilitado}
+              aria-label={nombreAccesible}
+              aria-describedby={descripcion}
+              onClick={accion}
+            >
+              {texto}
+            </Boton>
+          ),
+        )}
+      </div>
+    </li>
+  );
+}

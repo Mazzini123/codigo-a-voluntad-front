@@ -1,0 +1,5 @@
+export const ESTADO_REVISION = Object.freeze({
+  PENDIENTE: "PENDIENTE",
+  REVISADA: "REVISADA",
+  DESCARTADA: "DESCARTADA",
+});

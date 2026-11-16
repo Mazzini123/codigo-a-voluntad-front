@@ -1,0 +1,27 @@
+.sello {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: var(--espacio-1) var(--espacio-2);
+  border: var(--borde) solid currentColor;
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-label-tamano);
+  font-weight: var(--texto-label-peso);
+  line-height: var(--texto-label-altura);
+  letter-spacing: var(--texto-label-espaciado);
+}
+
+.aviso {
+  background: var(--color-aviso-tenue);
+  color: var(--color-aviso);
+}
+
+.exito {
+  background: var(--color-exito-tenue);
+  color: var(--color-exito);
+}
+
+.neutro {
+  background: var(--color-hundido);
+  color: var(--color-tinta-suave);
+}

@@ -34,6 +34,10 @@ export const RUTA_POSTULACIONES_COLECTIVO = "/colectivo/postulaciones";
 export const RUTA_MIEMBROS_COLECTIVO = "/colectivo/miembros";
 export const RUTA_SOLICITUDES_COLECTIVO = "/colectivo/solicitudes";
 export const RUTA_NUEVO_PROYECTO = "/colectivo/proyectos/nuevo";
+export const RUTA_ADMIN = "/admin";
+export const RUTA_ADMIN_DESTACADOS = "/admin/destacados";
+export const RUTA_ADMIN_REVISIONES = "/admin/revisiones";
+export const RUTA_ADMIN_AUDITORIA = "/admin/auditoria";
 export const RUTA_ADMINISTRAR_PROYECTO = "/proyectos/:id/administrar";
 export const RUTA_POSTULACIONES_RECIBIDAS = "/proyectos/:id/postulaciones";
 export const RUTA_COLABORADORAS_POTENCIALES =
@@ -97,6 +101,12 @@ export const TIPO_DE_PANTALLA = Object.freeze({
 const INICIO_POR_ROL = Object.freeze({
   [ROL_CUENTA.COLECTIVO]: RUTA_RESUMEN_COLECTIVO,
   [ROL_CUENTA.COLABORADORA]: RUTA_PROYECTOS,
+  [ROL_CUENTA.ADMINISTRACION]: RUTA_ADMIN,
+});
+
+const ROL_POR_TIPO_DE_CONTEXTO = Object.freeze({
+  [TIPO_CONTEXTO.COLECTIVO]: ROL_CUENTA.COLECTIVO,
+  [TIPO_CONTEXTO.ADMINISTRACION]: ROL_CUENTA.ADMINISTRACION,
 });
 
 export function inicioPorRol(rol) {
@@ -105,11 +115,7 @@ export function inicioPorRol(rol) {
 
 export function inicioPorContexto(contexto) {
   if (!contexto) return RUTA_BIENVENIDA;
-  return inicioPorRol(
-    contexto.tipo === TIPO_CONTEXTO.COLECTIVO
-      ? ROL_CUENTA.COLECTIVO
-      : ROL_CUENTA.COLABORADORA,
-  );
+  return inicioPorRol(ROL_POR_TIPO_DE_CONTEXTO[contexto.tipo] ?? ROL_CUENTA.COLABORADORA);
 }
 
 const RUTAS_DEL_PASO = Object.freeze({

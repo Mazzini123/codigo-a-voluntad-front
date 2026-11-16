@@ -5,6 +5,7 @@ import { Cabecera } from "./Cabecera.jsx";
 
 const COLABORADORA = { id: "cuenta-2", rol: "COLABORADORA", perfilId: "co1" };
 const COLECTIVO = { id: "cuenta-1", rol: "COLECTIVO", perfilId: "cl1" };
+const ADMINISTRACION = { id: "cuenta-4", rol: "ADMINISTRACION", perfilId: null };
 const SIN_PERFIL = { id: "cuenta-3", rol: null, perfilId: null };
 
 function montar(cuenta, ruta) {
@@ -21,6 +22,7 @@ describe("navegación principal por rol", () => {
     ["un visitante", null, ["Proyectos"]],
     ["una colaboradora", COLABORADORA, ["Proyectos", "Mis postulaciones", "Mensajes"]],
     ["un colectivo", COLECTIVO, ["Proyectos", "Panel del colectivo"]],
+    ["una administradora", ADMINISTRACION, ["Proyectos", "Administración"]],
   ])(
     "%s ve los enlaces que le corresponden y no ve Habilidades",
     async (_nombre, cuenta, esperados) => {
