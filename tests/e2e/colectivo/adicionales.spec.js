@@ -39,9 +39,7 @@ test("el colectivo ve estadísticas y confirma su baja escribiendo el nombre", a
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/colectivo/resumen");
   const estadisticas = page.getByRole("region", { name: "Tus proyectos en números" });
-  await expect(
-    estadisticas.getByText("Visitas", { exact: true }).first(),
-  ).toBeVisible();
+  await expect(estadisticas.getByText("Visitas", { exact: true }).first()).toBeVisible();
   await esperarSinViolaciones(page);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
