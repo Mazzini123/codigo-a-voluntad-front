@@ -3,15 +3,33 @@ import { AltaDeProyecto } from "@/Presentation/Components/Proyecto/alta/AltaDePr
 import { EnlaceVolver } from "@/Presentation/Components/App/navegacion/EnlaceVolver.jsx";
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
-import { useCrearProyecto } from "@/Presentation/Hooks/proyecto/useCrearProyecto.js";
-import { RUTA_RESUMEN_COLECTIVO, rutaProyecto } from "@/Presentation/Routes/rutas.js";
+import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
+import {
+  MODO_DEL_ALTA,
+  useCrearProyecto,
+} from "@/Presentation/Hooks/proyecto/useCrearProyecto.js";
+import { useTerminosVigentes } from "@/Presentation/Hooks/terminos/useTerminosVigentes.js";
+import {
+  RUTA_MIS_PROYECTOS,
+  RUTA_RESUMEN_COLECTIVO,
+  rutaProyecto,
+} from "@/Presentation/Routes/rutas.js";
 import estilos from "@/Presentation/Components/Perfil/Perfil.module.css";
+
+function destinoDelAlta(proyecto) {
+  return proyecto.estado === PROYECTO_ESTADO.BORRADOR
+    ? RUTA_MIS_PROYECTOS
+    : rutaProyecto(proyecto.id);
+}
 
 export function NuevoProyectoPage() {
   const { usuario } = useAuth();
-  const alta = useCrearProyecto(usuario.perfilId);
+  const terminos = useTerminosVigentes();
+  const alta = useCrearProyecto(usuario.perfilId, {
+    alRechazarTerminos: terminos.recargar,
+  });
 
-  if (alta.proyecto) return <Navigate to={rutaProyecto(alta.proyecto.id)} replace />;
+  if (alta.proyecto) return <Navigate to={destinoDelAlta(alta.proyecto)} replace />;
 
   return (
     <section className={estilos.pagina} aria-labelledby="titulo-nuevo-proyecto">
@@ -30,9 +48,13 @@ export function NuevoProyectoPage() {
       </div>
       <AltaDeProyecto
         publicando={alta.publicando}
+        guardandoBorrador={alta.guardandoBorrador}
+        esBorrador={alta.modo === MODO_DEL_ALTA.BORRADOR}
         error={alta.error}
         confirmandoNuevaVersion={alta.confirmandoNuevaVersion}
+        terminos={terminos}
         alPublicar={alta.publicar}
+        alGuardarBorrador={alta.guardarBorrador}
         alReiniciarError={alta.reiniciar}
       />
     </section>

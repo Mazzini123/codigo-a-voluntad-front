@@ -27,6 +27,7 @@ import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_EST
 import { rutaProyecto } from "@/Presentation/Routes/rutas.js";
 import { clases } from "@/Presentation/Components/App/ui/clases.js";
 import { sinMarcas } from "@/Presentation/Formatos/markdown.js";
+import { estaPublicado } from "@/Application/Domain/Reglas/publicacion.js";
 
 const MAXIMO_CHIPS = 4;
 
@@ -46,7 +47,7 @@ export function TarjetaProyecto({
   const destacado = perfilDestacado(proyecto, hoy);
   const finalizado = proyecto.estado === PROYECTO_ESTADO.FINALIZADO;
   const estado =
-    finalizado || !destacado
+    finalizado || !destacado || !estaPublicado(proyecto)
       ? selloDeProyecto(proyecto.estado)
       : estadoDeBusqueda(destacado, proyecto, hoy);
   const detalleDePerfil =

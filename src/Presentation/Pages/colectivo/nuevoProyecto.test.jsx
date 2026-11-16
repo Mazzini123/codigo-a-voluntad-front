@@ -99,7 +99,9 @@ beforeEach(() => {
       if (configurada?.status) return falla(config, configurada.status, configurada.data);
       if (configurada?.codigo)
         throw new axios.AxiosError("Sin respuesta", configurada.codigo, config);
-      return respuesta(config, proyectoCreado(), 201);
+      const pedido = JSON.parse(config.data);
+      const estado = pedido.borrador ? "BORRADOR" : "ABIERTO";
+      return respuesta(config, { ...proyectoCreado(), estado }, 201);
     }
     return falla(config, 404, { message: "No existe." });
   });
@@ -115,6 +117,7 @@ function montar(ruta = "/colectivo/proyectos/nuevo") {
     <Route element={<MarcoDeLaApp />}>
       <Route element={<RutaProtegida roles={["COLECTIVO"]} />}>
         <Route path="/colectivo/resumen" element={<h1>Panel del colectivo</h1>} />
+        <Route path="/colectivo/proyectos" element={<h1>Mis proyectos</h1>} />
         <Route path="/colectivo/proyectos/nuevo" element={<NuevoProyectoPage />} />
       </Route>
       <Route path="/proyectos/:id" element={<ProyectoPage />} />
@@ -648,5 +651,257 @@ describe("salir sin publicar", () => {
     const { user } = montar();
     await completarProyecto(user);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
+
+describe("guardar como borrador", { timeout: 15000 }, () => {
+  test("manda borrador: true, avisa y lleva a Mis proyectos", async () => {
+    const { user, router } = montar();
+    await llegarAlPasoDeRevision(user);
+
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Mis proyectos" }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/colectivo/proyectos");
+    expect(pedidosDeAlta()).toHaveLength(1);
+    expect(JSON.parse(pedidosDeAlta()[0].data)).toEqual({
+      ...PEDIDO_ESPERADO,
+      borrador: true,
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Guardaste el borrador. Lo ven solo tu colectivo y administración.",
+    );
+  });
+
+  test("mientras guarda muestra Guardando borrador… y no deja publicar", async () => {
+    let terminar;
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    const original = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      if (config.method === "post")
+        await new Promise((resolve) => {
+          terminar = resolve;
+        });
+      return original(config);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+    const guardando = await screen.findByRole("button", {
+      name: "Guardando borrador…",
+    });
+    expect(guardando).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Publicar proyecto" })).toBeDisabled();
+    terminar();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Mis proyectos" }),
+    ).toBeInTheDocument();
+    expect(pedidosDeAlta()).toHaveLength(1);
+  });
+
+  test("si el back lo rechaza, sigue en el paso 3 con un mensaje sobre el borrador", async () => {
+    respuestasAlCrear = [{ status: 400, data: { message: "ZodError: borrador" } }];
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+
+    expect(
+      await screen.findByText(
+        "No pudimos guardar el borrador. Revisá los datos que cargaste y probá de nuevo.",
+      ),
+    ).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("ZodError");
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Revisar y publicar" }),
+    ).toBeVisible();
+  });
+
+  test("cada botón dice qué pasa al elegirlo", async () => {
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    expect(
+      screen.getByRole("button", { name: "Publicar proyecto" }),
+    ).toHaveAccessibleDescription(
+      "Lo ven todas las colaboradoras enseguida y empieza a recibir postulaciones.",
+    );
+    expect(
+      screen.getByRole("button", { name: "Guardar como borrador" }),
+    ).toHaveAccessibleDescription(
+      "Lo ven solo tu colectivo y administración. Cuando esté listo, pedís la publicación y administración lo revisa antes de publicarlo.",
+    );
+  });
+
+  test("el aviso de salida no promete un borrador a mitad del alta", async () => {
+    const { user } = montar();
+    await user.type(await screen.findByLabelText(/^Título/), "Turnos");
+    await user.click(screen.getByRole("link", { name: "Volver al panel del colectivo" }));
+    const dialogo = await screen.findByRole("dialog", { name: "¿Salir sin publicar?" });
+    expect(dialogo).toHaveTextContent(
+      "Los datos que cargaste se van a perder: el proyecto se guarda recién en el último paso, al publicarlo o al guardarlo como borrador.",
+    );
+    expect(dialogo).not.toHaveTextContent("los borradores no se guardan");
+  });
+});
+
+describe("términos y condiciones", { timeout: 15000 }, () => {
+  const VERSION_3 = {
+    version: 3,
+    texto: "Reglas de uso.",
+    publicadoEn: "2026-11-10T12:00:00Z",
+  };
+  const VERSION_4 = { ...VERSION_3, version: 4, publicadoEn: "2026-11-16T12:00:00Z" };
+  let vigentes;
+  let falloAlCargar;
+
+  beforeEach(() => {
+    vigentes = VERSION_3;
+    falloAlCargar = false;
+    const responder = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      if (config.method === "get" && config.url === "/terminos") {
+        if (falloAlCargar) return falla(config, 500);
+        if (!vigentes) return falla(config, 404, { message: "No hay terminos" });
+        return respuesta(config, vigentes);
+      }
+      return responder(config);
+    });
+  });
+
+  function casilla() {
+    return screen.findByRole("checkbox", {
+      name: /^Acepto los términos y condiciones \(versión \d\)/,
+    });
+  }
+
+  function pedidosDeTerminos() {
+    return transporte.mock.calls.filter(
+      ([config]) => config.method === "get" && config.url === "/terminos",
+    );
+  }
+
+  test("sin términos publicados no muestra la casilla ni manda la aceptación", async () => {
+    vigentes = null;
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    expect(screen.queryByRole("checkbox", { name: /términos/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Publicar proyecto" }));
+    await screen.findByRole("heading", { level: 1, name: /Sistema de turnos/ });
+    expect(JSON.parse(pedidosDeAlta()[0].data)).not.toHaveProperty("terminosAceptados");
+  });
+
+  test("pide aceptar la versión vigente antes de publicar y la manda en el pedido", async () => {
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    const acepto = await casilla();
+    expect(acepto).toHaveAccessibleName("Acepto los términos y condiciones (versión 3)");
+    expect(acepto).not.toBeChecked();
+    const enlace = screen.getByRole("link", { name: /Leer los términos y condiciones/ });
+    expect(enlace).toHaveAttribute("href", "/terminos");
+    expect(enlace).toHaveAttribute("target", "_blank");
+    expect(enlace).toHaveAccessibleName(
+      "Leer los términos y condiciones (se abre en otra pestaña)",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Publicar proyecto" }));
+    expect(pedidosDeAlta()).toHaveLength(0);
+    expect(acepto).toHaveAccessibleDescription(
+      "Aceptá los términos y condiciones para seguir.",
+    );
+    expect(acepto).toHaveFocus();
+
+    await user.click(acepto);
+    expect(acepto).not.toHaveAccessibleDescription(/Aceptá los términos/);
+    await user.click(screen.getByRole("button", { name: "Publicar proyecto" }));
+    await screen.findByRole("heading", { level: 1, name: /Sistema de turnos/ });
+    expect(JSON.parse(pedidosDeAlta()[0].data)).toEqual({
+      ...PEDIDO_ESPERADO,
+      terminosAceptados: 3,
+    });
+  });
+
+  test("guardar como borrador también exige aceptarlos", async () => {
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    const acepto = await casilla();
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+    expect(pedidosDeAlta()).toHaveLength(0);
+    expect(acepto).toHaveFocus();
+    await user.click(acepto);
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+    await screen.findByRole("heading", { level: 1, name: "Mis proyectos" });
+    expect(JSON.parse(pedidosDeAlta()[0].data)).toMatchObject({
+      borrador: true,
+      terminosAceptados: 3,
+    });
+  });
+
+  test("si cambiaron mientras se completaba, lo explica, recarga la versión nueva y pide aceptarla", async () => {
+    respuestasAlCrear = [
+      {
+        status: 422,
+        data: {
+          message: "Hay que aceptar los terminos vigentes",
+          codigo: "TERMINOS_NO_ACEPTADOS",
+          detalle: { versionVigente: 4 },
+        },
+      },
+    ];
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    await user.click(await casilla());
+    vigentes = VERSION_4;
+    await user.click(screen.getByRole("button", { name: "Publicar proyecto" }));
+
+    expect(
+      await screen.findByText(/^Los términos y condiciones cambiaron/),
+    ).toHaveTextContent(
+      "Los términos y condiciones cambiaron mientras completabas el proyecto. Leé la versión nueva y aceptala para seguir.",
+    );
+    expect(screen.queryByText(/terminos vigentes/)).toBeNull();
+    const nueva = await screen.findByRole("checkbox", {
+      name: "Acepto los términos y condiciones (versión 4)",
+    });
+    expect(nueva).not.toBeChecked();
+    expect(pedidosDeTerminos().length).toBeGreaterThanOrEqual(2);
+
+    await user.click(nueva);
+    await user.click(screen.getByRole("button", { name: "Publicar proyecto" }));
+    await screen.findByRole("heading", { level: 1, name: /Sistema de turnos/ });
+    expect(JSON.parse(pedidosDeAlta()[1].data).terminosAceptados).toBe(4);
+  });
+
+  test("al guardar un borrador, el cambio de términos tiene el mismo mensaje propio", async () => {
+    respuestasAlCrear = [
+      { status: 422, data: { codigo: "TERMINOS_NO_ACEPTADOS", message: "crudo" } },
+    ];
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    await user.click(await casilla());
+    await user.click(screen.getByRole("button", { name: "Guardar como borrador" }));
+    expect(
+      await screen.findByText(/^Los términos y condiciones cambiaron/),
+    ).toHaveTextContent(
+      "Los términos y condiciones cambiaron mientras completabas el proyecto.",
+    );
+  });
+
+  test("si no se pudieron cargar, ofrece reintentar sin perder lo cargado", async () => {
+    falloAlCargar = true;
+    const { user } = montar();
+    await llegarAlPasoDeRevision(user);
+    expect(
+      await screen.findByRole("heading", {
+        name: "No pudimos cargar los términos y condiciones",
+      }),
+    ).toBeVisible();
+    falloAlCargar = false;
+    await user.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(await casilla()).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: PEDIDO_ESPERADO.titulo }),
+    ).toBeVisible();
   });
 });

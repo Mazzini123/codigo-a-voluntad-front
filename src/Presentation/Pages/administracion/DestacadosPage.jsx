@@ -4,6 +4,7 @@ import {
   fechaDeFinPorDefecto,
   fechaDeFinValida,
   fechaMinimaDeFin,
+  puedeCambiarDestacado,
 } from "@/Application/Domain/Reglas/destacados.js";
 import { FilaDeProyectoParaDestacar } from "@/Presentation/Components/Administracion/FilaDeProyectoParaDestacar.jsx";
 import { DialogoDeConfirmacion } from "@/Presentation/Components/App/dialogos/DialogoDeConfirmacion.jsx";
@@ -19,8 +20,10 @@ import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
 import {
   mensajeDeDestacado,
+  MOTIVO_CONFLICTO_DE_DESTACADO,
   MOTIVO_CUPO_COMPLETO,
   textoDeCupo,
+  textoDeVigencia,
 } from "@/Presentation/Formatos/destacados.js";
 import { fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { useBusquedaParaDestacar } from "@/Presentation/Hooks/administracion/useBusquedaParaDestacar.js";
@@ -225,6 +228,10 @@ function ListaDeVigentes({ vigentes, procesando, alElegir }) {
           key={proyecto.id}
           proyecto={proyecto}
           destacado
+          vigencia={textoDeVigencia(proyecto.destacado)}
+          motivoDeshabilitado={
+            puedeCambiarDestacado(proyecto) ? null : MOTIVO_CONFLICTO_DE_DESTACADO
+          }
           acciones={[
             {
               texto: "Cambiar fecha",

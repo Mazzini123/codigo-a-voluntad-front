@@ -14,8 +14,23 @@ import { PasoDeRevision } from "./PasoDeRevision.jsx";
 import { PasoDePerfiles } from "./PasoDePerfiles.jsx";
 import { PasoDelProyecto } from "./PasoDelProyecto.jsx";
 import { usePerfilesDelAlta } from "@/Presentation/Hooks/proyecto/usePerfilesDelAlta.js";
+import { useAceptacionDeTerminos } from "@/Presentation/Hooks/terminos/useAceptacionDeTerminos.js";
 import { pasoMaximoPermitido } from "@/Presentation/Formularios/proyecto/validarProyecto.js";
 import estilos from "./AltaDeProyecto.module.css";
+
+const NUEVA_VERSION_PUBLICADA = Object.freeze({
+  titulo: "¿Publicar esta versión?",
+  descripcion:
+    "La publicación anterior pudo haberse guardado. Revisá Mis proyectos antes de publicar esta versión.",
+  textoConfirmar: "Publicar esta versión",
+});
+
+const NUEVA_VERSION_DE_BORRADOR = Object.freeze({
+  titulo: "¿Guardar esta versión como borrador?",
+  descripcion:
+    "El borrador anterior pudo haberse guardado. Revisá Mis proyectos antes de guardar esta versión.",
+  textoConfirmar: "Guardar esta versión",
+});
 
 function pasoPedido(parametros) {
   const numero = Number(parametros.get("paso"));
@@ -26,9 +41,13 @@ function pasoPedido(parametros) {
 
 export function AltaDeProyecto({
   publicando,
+  guardandoBorrador,
+  esBorrador,
   error,
   confirmandoNuevaVersion,
+  terminos: estadoDeTerminos,
   alPublicar,
+  alGuardarBorrador,
   alReiniciarError,
 }) {
   const idBase = useId();
@@ -38,6 +57,7 @@ export function AltaDeProyecto({
   const catalogo = useCatalogoDeHabilidades();
   const refTitulo = useRef(null);
   const pasoAnterior = useRef(null);
+  const terminos = useAceptacionDeTerminos(estadoDeTerminos);
 
   const { perfiles } = estadoDePerfiles;
   const pedido = pasoPedido(parametros);
@@ -46,7 +66,7 @@ export function AltaDeProyecto({
 
   const hayDatos =
     !proyectoEstaVacio(proyecto) || perfiles.length > 0 || estadoDePerfiles.hayBorrador;
-  const salida = useAvisoCambiosSinGuardar(hayDatos && !publicando);
+  const salida = useAvisoCambiosSinGuardar(hayDatos && !publicando && !guardandoBorrador);
 
   useEffect(() => {
     if (pedido > maximo) setParametros({ paso: String(maximo) }, { replace: true });
@@ -62,6 +82,9 @@ export function AltaDeProyecto({
     refTitulo.current?.focus();
   }, [paso]);
 
+  const enviarAlta = esBorrador ? alGuardarBorrador : alPublicar;
+  const nuevaVersion = esBorrador ? NUEVA_VERSION_DE_BORRADOR : NUEVA_VERSION_PUBLICADA;
+
   function irAPaso(numero) {
     setParametros({ paso: String(numero) });
   }
@@ -69,6 +92,14 @@ export function AltaDeProyecto({
   function volverAEditar(numero) {
     alReiniciarError();
     irAPaso(numero);
+  }
+
+  function pedidoDelAlta() {
+    return terminos.conAceptacion(proyectoARequest(proyecto, perfiles));
+  }
+
+  function enviarSiAcepto(enviar) {
+    if (terminos.validar()) enviar(pedidoDelAlta());
   }
 
   function cambiarProyecto(cambio) {
@@ -108,8 +139,11 @@ export function AltaDeProyecto({
           proyecto={proyecto}
           perfiles={perfiles}
           publicando={publicando}
+          guardandoBorrador={guardandoBorrador}
           error={error}
-          alPublicar={() => alPublicar(proyectoARequest(proyecto, perfiles))}
+          terminos={terminos}
+          alPublicar={() => enviarSiAcepto(alPublicar)}
+          alGuardarBorrador={() => enviarSiAcepto(alGuardarBorrador)}
           alEditarProyecto={() => volverAEditar(1)}
           alEditarPerfiles={() => volverAEditar(2)}
         />
@@ -118,11 +152,11 @@ export function AltaDeProyecto({
       <DialogoDeConfirmacion
         abierto={paso === 3 && confirmandoNuevaVersion}
         permanente={false}
-        titulo="¿Publicar esta versión?"
-        descripcion="La publicación anterior pudo haberse guardado. Revisá Mis proyectos antes de publicar esta versión."
-        textoConfirmar="Publicar esta versión"
+        titulo={nuevaVersion.titulo}
+        descripcion={nuevaVersion.descripcion}
+        textoConfirmar={nuevaVersion.textoConfirmar}
         alConfirmar={() =>
-          alPublicar(proyectoARequest(proyecto, perfiles), {
+          enviarAlta(pedidoDelAlta(), {
             confirmarNuevaVersion: true,
           })
         }
@@ -134,7 +168,7 @@ export function AltaDeProyecto({
         permanente={false}
         peligroso
         titulo="¿Salir sin publicar?"
-        descripcion="Los datos que cargaste se van a perder: los borradores no se guardan."
+        descripcion="Los datos que cargaste se van a perder: el proyecto se guarda recién en el último paso, al publicarlo o al guardarlo como borrador."
         textoConfirmar="Salir sin publicar"
         textoCancelar="Seguir editando"
         alConfirmar={salida.salir}

@@ -6,6 +6,8 @@ export const PERMISOS_DE_ADMINISTRACION = Object.freeze([
   "REVISION_RESOLVER",
   "AUDITORIA_VER",
   "ADMIN_GESTIONAR",
+  "TERMINOS_GESTIONAR",
+  "BAJA_POR_INFRACCION",
 ]);
 
 export async function conSesionIniciada(page, cuenta) {

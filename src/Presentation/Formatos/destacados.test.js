@@ -1,4 +1,4 @@
-import { mensajeDeDestacado, textoDeCupo } from "./destacados.js";
+import { mensajeDeDestacado, textoDeCupo, textoDeVigencia } from "./destacados.js";
 
 test("el cupo se explica con singular y plural", () => {
   expect(textoDeCupo(0)).toBe("Ningún lugar usado de 6");
@@ -40,4 +40,12 @@ test("quitar un destacado que ya no lo es se informa sin alarma", () => {
   expect(mensajeDeDestacado({ status: 500 }, "quitar")).toBe(
     "No pudimos quitar el destacado. Probá de nuevo.",
   );
+});
+
+test("la vigencia de un destacado se lee como fecha de fin, si el back la manda", () => {
+  expect(textoDeVigencia({ hasta: "2026-12-16T02:59:59.999Z" })).toBe(
+    "Hasta el 15 de diciembre de 2026",
+  );
+  expect(textoDeVigencia(true)).toBeNull();
+  expect(textoDeVigencia(undefined)).toBeNull();
 });

@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { fechaLarga, selloDeProyecto } from "@/Presentation/Formatos/proyecto.js";
+import { VISIBILIDAD_DEL_BORRADOR } from "@/Presentation/Formatos/publicacion.js";
 import estilosDePerfil from "@/Presentation/Components/Perfil/Perfil.module.css";
 import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
@@ -11,6 +12,7 @@ import {
 } from "@/Presentation/Formularios/proyecto/formularioProyecto.js";
 import { PerfilDelProyecto } from "@/Presentation/Components/Proyecto/detalle/PerfilDelProyecto.jsx";
 import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
+import { AceptacionDeTerminos } from "./AceptacionDeTerminos.jsx";
 import estilos from "./PasoDeRevision.module.css";
 import { TextoConFormato } from "@/Presentation/Components/App/texto/TextoConFormato.jsx";
 
@@ -19,8 +21,11 @@ export function PasoDeRevision({
   proyecto,
   perfiles,
   publicando,
+  guardandoBorrador,
   error,
+  terminos,
   alPublicar,
+  alGuardarBorrador,
   alEditarProyecto,
   alEditarPerfiles,
 }) {
@@ -30,6 +35,10 @@ export function PasoDeRevision({
     [proyecto, perfiles],
   );
   const aRevisar = datosARevisar(error?.issues);
+  const ocupado = publicando || guardandoBorrador;
+  const esperandoTerminos = terminos.estado.cargando && !terminos.estado.terminos;
+  const idPublicar = useId();
+  const idBorrador = useId();
 
   return (
     <div className={estilos.paso}>
@@ -38,7 +47,7 @@ export function PasoDeRevision({
           Revisar y publicar
         </h2>
         <p className={estilos.bajada}>
-          Así van a ver tu proyecto las colaboradoras. Revisalo antes de publicarlo.
+          Así van a ver tu proyecto las colaboradoras. Revisalo y elegí cómo seguir.
         </p>
       </div>
 
@@ -106,23 +115,60 @@ export function PasoDeRevision({
         </div>
       )}
 
+      <dl className={estilos.consecuencias}>
+        <div>
+          <dt>Guardar como borrador</dt>
+          <dd id={idBorrador}>
+            {VISIBILIDAD_DEL_BORRADOR} Cuando esté listo, pedís la publicación y
+            administración lo revisa antes de publicarlo.
+          </dd>
+        </div>
+        <div>
+          <dt>Publicar proyecto</dt>
+          <dd id={idPublicar}>
+            Lo ven todas las colaboradoras enseguida y empieza a recibir postulaciones.
+          </dd>
+        </div>
+      </dl>
+
+      <AceptacionDeTerminos
+        estado={terminos.estado}
+        aceptada={terminos.aceptada}
+        error={terminos.error}
+        refCasilla={terminos.refCasilla}
+        alCambiar={terminos.alCambiar}
+      />
+
       <div className={estilos.acciones}>
         <div className={estilos.volver}>
-          <Boton disabled={publicando} onClick={alEditarProyecto}>
+          <Boton disabled={ocupado} onClick={alEditarProyecto}>
             Volver a editar el proyecto
           </Boton>
-          <Boton disabled={publicando} onClick={alEditarPerfiles}>
+          <Boton disabled={ocupado} onClick={alEditarPerfiles}>
             Volver a editar los perfiles
           </Boton>
         </div>
-        <Boton
-          variante="primario"
-          enviando={publicando}
-          textoEnviando="Publicando…"
-          onClick={alPublicar}
-        >
-          Publicar proyecto
-        </Boton>
+        <div className={estilos.publicar}>
+          <Boton
+            enviando={guardandoBorrador}
+            textoEnviando="Guardando borrador…"
+            disabled={publicando || esperandoTerminos}
+            aria-describedby={idBorrador}
+            onClick={alGuardarBorrador}
+          >
+            Guardar como borrador
+          </Boton>
+          <Boton
+            variante="primario"
+            enviando={publicando}
+            textoEnviando="Publicando…"
+            disabled={guardandoBorrador || esperandoTerminos}
+            aria-describedby={idPublicar}
+            onClick={alPublicar}
+          >
+            Publicar proyecto
+          </Boton>
+        </div>
       </div>
     </div>
   );

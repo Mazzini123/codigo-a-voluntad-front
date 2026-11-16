@@ -46,9 +46,9 @@ test("/admin lleva a destacados y se destaca, cambia y quita un proyecto con el 
   await expect(dialogo).toBeHidden();
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
   await expect(page.getByRole("status")).toContainText(`Destacaste «${TITULO}»`);
-  await expect(
-    page.getByRole("list", { name: "Proyectos destacados vigentes" }),
-  ).toContainText(TITULO);
+  const listaDeVigentes = page.getByRole("list", { name: "Proyectos destacados vigentes" });
+  await expect(listaDeVigentes).toContainText(TITULO);
+  await expect(listaDeVigentes.getByText(/^Hasta el \d+ de \w+ de \d{4}$/)).toBeVisible();
   await expect(vigentes).toContainText("1 lugar usado de 6");
   expect(estado.destacados.has("p1")).toBe(true);
   const hastaOriginal = estado.destacados.get("p1").hasta;
@@ -149,7 +149,7 @@ test("si fallan los destacados, se ve el error y se puede reintentar", async ({
   const { estado, noAtendidos } = await abrirComoAdministracion(
     page,
     "/admin/destacados",
-    { preparar: (inicial) => inicial.fallas.add("GET /proyectos/destacados") },
+    { preparar: (inicial) => inicial.fallas.add("GET /administracion/proyectos/destacados") },
   );
   const vigentes = page.getByRole("region", { name: "Destacados vigentes" });
   await expect(vigentes.getByText("No pudimos cargar los destacados")).toBeVisible();

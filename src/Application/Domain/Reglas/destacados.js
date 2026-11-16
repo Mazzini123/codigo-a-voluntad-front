@@ -39,3 +39,7 @@ export function fechaDeFinValida(fecha, ahora = new Date()) {
 export function cupoCompleto(vigentes) {
   return vigentes >= MAXIMO_DE_DESTACADOS;
 }
+
+export function puedeCambiarDestacado(proyecto) {
+  return proyecto?.conflictoDeIntereses !== true;
+}

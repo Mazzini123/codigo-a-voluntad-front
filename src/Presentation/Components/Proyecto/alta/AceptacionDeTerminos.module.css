@@ -1,0 +1,17 @@
+.aceptacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+}
+
+.enlace {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+  overflow-wrap: anywhere;
+}

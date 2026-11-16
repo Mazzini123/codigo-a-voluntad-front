@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       setupFiles: "./src/setupTests.js",
       css: false,
-      exclude: [...configDefaults.exclude, "tests/e2e/**", "tests/demo/**"],
+      exclude: [...configDefaults.exclude, "tests/e2e/**", "tests/demo/**", ".claude/**"],
     },
   };
 });

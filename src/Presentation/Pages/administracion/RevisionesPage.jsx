@@ -14,10 +14,13 @@ import { Paginacion } from "@/Presentation/Components/App/navegacion/Paginacion.
 import { TituloDePagina } from "@/Presentation/Components/App/navegacion/TituloDePagina.jsx";
 import { Campo } from "@/Presentation/Components/App/ui/Campo.jsx";
 import { Selector } from "@/Presentation/Components/App/ui/Selector.jsx";
+import { Boton } from "@/Presentation/Components/App/ui/Boton.jsx";
 import {
+  esDePublicacion,
   ESTADOS_DE_REVISION,
   LARGO_MAXIMO_DE_NOTA,
   mensajeDeRevision,
+  MOTIVOS_DE_REVISION,
 } from "@/Presentation/Formatos/revision.js";
 import { useParametrosDeRevisiones } from "@/Presentation/Hooks/administracion/useParametrosDeRevisiones.js";
 import {
@@ -26,22 +29,62 @@ import {
 } from "@/Presentation/Hooks/administracion/useRevisiones.js";
 import { useAvisos } from "@/Presentation/Hooks/comunes/useAvisos.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
+import { useEnfocarPrimerError } from "@/Presentation/Hooks/comunes/useEnfocarPrimerError.js";
+import { errorDeNota } from "@/Presentation/Formularios/revision/validarResolucion.js";
 import estilos from "./RevisionesPage.module.css";
 
-const DIALOGOS = Object.freeze({
+const NOTA_OPCIONAL = "Nota (opcional)";
+
+const DIALOGOS_DE_SEGUIMIENTO = Object.freeze({
   [ESTADO_REVISION.REVISADA]: {
     titulo: (revision) => `Marcar como revisada «${revision.proyecto.titulo}»`,
     descripcion: "Queda registrado que la miraste. No se avisa al colectivo.",
     confirmar: "Marcar como revisada",
-    resultado: "Marcaste la revisión como revisada.",
+    etiquetaDeNota: NOTA_OPCIONAL,
+    resultado: () => "Marcaste la revisión como revisada.",
   },
   [ESTADO_REVISION.DESCARTADA]: {
     titulo: (revision) => `Descartar la revisión de «${revision.proyecto.titulo}»`,
     descripcion: "Sale de pendientes sin que haga falta hacer nada con el proyecto.",
     confirmar: "Descartar",
-    resultado: "Descartaste la revisión.",
+    etiquetaDeNota: NOTA_OPCIONAL,
+    resultado: () => "Descartaste la revisión.",
   },
 });
+
+const DIALOGOS_DE_PUBLICACION = Object.freeze({
+  [ESTADO_REVISION.REVISADA]: {
+    titulo: (revision) => `Aprobar la publicación de «${revision.proyecto.titulo}»`,
+    descripcion:
+      "El proyecto queda publicado: aparece en las búsquedas y se avisa a las colaboradoras compatibles.",
+    confirmar: "Aprobar",
+    etiquetaDeNota: NOTA_OPCIONAL,
+    resultado: (revision) => `Aprobaste la publicación de «${revision.proyecto.titulo}».`,
+  },
+  [ESTADO_REVISION.DESCARTADA]: {
+    titulo: (revision) => `Pedir cambios en «${revision.proyecto.titulo}»`,
+    descripcion:
+      "Vuelve a ser un borrador. Tu nota es lo único que el colectivo ve para saber qué cambiar antes de pedirla otra vez.",
+    confirmar: "Pedir cambios",
+    etiquetaDeNota: "Qué tiene que cambiar el colectivo",
+    notaObligatoria: true,
+    ejemplo: "Por ejemplo: «Contá quién coordina el proyecto y cuándo empieza».",
+    resultado: () => "Pediste cambios. El colectivo ve tu nota.",
+  },
+});
+
+function ayudaDeNota(dialogo, nota) {
+  const contador = `${nota.length} de ${LARGO_MAXIMO_DE_NOTA} caracteres`;
+  return dialogo?.ejemplo ? `${dialogo.ejemplo} ${contador}.` : contador;
+}
+
+function dialogoPara(confirmacion) {
+  if (!confirmacion) return null;
+  const dialogos = esDePublicacion(confirmacion.revision.motivo)
+    ? DIALOGOS_DE_PUBLICACION
+    : DIALOGOS_DE_SEGUIMIENTO;
+  return dialogos[confirmacion.estado];
+}
 
 const TITULO_VACIO = Object.freeze({
   [ESTADO_REVISION.PENDIENTE]: "No hay proyectos para revisar",
@@ -51,10 +94,23 @@ const TITULO_VACIO = Object.freeze({
 
 const DESCRIPCION_VACIA = Object.freeze({
   [ESTADO_REVISION.PENDIENTE]:
-    "Cuando un proyecto abierto pase mucho tiempo sin novedades, aparece acá.",
-  [ESTADO_REVISION.REVISADA]: "Las que marques como revisadas se guardan acá.",
-  [ESTADO_REVISION.DESCARTADA]: "Las que descartes se guardan acá.",
+    "Aparecen acá los proyectos abiertos que pasan mucho tiempo sin novedades y los borradores que piden publicarse.",
+  [ESTADO_REVISION.REVISADA]: "Las que marques como revisadas o apruebes se guardan acá.",
+  [ESTADO_REVISION.DESCARTADA]:
+    "Las que descartes o en las que pidas cambios se guardan acá.",
 });
+
+const TITULO_VACIO_DE_PUBLICACION = Object.freeze({
+  [ESTADO_REVISION.PENDIENTE]: "No hay pedidos de publicación pendientes",
+  [ESTADO_REVISION.REVISADA]: "No hay publicaciones aprobadas",
+  [ESTADO_REVISION.DESCARTADA]: "No hay publicaciones con cambios pedidos",
+});
+
+function tituloVacio(estado, motivo) {
+  if (esDePublicacion(motivo)) return TITULO_VACIO_DE_PUBLICACION[estado];
+  if (motivo) return "No hay revisiones con ese motivo";
+  return TITULO_VACIO[estado];
+}
 
 const NOMBRE_DE_LISTA = Object.freeze({
   [ESTADO_REVISION.PENDIENTE]: "Revisiones pendientes",
@@ -65,36 +121,51 @@ const NOMBRE_DE_LISTA = Object.freeze({
 export default function RevisionesPage() {
   const { usuario } = useAuth();
   const parametros = useParametrosDeRevisiones();
-  const datos = useRevisiones({ estado: parametros.estado, pagina: parametros.pagina });
+  const datos = useRevisiones({
+    estado: parametros.estado,
+    pagina: parametros.pagina,
+    motivo: parametros.motivo,
+  });
   const avisar = useAvisos();
   const [confirmacion, setConfirmacion] = useState(null);
   const [nota, setNota] = useState("");
+  const [intento, setIntento] = useState(0);
+  const refNota = useRef(null);
   const refTitulo = useRef(null);
   const refConfirmado = useRef(false);
   const focoAlCerrar = useCallback(
     () => (refConfirmado.current ? refTitulo.current : null),
     [],
   );
-  const dialogo = confirmacion && DIALOGOS[confirmacion.estado];
+  const dialogo = dialogoPara(confirmacion);
   const puedeResolver = tienePermiso(usuario, PERMISO.REVISION_RESOLVER);
+  const reglaDeNota = { obligatoria: Boolean(dialogo?.notaObligatoria) };
+  const errorDeLaNota = intento ? errorDeNota(nota, reglaDeNota) : null;
+
+  useEnfocarPrimerError(refNota, intento);
 
   function elegir(estado, revision) {
     refConfirmado.current = false;
     setNota("");
+    setIntento(0);
     setConfirmacion({ estado, revision });
   }
 
   async function confirmar() {
+    if (errorDeNota(nota, reglaDeNota)) {
+      setIntento((anterior) => anterior + 1);
+      return;
+    }
     const { estado, revision } = confirmacion;
     const resultado = await datos.resolver(revision.id, { estado, nota });
     if (!resultado) return;
     refConfirmado.current = true;
     setConfirmacion(null);
     if (!resultado.ok) {
-      avisar.error(mensajeDeRevision(resultado.error));
+      avisar.error(mensajeDeRevision(resultado.error, revision.motivo));
       return;
     }
-    avisar.exito(dialogo.resultado);
+    avisar.exito(dialogo.resultado(revision));
   }
 
   return (
@@ -105,11 +176,18 @@ export default function RevisionesPage() {
           Revisiones de proyectos
         </h1>
         <p>
-          Proyectos abiertos que llevan tiempo sin novedades. La plataforma no avisa al
-          colectivo: acá dejás registrado que los miraste.
+          Borradores que piden publicarse y proyectos abiertos que llevan tiempo sin
+          novedades. Una publicación se aprueba o se le piden cambios con una nota para el
+          colectivo; en las demás dejás registrado que las miraste.
         </p>
       </header>
       <div className={estilos.filtro}>
+        <Selector
+          etiqueta="Motivo"
+          opciones={MOTIVOS_DE_REVISION}
+          value={parametros.motivo}
+          onChange={(evento) => parametros.cambiarMotivo(evento.target.value)}
+        />
         <Selector
           etiqueta="Estado"
           opciones={ESTADOS_DE_REVISION}
@@ -136,27 +214,31 @@ export default function RevisionesPage() {
         alConfirmar={confirmar}
         alCancelar={() => setConfirmacion(null)}
       >
-        <Campo
-          etiqueta="Nota (opcional)"
-          multilinea
-          rows={3}
-          maxLength={LARGO_MAXIMO_DE_NOTA}
-          value={nota}
-          ayuda={`${nota.length} de ${LARGO_MAXIMO_DE_NOTA} caracteres`}
-          onChange={(evento) => setNota(evento.target.value)}
-        />
+        <div ref={refNota}>
+          <Campo
+            etiqueta={dialogo?.etiquetaDeNota ?? NOTA_OPCIONAL}
+            obligatorio={reglaDeNota.obligatoria}
+            multilinea
+            rows={3}
+            maxLength={LARGO_MAXIMO_DE_NOTA}
+            value={nota}
+            ayuda={ayudaDeNota(dialogo, nota)}
+            error={errorDeLaNota}
+            onChange={(evento) => setNota(evento.target.value)}
+          />
+        </div>
       </DialogoDeConfirmacion>
     </section>
   );
 }
 
 function Listado({ parametros, datos, usuarioId, puedeResolver, alElegir }) {
-  const { estado, pagina, irAPagina } = parametros;
+  const { estado, motivo, pagina, irAPagina, cambiarMotivo } = parametros;
   const { resultado, error, cargando, reintentar, procesando } = datos;
   const refConteo = useRef(null);
   const enfocarAlCargar = useRef(false);
   const desactualizado =
-    !resultado || resultado.consulta !== claveDeRevisiones(estado, pagina);
+    !resultado || resultado.consulta !== claveDeRevisiones(estado, pagina, motivo);
   const fueraDeRango =
     !desactualizado &&
     !cargando &&
@@ -195,9 +277,11 @@ function Listado({ parametros, datos, usuarioId, puedeResolver, alElegir }) {
   if (resultado.items.length === 0) {
     return (
       <EstadoVacio
-        titulo={TITULO_VACIO[estado]}
+        titulo={tituloVacio(estado, motivo)}
         descripcion={DESCRIPCION_VACIA[estado]}
-      />
+      >
+        {motivo && <Boton onClick={() => cambiarMotivo("")}>Ver todos los motivos</Boton>}
+      </EstadoVacio>
     );
   }
   const desde = (resultado.pagina - 1) * resultado.porPagina + 1;

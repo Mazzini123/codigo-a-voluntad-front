@@ -70,8 +70,10 @@ beforeEach(() => {
     const { url, method } = config;
     if (url === "/administracion/revisiones" && method === "get") {
       if (estado.falla) return rechazo(config, 500);
-      const { page, limit, estado: filtro } = config.params;
-      const lista = estado.revisiones.filter((r) => r.estado === filtro);
+      const { page, limit, estado: filtro, motivo } = config.params;
+      const lista = estado.revisiones.filter(
+        (r) => r.estado === filtro && (!motivo || r.motivo === motivo),
+      );
       return respuesta(config, {
         data: lista.slice((page - 1) * limit, page * limit),
         meta: {
@@ -296,4 +298,255 @@ test("sin el permiso para ver no se abre la pantalla ni se pide nada", async () 
   expect(await screen.findByText("Tu cuenta no puede ver las revisiones.")).toBeVisible();
   await act(async () => {});
   expect(pedidos("get", "/administracion/revisiones")).toHaveLength(0);
+});
+
+describe("pedidos de publicación", () => {
+  function publicacion(numero, cambios = {}) {
+    return revision(numero, {
+      motivo: "PUBLICACION",
+      creadaEn: "2026-11-14T12:00:00.000Z",
+      ...cambios,
+    });
+  }
+
+  async function aprobarProyecto7(user) {
+    await user.click(
+      await screen.findByRole("button", { name: "Aprobar la publicación de Proyecto 7" }),
+    );
+    const dialogo = await screen.findByRole("dialog");
+    await user.click(within(dialogo).getByRole("button", { name: "Aprobar" }));
+  }
+
+  test("muestran la vista previa y los botones Aprobar y Pedir cambios", async () => {
+    estado.revisiones = [publicacion(7), revision(1)];
+    montar();
+    const lista = await screen.findByRole("list", { name: "Revisiones pendientes" });
+    const [fila, otra] = within(lista).getAllByRole("listitem");
+    expect(within(fila).getByText("Pidió publicar el proyecto")).toBeVisible();
+    expect(
+      within(fila).getByRole("link", { name: "Ver vista previa de Proyecto 7" }),
+    ).toHaveAttribute("href", "/proyectos/p7");
+    expect(within(fila).getByText(/^Pedida el/)).toBeVisible();
+    expect(
+      within(fila).getByRole("button", { name: "Aprobar la publicación de Proyecto 7" }),
+    ).toBeVisible();
+    expect(
+      within(fila).getByRole("button", {
+        name: "Pedir cambios en la publicación de Proyecto 7",
+      }),
+    ).toBeVisible();
+    expect(
+      within(fila).queryByRole("button", { name: /Marcar como revisada/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(otra).queryByRole("link", { name: /vista previa/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(otra).getByRole("button", { name: "Marcar como revisada Proyecto 1" }),
+    ).toBeVisible();
+  });
+
+  test("aprobar confirma, manda REVISADA y avisa con el título", async () => {
+    estado.revisiones = [publicacion(7)];
+    const { user } = montar();
+    await user.click(
+      await screen.findByRole("button", { name: "Aprobar la publicación de Proyecto 7" }),
+    );
+    const dialogo = await screen.findByRole("dialog", {
+      name: "Aprobar la publicación de «Proyecto 7»",
+    });
+    expect(dialogo).toHaveTextContent(/queda publicado/);
+    await user.click(within(dialogo).getByRole("button", { name: "Aprobar" }));
+    expect(
+      await screen.findByText("Aprobaste la publicación de «Proyecto 7»."),
+    ).toBeVisible();
+    expect(
+      JSON.parse(pedidos("post", "/administracion/revisiones/r7/resolucion")[0][0].data),
+    ).toEqual({ estado: "REVISADA" });
+    expect(await screen.findByText("No hay proyectos para revisar")).toBeVisible();
+  });
+
+  test("pedir cambios pide una nota para el colectivo y manda DESCARTADA", async () => {
+    estado.revisiones = [publicacion(7)];
+    const { user } = montar();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Pedir cambios en la publicación de Proyecto 7",
+      }),
+    );
+    const dialogo = await screen.findByRole("dialog", {
+      name: "Pedir cambios en «Proyecto 7»",
+    });
+    const campo = within(dialogo).getByLabelText(
+      "Qué tiene que cambiar el colectivo (obligatorio)",
+    );
+    expect(campo).toHaveAccessibleDescription(
+      /Por ejemplo: «Contá quién coordina el proyecto y cuándo empieza»\. 0 de 1000 caracteres\./,
+    );
+    await user.type(campo, "Falta la fecha de inicio.");
+    await user.click(within(dialogo).getByRole("button", { name: "Pedir cambios" }));
+    expect(
+      await screen.findByText("Pediste cambios. El colectivo ve tu nota."),
+    ).toBeVisible();
+    expect(JSON.parse(pedidos("post", "/resolucion")[0][0].data)).toEqual({
+      estado: "DESCARTADA",
+      nota: "Falta la fecha de inicio.",
+    });
+  });
+
+  test("pedir cambios sin nota no se manda: marca el campo, lo enfoca y explica por qué", async () => {
+    estado.revisiones = [publicacion(7)];
+    const { user } = montar();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Pedir cambios en la publicación de Proyecto 7",
+      }),
+    );
+    const dialogo = await screen.findByRole("dialog");
+    const campo = within(dialogo).getByLabelText(
+      "Qué tiene que cambiar el colectivo (obligatorio)",
+    );
+    expect(campo).toHaveAttribute("aria-required", "true");
+    await user.type(campo, "   ");
+    await user.click(within(dialogo).getByRole("button", { name: "Pedir cambios" }));
+
+    expect(campo).toHaveAttribute("aria-invalid", "true");
+    expect(campo).toHaveAccessibleDescription(
+      /Escribí qué tiene que cambiar el colectivo: es lo único que va a ver para corregir el proyecto\./,
+    );
+    expect(campo).toHaveFocus();
+    expect(screen.getByRole("dialog")).toBeVisible();
+    expect(pedidos("post", "/resolucion")).toHaveLength(0);
+
+    await user.type(campo, "Sumen la fecha.");
+    await user.click(within(dialogo).getByRole("button", { name: "Pedir cambios" }));
+    expect(
+      await screen.findByText("Pediste cambios. El colectivo ve tu nota."),
+    ).toBeVisible();
+    expect(JSON.parse(pedidos("post", "/resolucion")[0][0].data).nota).toBe(
+      "Sumen la fecha.",
+    );
+  });
+
+  test("aprobar una publicación sigue con la nota opcional", async () => {
+    estado.revisiones = [publicacion(7)];
+    const { user } = montar();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Aprobar la publicación de Proyecto 7",
+      }),
+    );
+    const dialogo = await screen.findByRole("dialog");
+    expect(within(dialogo).getByLabelText("Nota (opcional)")).not.toHaveAttribute(
+      "aria-required",
+    );
+  });
+
+  test("si ya fue resuelta lo explica", async () => {
+    estado.revisiones = [publicacion(7)];
+    estado.errorAlResolver = [409, { message: "crudo del back" }];
+    const { user } = montar();
+    await aprobarProyecto7(user);
+    expect(await screen.findByText("Esta publicación ya fue resuelta.")).toBeVisible();
+    expect(document.body).not.toHaveTextContent("crudo del back");
+  });
+
+  test("si la fecha de cierre venció sugiere pedir cambios", async () => {
+    estado.revisiones = [publicacion(7)];
+    estado.errorAlResolver = [422, { message: "crudo del back" }];
+    const { user } = montar();
+    await aprobarProyecto7(user);
+    expect(
+      await screen.findByText(
+        "La fecha de cierre del proyecto ya pasó. Pedí cambios con una nota para que el colectivo la corrija.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", {
+        name: "Pedir cambios en la publicación de Proyecto 7",
+      }),
+    ).toBeVisible();
+  });
+
+  test("si quien resuelve es del colectivo lo explica", async () => {
+    estado.revisiones = [publicacion(7)];
+    estado.errorAlResolver = [
+      422,
+      { codigo: "CONFLICTO_DE_INTERESES", message: "crudo del back" },
+    ];
+    const { user } = montar();
+    await aprobarProyecto7(user);
+    expect(
+      await screen.findByText(
+        "No podés resolver la publicación de un proyecto de tu propio colectivo.",
+      ),
+    ).toBeVisible();
+  });
+
+  test("el filtro de motivo queda en la URL y pide solo ese motivo", async () => {
+    estado.revisiones = [publicacion(7), revision(1)];
+    const { router, user } = montar();
+    await screen.findByRole("list", { name: "Revisiones pendientes" });
+    await user.selectOptions(screen.getByLabelText("Motivo"), "PUBLICACION");
+    await waitFor(() => expect(router.state.location.search).toBe("?motivo=PUBLICACION"));
+    await waitFor(() =>
+      expect(pedidos("get", "/administracion/revisiones").at(-1)[0].params).toMatchObject(
+        {
+          estado: "PENDIENTE",
+          motivo: "PUBLICACION",
+        },
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole("list", { name: "Revisiones pendientes" })).getAllByRole(
+          "listitem",
+        ),
+      ).toHaveLength(1),
+    );
+  });
+
+  test("cambiar el estado conserva el motivo", async () => {
+    const { router, user } = montar({ ruta: "/admin/revisiones?motivo=PUBLICACION" });
+    await abierta();
+    await user.selectOptions(await screen.findByLabelText("Estado"), "REVISADA");
+    await waitFor(() =>
+      expect(router.state.location.search).toBe("?motivo=PUBLICACION&estado=REVISADA"),
+    );
+  });
+
+  test("sin resultados para un motivo lo dice y ofrece ver todos", async () => {
+    estado.revisiones = [revision(1)];
+    const { router, user } = montar({ ruta: "/admin/revisiones?motivo=PUBLICACION" });
+    expect(
+      await screen.findByText("No hay pedidos de publicación pendientes"),
+    ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Ver todos los motivos" }));
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(await screen.findByText("Proyecto 1")).toBeVisible();
+  });
+
+  test("las resueltas de publicación dicen Aprobada o Con cambios pedidos", async () => {
+    estado.revisiones = [
+      publicacion(8, {
+        estado: "DESCARTADA",
+        nota: "Falta la fecha.",
+        resueltaPor: "u1",
+        resueltaEn: "2026-11-15T12:00:00.000Z",
+      }),
+    ];
+    montar({ ruta: "/admin/revisiones?estado=DESCARTADA" });
+    const lista = await screen.findByRole("list", { name: "Revisiones descartadas" });
+    expect(within(lista).getByText("Con cambios pedidos")).toBeVisible();
+    expect(within(lista).getByText("Falta la fecha.")).toBeVisible();
+  });
+
+  test("un motivo inválido en la URL muestra todos", async () => {
+    montar({ ruta: "/admin/revisiones?motivo=XXX" });
+    await screen.findByRole("list", { name: "Revisiones pendientes" });
+    expect(screen.getByLabelText("Motivo")).toHaveValue("");
+    expect(
+      pedidos("get", "/administracion/revisiones")[0][0].params.motivo,
+    ).toBeUndefined();
+  });
 });

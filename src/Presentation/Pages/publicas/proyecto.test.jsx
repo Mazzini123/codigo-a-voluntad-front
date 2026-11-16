@@ -1127,3 +1127,151 @@ describe("acción de cada perfil según quién mira", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("proyecto sin publicar", () => {
+  const ADMINISTRACION = {
+    id: "sub-1",
+    rol: "ADMINISTRACION",
+    perfilId: null,
+    usuarioId: "u1",
+    contextoActual: {
+      id: "ctx-admin",
+      tipo: "ADMINISTRACION",
+      rol: "ADMIN",
+      colectivo: null,
+      colaborador: null,
+      permisos: ["REVISION_VER", "REVISION_RESOLVER"],
+    },
+  };
+  const rechazo = {
+    nota: "Sumen la fecha de inicio.",
+    fecha: "2026-11-12T15:00:00.000Z",
+  };
+
+  test("el dueño ve que es un borrador, sin Postularme ni la invitación a colaborar", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = null;
+    proyectosDelColectivo = [
+      { id: "p1", titulo: "Sistema de turnos", estado: "BORRADOR" },
+    ];
+    montar("/proyectos/p1", COLECTIVO);
+    const aviso = await screen.findByRole("region", { name: "Borrador" });
+    expect(aviso).toHaveTextContent("Lo ven solo tu colectivo y administración.");
+    expect(screen.queryByRole("button", { name: "Postularme" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "¿Te gustaría colaborar?" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Ver postulaciones" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Publicado el/)).not.toBeInTheDocument();
+    expect(screen.getByText(/^Creado el/)).toBeInTheDocument();
+  });
+
+  test("el dueño de un borrador ve un solo aviso, con sus enlaces y sin el estado repetido", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = null;
+    proyectosDelColectivo = [
+      { id: "p1", titulo: "Sistema de turnos", estado: "BORRADOR" },
+    ];
+    montar("/proyectos/p1", COLECTIVO);
+    const aviso = await screen.findByRole("region", { name: "Borrador" });
+    expect(
+      within(aviso).getByRole("link", { name: "Administrar proyecto" }),
+    ).toHaveAttribute("href", "/proyectos/p1/administrar");
+    expect(
+      within(aviso).getByRole("link", { name: "Ir al panel del colectivo" }),
+    ).toHaveAttribute("href", "/colectivo/resumen");
+    expect(
+      screen.queryByText("Este proyecto es de tu colectivo"),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Borrador")).toHaveLength(1);
+  });
+
+  test("los perfiles de un borrador no dicen que buscan gente", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = null;
+    proyectosDelColectivo = [
+      { id: "p1", titulo: "Sistema de turnos", estado: "BORRADOR" },
+    ];
+    montar("/proyectos/p1", COLECTIVO);
+    const frontend = await perfil("Desarrolladora frontend");
+    expect(within(frontend).getByText("Se abre al publicar")).toBeInTheDocument();
+    expect(screen.queryByText(/búsquedas? abiertas?/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Abierta/)).not.toBeInTheDocument();
+  });
+
+  test("el dueño ve la nota de un borrador rechazado", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = { solicitadaEn: "2026-11-10T12:00:00.000Z", rechazo };
+    proyectosDelColectivo = [
+      { id: "p1", titulo: "Sistema de turnos", estado: "BORRADOR" },
+    ];
+    montar("/proyectos/p1", COLECTIVO);
+    const aviso = await screen.findByRole("region", { name: "Con cambios pedidos" });
+    expect(aviso).toHaveTextContent(
+      /Qué pidió administración el 12 de noviembre de 2026\s*Sumen la fecha de inicio\./,
+    );
+  });
+
+  test("administración ve una vista previa con enlace a las revisiones de publicación", async () => {
+    proyecto.estado = "EN_REVISION";
+    proyecto.publicacion = { solicitadaEn: "2026-11-10T12:00:00.000Z", rechazo: null };
+    montar("/proyectos/p1", ADMINISTRACION);
+    const aviso = await screen.findByRole("region", { name: "En revisión" });
+    expect(aviso).toHaveTextContent(
+      "Vista previa: todavía no está publicado. Lo ven solo el colectivo y administración.",
+    );
+    expect(
+      within(aviso).getByRole("link", { name: "Ir a las revisiones" }),
+    ).toHaveAttribute("href", "/admin/revisiones?motivo=PUBLICACION");
+    expect(screen.queryByRole("button", { name: "Postularme" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Este proyecto es de tu colectivo"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("el dueño de un proyecto dado de baja ve el motivo y no puede administrarlo", async () => {
+    proyecto.estado = "DADO_DE_BAJA";
+    proyecto.publicacion = null;
+    proyecto.baja = {
+      motivo: "Publica datos personales.",
+      fecha: "2026-11-16T15:00:00.000Z",
+    };
+    proyectosDelColectivo = [
+      { id: "p1", titulo: "Sistema de turnos", estado: "DADO_DE_BAJA" },
+    ];
+    montar("/proyectos/p1", COLECTIVO);
+    const aviso = await screen.findByRole("region", { name: "Dado de baja" });
+    expect(aviso).toHaveTextContent(
+      /Motivo de la baja, 16 de noviembre de 2026\s*Publica datos personales\./,
+    );
+    expect(aviso).toHaveTextContent("Ya no se puede editar ni publicar");
+    expect(
+      within(aviso).queryByRole("link", { name: "Administrar proyecto" }),
+    ).toBeNull();
+    expect(
+      within(aviso).getByRole("link", { name: "Ir al panel del colectivo" }),
+    ).toBeVisible();
+    const frontend = await perfil("Desarrolladora frontend");
+    expect(within(frontend).getByText("Cerrada")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Postularme" })).toBeNull();
+  });
+
+  test("administración ve el motivo de la baja sin enlace a las revisiones", async () => {
+    proyecto.estado = "DADO_DE_BAJA";
+    proyecto.baja = { motivo: "Spam.", fecha: "2026-11-16T15:00:00.000Z" };
+    montar("/proyectos/p1", ADMINISTRACION);
+    const aviso = await screen.findByRole("region", { name: "Dado de baja" });
+    expect(aviso).toHaveTextContent("Spam.");
+    expect(within(aviso).queryByRole("link", { name: "Ir a las revisiones" })).toBeNull();
+  });
+
+  test("un proyecto publicado no muestra el aviso", async () => {
+    montar("/proyectos/p1", ADMINISTRACION);
+    await perfil("Desarrolladora frontend");
+    expect(
+      screen.queryByRole("region", { name: /Borrador|En revisión|Con cambios pedidos/ }),
+    ).toBeNull();
+  });
+});

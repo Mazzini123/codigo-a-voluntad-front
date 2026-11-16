@@ -7,8 +7,24 @@ import {
   textoDeEntidad,
   textoDeQuien,
 } from "@/Presentation/Formatos/auditoria.js";
-import { rutaProyecto } from "@/Presentation/Routes/rutas.js";
+import { rutaColectivo, rutaProyecto } from "@/Presentation/Routes/rutas.js";
 import estilos from "./TablaDeAuditoria.module.css";
+
+const ENLACES_DE_ENTIDAD = Object.freeze({
+  [TIPO_ENTIDAD_AUDITADA.PROYECTO]: { ruta: rutaProyecto, texto: "Ver proyecto" },
+  [TIPO_ENTIDAD_AUDITADA.COLECTIVO]: { ruta: rutaColectivo, texto: "Ver colectivo" },
+});
+
+function EnlaceDeEntidad({ entidad }) {
+  const enlace = ENLACES_DE_ENTIDAD[entidad?.tipo];
+  if (!enlace || !entidad.id) return null;
+  return (
+    <>
+      {" · "}
+      <Link to={enlace.ruta(entidad.id)}>{enlace.texto}</Link>
+    </>
+  );
+}
 
 export function TablaDeAuditoria({ acciones }) {
   return (
@@ -35,13 +51,7 @@ export function TablaDeAuditoria({ acciones }) {
               <td data-etiqueta="Acción">{textoDeAccion(accion.accion)}</td>
               <td data-etiqueta="Sobre qué">
                 {textoDeEntidad(accion.entidad?.tipo)}
-                {accion.entidad?.tipo === TIPO_ENTIDAD_AUDITADA.PROYECTO &&
-                  accion.entidad.id && (
-                    <>
-                      {" · "}
-                      <Link to={rutaProyecto(accion.entidad.id)}>Ver proyecto</Link>
-                    </>
-                  )}
+                <EnlaceDeEntidad entidad={accion.entidad} />
               </td>
               <td data-etiqueta="Detalle">{detalle ?? "—"}</td>
             </tr>

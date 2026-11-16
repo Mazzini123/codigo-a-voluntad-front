@@ -19,8 +19,21 @@ test("cada acción y cada tipo de entidad tienen su texto y su opción de filtro
   expect(textoDeEntidad("REVISION")).toBe("Revisión");
   expect(textoDeEntidad("USUARIO")).toBe("Usuaria");
   expect(textoDeEntidad("OTRA")).toBe("Otro elemento");
-  expect(OPCIONES_DE_ACCION).toHaveLength(4);
-  expect(OPCIONES_DE_ENTIDAD).toHaveLength(3);
+  expect(textoDeAccion("PROYECTO_PUBLICADO")).toBe(
+    "Aprobó la publicación de un proyecto",
+  );
+  expect(textoDeAccion("PUBLICACION_RECHAZADA")).toBe(
+    "Pidió cambios en la publicación de un proyecto",
+  );
+  expect(textoDeAccion("TERMINOS_ACTUALIZADOS")).toBe(
+    "Publicó una versión de los términos",
+  );
+  expect(textoDeAccion("PROYECTO_DADO_DE_BAJA")).toBe("Dio de baja un proyecto");
+  expect(textoDeAccion("COLECTIVO_DADO_DE_BAJA")).toBe("Dio de baja un colectivo");
+  expect(textoDeEntidad("COLECTIVO")).toBe("Colectivo");
+  expect(textoDeEntidad("TERMINOS")).toBe("Términos y condiciones");
+  expect(OPCIONES_DE_ACCION).toHaveLength(9);
+  expect(OPCIONES_DE_ENTIDAD).toHaveLength(5);
 });
 
 test("sin usuario la acción es del comando del sistema; con usuario, de administración", () => {
@@ -44,9 +57,20 @@ test("el detalle se arma en texto por acción y nunca se muestra crudo", () => {
   expect(textoDeDetalle("REVISION_RESUELTA", { estado: "DESCARTADA" })).toBe(
     "Descartada",
   );
+  expect(textoDeDetalle("PROYECTO_PUBLICADO", { revisionId: "r1" })).toBeNull();
+  expect(textoDeDetalle("PUBLICACION_RECHAZADA", { revisionId: "r1" })).toBeNull();
   expect(textoDeDetalle("PROYECTO_DESTACADO_QUITADO", {})).toBeNull();
   expect(textoDeDetalle("ADMIN_OTORGADO", { raro: 1 })).toBeNull();
   expect(textoDeDetalle("PROYECTO_DESTACADO", { hasta: "basura" })).toBeNull();
+  expect(textoDeDetalle("TERMINOS_ACTUALIZADOS", { version: 4 })).toBe("Versión 4");
+  expect(textoDeDetalle("TERMINOS_ACTUALIZADOS", {})).toBeNull();
+  expect(
+    textoDeDetalle("PROYECTO_DADO_DE_BAJA", { motivo: "Publica datos personales." }),
+  ).toBe("Motivo: Publica datos personales.");
+  expect(textoDeDetalle("COLECTIVO_DADO_DE_BAJA", { motivo: "Spam." })).toBe(
+    "Motivo: Spam.",
+  );
+  expect(textoDeDetalle("COLECTIVO_DADO_DE_BAJA", { motivo: "  " })).toBeNull();
 });
 
 test("el rango de fechas se valida y se manda con el huso de Argentina", () => {

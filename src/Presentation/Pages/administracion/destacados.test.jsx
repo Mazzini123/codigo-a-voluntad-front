@@ -82,11 +82,15 @@ beforeEach(() => {
   };
   transporte = vi.fn(async (config) => {
     const { url, method } = config;
-    if (url === "/proyectos/destacados") {
+    if (url === "/administracion/proyectos/destacados") {
       if (estado.falla === "vigentes") return rechazo(config, 500);
       return respuesta(
         config,
-        estado.vigentes.map((p) => ({ ...p, destacado: true })),
+        estado.vigentes.map((p) => ({
+          conflictoDeIntereses: false,
+          ...p,
+          destacado: { desde: "2026-11-01T12:00:00Z", hasta: "2026-12-16T02:59:59.999Z" },
+        })),
       );
     }
     if (url === "/proyectos") {
@@ -176,6 +180,43 @@ test("lista los destacados vigentes con su cupo y los proyectos abiertos para el
     limit: 12,
     estado: "ABIERTO",
   });
+  expect(pedidos("get", "/administracion/proyectos/destacados")).toHaveLength(1);
+  expect(
+    transporte.mock.calls.some(([config]) => config.url === "/proyectos/destacados"),
+  ).toBe(false);
+});
+
+test("cada destacado vigente dice hasta cuándo", async () => {
+  montar();
+  const vigentes = await screen.findByRole("list", {
+    name: "Proyectos destacados vigentes",
+  });
+  const filas = within(vigentes).getAllByRole("listitem");
+  expect(filas[0]).toHaveTextContent("Hasta el 15 de diciembre de 2026");
+  expect(filas[1]).toHaveTextContent("Hasta el 15 de diciembre de 2026");
+});
+
+test("con conflicto de intereses, «Quitar» y «Cambiar fecha» quedan deshabilitados y explican por qué", async () => {
+  estado.vigentes = [proyecto(1, { conflictoDeIntereses: true }), proyecto(2)];
+  montar();
+  const vigentes = await screen.findByRole("list", {
+    name: "Proyectos destacados vigentes",
+  });
+  const motivo = "No podés cambiar un destacado de un colectivo del que sos parte.";
+  const quitar = within(vigentes).getByRole("button", {
+    name: "Quitar Proyecto 1 de los destacados",
+  });
+  const cambiar = within(vigentes).getByRole("button", {
+    name: "Cambiar fecha de Proyecto 1",
+  });
+  expect(quitar).toBeDisabled();
+  expect(quitar).toHaveAccessibleDescription(motivo);
+  expect(cambiar).toBeDisabled();
+  expect(cambiar).toHaveAccessibleDescription(motivo);
+  expect(within(vigentes).getAllByText(motivo)).toHaveLength(1);
+  expect(
+    within(vigentes).getByRole("button", { name: "Quitar Proyecto 2 de los destacados" }),
+  ).toBeEnabled();
 });
 
 test("sin destacados vigentes lo explica y ofrece elegir", async () => {
@@ -366,4 +407,5 @@ test("sin el permiso para destacar no se abre la pantalla ni se pide nada", asyn
   await act(async () => {});
   expect(pedidos("get", "/proyectos")).toHaveLength(0);
   expect(pedidos("get", "/proyectos/destacados")).toHaveLength(0);
+  expect(pedidos("get", "/administracion/proyectos")).toHaveLength(0);
 });

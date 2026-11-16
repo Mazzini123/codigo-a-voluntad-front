@@ -27,8 +27,24 @@
   font-size: var(--texto-body-sm-tamano);
 }
 
+.vigencia {
+  font-size: var(--texto-body-sm-tamano);
+  font-variant-numeric: tabular-nums;
+}
+
 .acciones {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--espacio-3);
+}
+
+.motivo {
+  flex-basis: 100%;
+  max-inline-size: 28ch;
+  margin-inline-start: auto;
+  text-align: end;
+  font-size: var(--texto-body-sm-tamano);
+  line-height: var(--texto-body-sm-altura);
+  color: var(--color-tinta-suave);
 }

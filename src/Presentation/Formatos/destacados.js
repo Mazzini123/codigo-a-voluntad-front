@@ -1,5 +1,14 @@
 import { CODIGO_ERROR } from "@/Application/Domain/Enums/CODIGO_ERROR.js";
 import { MAXIMO_DE_DESTACADOS } from "@/Application/Domain/Reglas/destacados.js";
+import { fechaLarga } from "./proyecto.js";
+
+export function textoDeVigencia(destacado) {
+  if (!destacado?.hasta) return null;
+  return `Hasta el ${fechaLarga(destacado.hasta)}`;
+}
+
+export const MOTIVO_CONFLICTO_DE_DESTACADO =
+  "No podés cambiar un destacado de un colectivo del que sos parte.";
 
 export function textoDeCupo(usados) {
   if (usados === 0) return `Ningún lugar usado de ${MAXIMO_DE_DESTACADOS}`;
