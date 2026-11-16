@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "demo"],
       "port": 5174
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_SESION_SIMULADA=ADMINISTRACION&& set VITE_LOGTO_ENDPOINT=&& npx vite --port 5186 --strictPort"],
+      "port": 5186
     }
   ]
 }

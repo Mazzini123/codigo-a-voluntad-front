@@ -8,6 +8,7 @@ export function RutaProtegida({
   roles,
   permitirSinPerfil = false,
   permitirSinNombre = false,
+  sinPermiso,
 }) {
   const { usuario, cargando, errorDeCuenta } = useAuth();
   const location = useLocation();
@@ -28,6 +29,6 @@ export function RutaProtegida({
     return permitirSinPerfil ? <Outlet /> : <Navigate to={RUTA_BIENVENIDA} replace />;
   }
   if (roles && !roles.includes(usuario.rol))
-    return <Navigate to={RUTA_SIN_PERMISO} replace />;
+    return <Navigate to={RUTA_SIN_PERMISO} replace state={{ sinPermiso }} />;
   return <Outlet />;
 }

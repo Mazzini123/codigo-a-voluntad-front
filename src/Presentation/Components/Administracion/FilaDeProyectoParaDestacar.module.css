@@ -1,0 +1,34 @@
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3) var(--espacio-4);
+  padding: var(--espacio-4);
+  border: var(--borde) solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+}
+
+.datos {
+  display: grid;
+  gap: var(--espacio-1);
+  min-inline-size: 0;
+  flex: 1 1 16rem;
+}
+
+.datos h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.colectivo {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}

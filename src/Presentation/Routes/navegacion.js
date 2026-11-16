@@ -7,6 +7,10 @@ import {
 } from "@/Application/Domain/Reglas/registro.js";
 import { tienePermiso } from "@/Application/Domain/Reglas/permisos.js";
 import {
+  RUTA_ADMIN,
+  RUTA_ADMIN_DESTACADOS,
+  RUTA_ADMIN_REVISIONES,
+  RUTA_ADMIN_AUDITORIA,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
   RUTA_MENSAJES,
@@ -31,6 +35,10 @@ const ENLACES_POR_ROL = Object.freeze({
     ENLACE_PROYECTOS,
     Object.freeze({ ruta: RUTA_POSTULACIONES_COLABORADORA, texto: "Mis postulaciones" }),
     Object.freeze({ ruta: RUTA_MENSAJES, texto: "Mensajes" }),
+  ]),
+  [ROL_CUENTA.ADMINISTRACION]: Object.freeze([
+    ENLACE_PROYECTOS,
+    Object.freeze({ ruta: RUTA_ADMIN, texto: "Administración" }),
   ]),
   [ROL_CUENTA.COLECTIVO]: Object.freeze([
     ENLACE_PROYECTOS,
@@ -68,6 +76,34 @@ export function seccionesDelPanelPara(cuenta) {
   return SECCIONES_DEL_PANEL.filter(
     ({ permiso }) => !permiso || tienePermiso(cuenta, permiso),
   );
+}
+
+export const SECCIONES_DE_ADMINISTRACION = Object.freeze([
+  Object.freeze({
+    ruta: RUTA_ADMIN_DESTACADOS,
+    texto: "Destacados",
+    icono: "estrella",
+    permiso: PERMISO.PROYECTO_DESTACAR,
+  }),
+  Object.freeze({
+    ruta: RUTA_ADMIN_REVISIONES,
+    texto: "Revisiones",
+    icono: "lista",
+    permiso: PERMISO.REVISION_VER,
+  }),
+  Object.freeze({
+    ruta: RUTA_ADMIN_AUDITORIA,
+    texto: "Auditoría",
+    icono: "lista",
+    permiso: PERMISO.AUDITORIA_VER,
+  }),
+]);
+
+export function seccionesDeAdministracionPara(
+  cuenta,
+  secciones = SECCIONES_DE_ADMINISTRACION,
+) {
+  return secciones.filter(({ permiso }) => !permiso || tienePermiso(cuenta, permiso));
 }
 
 export function estaActivo({ ruta, tambienActivoEn = [] }, pathname) {

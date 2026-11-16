@@ -35,3 +35,11 @@ dist-ssr
 
 # Binario de Impeccable (el lanzador lo descarga en el primer uso)
 .claude/skills/impeccable/scripts/bin/
+
+
+# Documentos de trabajo (no se versionan)
+/CLAUDE.md
+/DESIGN.md
+/PRODUCT.md
+/docs/
+/specs/
