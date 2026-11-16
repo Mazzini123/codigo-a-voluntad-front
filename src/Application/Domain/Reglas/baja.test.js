@@ -1,10 +1,5 @@
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
-import {
-  bajaDe,
-  ESTADOS_PARA_BAJA,
-  estaDadoDeBaja,
-  puedeDarDeBaja,
-} from "./baja.js";
+import { bajaDe, ESTADOS_PARA_BAJA, estaDadoDeBaja, puedeDarDeBaja } from "./baja.js";
 
 const BAJA = { motivo: "Incumple los términos.", fecha: "2026-11-16T12:00:00.000Z" };
 

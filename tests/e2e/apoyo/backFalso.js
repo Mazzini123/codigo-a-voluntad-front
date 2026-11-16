@@ -178,14 +178,15 @@ function proyectosDe(estado, colectivoId) {
 }
 
 function conDatosDeGestion(proyecto) {
-  return { ...proyecto, publicacion: proyecto.publicacion ?? null, baja: proyecto.baja ?? null };
+  return {
+    ...proyecto,
+    publicacion: proyecto.publicacion ?? null,
+    baja: proyecto.baja ?? null,
+  };
 }
 
 function sinTildes(texto) {
-  return texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 const ESTADOS_PARA_BAJA = ["BORRADOR", "EN_REVISION", "ABIERTO", "FINALIZADO"];
@@ -201,7 +202,9 @@ function proyectosParaBaja(estado, consulta) {
     .map((p) => sinColectivo(p, estado))
     .filter(
       (p) =>
-        !q || sinTildes(p.titulo).includes(q) || sinTildes(p.colectivo.nombre).includes(q),
+        !q ||
+        sinTildes(p.titulo).includes(q) ||
+        sinTildes(p.colectivo.nombre).includes(q),
     )
     .map((p) => ({
       id: p.id,
