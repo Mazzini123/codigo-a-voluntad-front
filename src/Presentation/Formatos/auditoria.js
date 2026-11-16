@@ -7,14 +7,27 @@ const ACCIONES = Object.freeze({
   [ACCION_ADMINISTRATIVA.PROYECTO_DESTACADO]: "Destacó un proyecto",
   [ACCION_ADMINISTRATIVA.PROYECTO_DESTACADO_QUITADO]: "Quitó un destacado",
   [ACCION_ADMINISTRATIVA.REVISION_RESUELTA]: "Resolvió una revisión",
+  [ACCION_ADMINISTRATIVA.PROYECTO_PUBLICADO]: "Aprobó la publicación de un proyecto",
+  [ACCION_ADMINISTRATIVA.PUBLICACION_RECHAZADA]:
+    "Pidió cambios en la publicación de un proyecto",
   [ACCION_ADMINISTRATIVA.ADMIN_OTORGADO]: "Otorgó el rol de administración",
+  [ACCION_ADMINISTRATIVA.TERMINOS_ACTUALIZADOS]: "Publicó una versión de los términos",
+  [ACCION_ADMINISTRATIVA.PROYECTO_DADO_DE_BAJA]: "Dio de baja un proyecto",
+  [ACCION_ADMINISTRATIVA.COLECTIVO_DADO_DE_BAJA]: "Dio de baja un colectivo",
 });
 
 const ENTIDADES = Object.freeze({
   [TIPO_ENTIDAD_AUDITADA.PROYECTO]: "Proyecto",
   [TIPO_ENTIDAD_AUDITADA.REVISION]: "Revisión",
   [TIPO_ENTIDAD_AUDITADA.USUARIO]: "Usuaria",
+  [TIPO_ENTIDAD_AUDITADA.COLECTIVO]: "Colectivo",
+  [TIPO_ENTIDAD_AUDITADA.TERMINOS]: "Términos y condiciones",
 });
+
+const ACCIONES_CON_MOTIVO = Object.freeze([
+  ACCION_ADMINISTRATIVA.PROYECTO_DADO_DE_BAJA,
+  ACCION_ADMINISTRATIVA.COLECTIVO_DADO_DE_BAJA,
+]);
 
 function aOpciones(textos) {
   return Object.freeze(
@@ -52,6 +65,13 @@ export function textoDeDetalle(accion, detalle) {
   if (accion === ACCION_ADMINISTRATIVA.REVISION_RESUELTA) {
     if (detalle?.estado === ESTADO_REVISION.REVISADA) return "Marcada como revisada";
     if (detalle?.estado === ESTADO_REVISION.DESCARTADA) return "Descartada";
+  }
+  if (accion === ACCION_ADMINISTRATIVA.TERMINOS_ACTUALIZADOS) {
+    return Number.isInteger(detalle?.version) ? `Versión ${detalle.version}` : null;
+  }
+  if (ACCIONES_CON_MOTIVO.includes(accion)) {
+    const motivo = typeof detalle?.motivo === "string" ? detalle.motivo.trim() : "";
+    return motivo ? `Motivo: ${motivo}` : null;
   }
   return null;
 }

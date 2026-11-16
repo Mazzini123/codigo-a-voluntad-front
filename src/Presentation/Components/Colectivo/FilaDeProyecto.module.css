@@ -38,3 +38,20 @@
   color: var(--color-tinta-suave);
   font-size: var(--texto-body-sm-tamano);
 }
+
+.rechazo {
+  max-inline-size: var(--ancho-texto);
+  margin-block-start: var(--espacio-2);
+  padding-inline-start: var(--espacio-3);
+  border-inline-start: var(--borde) solid var(--color-linea);
+  color: var(--color-tinta);
+  font-size: var(--texto-body-sm-tamano);
+  white-space: pre-line;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}

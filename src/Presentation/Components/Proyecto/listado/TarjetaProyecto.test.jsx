@@ -172,3 +172,13 @@ test("sin destacado en el resumen no se muestra el sello", () => {
   montar({ proyecto: { ...PROYECTO, destacado: false } });
   expect(screen.queryByText("Destacado")).not.toBeInTheDocument();
 });
+
+test.each([
+  ["BORRADOR", "Borrador"],
+  ["EN_REVISION", "En revisión"],
+])("un proyecto %s dice su estado y no la búsqueda de sus perfiles", (estado, texto) => {
+  montar({ proyecto: { ...PROYECTO, estado } });
+  const tarjeta = screen.getByRole("article", { name: "Sistema de turnos del comedor" });
+  expect(within(tarjeta).getByText(texto)).toBeInTheDocument();
+  expect(within(tarjeta).queryByText(/^Abierta/)).not.toBeInTheDocument();
+});

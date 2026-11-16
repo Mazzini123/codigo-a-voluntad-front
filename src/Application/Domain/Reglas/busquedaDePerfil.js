@@ -3,6 +3,7 @@ import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
 
 export const MOTIVO_DE_CIERRE = Object.freeze({
   PROYECTO_FINALIZADO: "PROYECTO_FINALIZADO",
+  PROYECTO_DADO_DE_BAJA: "PROYECTO_DADO_DE_BAJA",
   BUSQUEDA_CERRADA: "BUSQUEDA_CERRADA",
   BUSQUEDA_VENCIDA: "BUSQUEDA_VENCIDA",
   LIMITE_ALCANZADO: "LIMITE_ALCANZADO",
@@ -38,6 +39,8 @@ export function limiteAlcanzado(perfil, proyecto) {
 export function motivoDeCierre(perfil, proyecto, hoy = new Date()) {
   if (proyecto.estado === PROYECTO_ESTADO.FINALIZADO)
     return MOTIVO_DE_CIERRE.PROYECTO_FINALIZADO;
+  if (proyecto.estado === PROYECTO_ESTADO.DADO_DE_BAJA)
+    return MOTIVO_DE_CIERRE.PROYECTO_DADO_DE_BAJA;
   if (!perfil.busquedaAbierta) return MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA;
   if (busquedaVencida(perfil, hoy)) return MOTIVO_DE_CIERRE.BUSQUEDA_VENCIDA;
   if (limiteAlcanzado(perfil, proyecto)) return MOTIVO_DE_CIERRE.LIMITE_ALCANZADO;

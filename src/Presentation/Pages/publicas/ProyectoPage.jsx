@@ -25,12 +25,13 @@ import {
 } from "@/Presentation/Components/Proyecto/alta/idsDePerfil.js";
 import { PerfilDelProyecto } from "@/Presentation/Components/Proyecto/detalle/PerfilDelProyecto.jsx";
 import { SelloDeBusqueda } from "@/Presentation/Components/Proyecto/SelloDeBusqueda.jsx";
-import {
-  encajeDelPerfil,
-  fechaLarga,
-  selloDeProyecto,
-} from "@/Presentation/Formatos/proyecto.js";
+import { encajeDelPerfil, fechaLarga } from "@/Presentation/Formatos/proyecto.js";
 import { perfilesAbiertos } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
+import { estaPublicado } from "@/Application/Domain/Reglas/publicacion.js";
+import { estaDadoDeBaja } from "@/Application/Domain/Reglas/baja.js";
+import { MOTIVO_REVISION } from "@/Application/Domain/Enums/MOTIVO_REVISION.js";
+import { AvisoDePublicacion } from "@/Presentation/Components/Proyecto/publicacion/AvisoDePublicacion.jsx";
+import { selloDelDueno } from "@/Presentation/Formatos/publicacion.js";
 import { useAuth } from "@/Presentation/Hooks/sesion/useAuth.js";
 import { useEsDuenoDelProyecto } from "@/Presentation/Hooks/proyecto/useEsDuenoDelProyecto.js";
 import { useHabilidadesPropias } from "@/Presentation/Hooks/colaboradora/useHabilidadesPropias.js";
@@ -40,7 +41,10 @@ import { useProyecto } from "@/Presentation/Hooks/proyecto/useProyecto.js";
 import {
   destinoDeVuelta,
   estadoParaVolver,
+  RUTA_ADMIN_REVISIONES,
   RUTA_PROYECTOS,
+  RUTA_RESUMEN_COLECTIVO,
+  rutaAdministrarProyecto,
   rutaAvanceDelProyecto,
   rutaColectivo,
 } from "@/Presentation/Routes/rutas.js";
@@ -53,6 +57,26 @@ import { TextoConFormato } from "@/Presentation/Components/App/texto/TextoConFor
 export function ProyectoPage() {
   const { id } = useParams();
   return <ProyectoPorId key={id} id={id} />;
+}
+
+function AccionesDelAviso({ proyecto, esDueno }) {
+  const dadoDeBaja = estaDadoDeBaja(proyecto);
+  if (esDueno) {
+    return (
+      <>
+        {!dadoDeBaja && (
+          <Link to={rutaAdministrarProyecto(proyecto.id)}>Administrar proyecto</Link>
+        )}
+        <Link to={RUTA_RESUMEN_COLECTIVO}>Ir al panel del colectivo</Link>
+      </>
+    );
+  }
+  if (dadoDeBaja) return null;
+  return (
+    <Link to={`${RUTA_ADMIN_REVISIONES}?motivo=${MOTIVO_REVISION.PUBLICACION}`}>
+      Ir a las revisiones
+    </Link>
+  );
 }
 
 function ProyectoPorId({ id }) {
@@ -130,7 +154,10 @@ function DetalleDelProyecto({
     a: `${RUTA_PROYECTOS}${location.state?.busqueda ?? ""}`,
     texto: "Volver a la búsqueda",
   });
-  const sello = selloDeProyecto(proyecto.estado);
+  const sello = selloDelDueno(proyecto);
+  const publicado = estaPublicado(proyecto);
+  const esAdministracion = usuario?.rol === ROL_CUENTA.ADMINISTRACION;
+  const conAviso = !publicado && (dueno.esDueno || esAdministracion);
   const perfiles = proyecto.perfiles ?? [];
   const abiertos = perfilesAbiertos(proyecto, hoy);
   const historicos = perfiles.filter((perfil) => !abiertos.includes(perfil));
@@ -149,18 +176,23 @@ function DetalleDelProyecto({
       <EnlaceVolver to={volver.a} state={volver.state}>
         {volver.texto}
       </EnlaceVolver>
-      {dueno.esDueno && <FranjaDeDueno proyectoId={proyecto.id} />}
+      {dueno.esDueno && publicado && <FranjaDeDueno proyectoId={proyecto.id} />}
+      {conAviso && (
+        <AvisoDePublicacion proyecto={proyecto} esAdministracion={!dueno.esDueno}>
+          <AccionesDelAviso proyecto={proyecto} esDueno={dueno.esDueno} />
+        </AvisoDePublicacion>
+      )}
 
       <header className={estilos.encabezado}>
         <div className={estilos.filaDeTitulo}>
           <h1 id="titulo-proyecto" tabIndex={-1}>
             {proyecto.titulo}
           </h1>
-          {sello && <SelloDeBusqueda estado={sello} />}
+          {sello && !conAviso && <SelloDeBusqueda estado={sello} />}
         </div>
         {proyecto.colectivo?.id && (
           <p className={estilosDePerfil.meta}>
-            Publicado por{" "}
+            {publicado ? "Publicado por" : "Proyecto de"}{" "}
             <Link
               to={rutaColectivo(proyecto.colectivo.id)}
               state={estadoParaVolver(location, "Volver al proyecto")}
@@ -173,7 +205,7 @@ function DetalleDelProyecto({
         )}
         {proyecto.fechaCreacion && (
           <p className={estilosDePerfil.meta}>
-            Publicado el{" "}
+            {publicado ? "Publicado el" : "Creado el"}{" "}
             <time dateTime={proyecto.fechaCreacion}>
               {fechaLarga(proyecto.fechaCreacion)}
             </time>
@@ -205,7 +237,7 @@ function DetalleDelProyecto({
               <h2 id="perfiles-proyecto" tabIndex={-1}>
                 Perfiles del proyecto
               </h2>
-              {abiertos.length > 0 && (
+              {publicado && abiertos.length > 0 && (
                 <p className={estilos.notaDePostulaciones}>
                   {abiertos.length === 1
                     ? "1 búsqueda abierta"
@@ -268,7 +300,7 @@ function DetalleDelProyecto({
         </div>
 
         <div className={estilos.columna}>
-          {abiertos.length > 0 && !dueno.esColectivo && (
+          {publicado && abiertos.length > 0 && !dueno.esColectivo && (
             <section
               className={clases(estilosDePerfil.panel, estilos.invitacion)}
               aria-labelledby="colaborar-en-proyecto"
@@ -321,7 +353,7 @@ function DetalleDelProyecto({
         }
         hoy={hoy}
       >
-        {esperandoAcciones && !propia ? (
+        {!publicado ? null : esperandoAcciones && !propia ? (
           <EsqueletoDeAccion proyecto={proyecto} />
         ) : (
           <AccionDePerfil

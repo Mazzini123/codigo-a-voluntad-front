@@ -8,6 +8,7 @@ import {
   perfilesAbiertos,
 } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
 import { encajeDeHabilidades } from "@/Application/Domain/Reglas/encaje.js";
+import { estaPublicado } from "@/Application/Domain/Reglas/publicacion.js";
 
 const TEXTO_PERIODO = Object.freeze({
   [PERIODO_COMPROMISO.HS_MENSUALES]: "por mes",
@@ -37,10 +38,16 @@ export const ESTADO_BUSQUEDA = Object.freeze({
 });
 
 export function selloDeProyecto(estado) {
+  if (estado === PROYECTO_ESTADO.BORRADOR)
+    return { tipo: ESTADO_BUSQUEDA.CERRADA, texto: "Borrador" };
+  if (estado === PROYECTO_ESTADO.EN_REVISION)
+    return { tipo: ESTADO_BUSQUEDA.LIMITE, texto: "En revisión" };
   if (estado === PROYECTO_ESTADO.ABIERTO)
     return { tipo: ESTADO_BUSQUEDA.ABIERTA, texto: "Abierto" };
   if (estado === PROYECTO_ESTADO.FINALIZADO)
     return { tipo: ESTADO_BUSQUEDA.FINALIZADO, texto: "Finalizado" };
+  if (estado === PROYECTO_ESTADO.DADO_DE_BAJA)
+    return { tipo: ESTADO_BUSQUEDA.RECHAZADA, texto: "Dado de baja" };
   return null;
 }
 
@@ -62,6 +69,10 @@ const SELLO_POR_MOTIVO = Object.freeze({
     tipo: ESTADO_BUSQUEDA.FINALIZADO,
     texto: "Finalizado",
   }),
+  [MOTIVO_DE_CIERRE.PROYECTO_DADO_DE_BAJA]: Object.freeze({
+    tipo: ESTADO_BUSQUEDA.CERRADA,
+    texto: "Cerrada",
+  }),
   [MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA]: Object.freeze({
     tipo: ESTADO_BUSQUEDA.CERRADA,
     texto: "Cerrada",
@@ -76,9 +87,15 @@ const SELLO_POR_MOTIVO = Object.freeze({
   }),
 });
 
+const SELLO_SIN_PUBLICAR = Object.freeze({
+  tipo: ESTADO_BUSQUEDA.CERRADA,
+  texto: "Se abre al publicar",
+});
+
 export function estadoDeBusqueda(perfil, proyecto, hoy = new Date()) {
   const motivo = motivoDeCierre(perfil, proyecto, hoy);
   if (motivo) return SELLO_POR_MOTIVO[motivo];
+  if (!estaPublicado(proyecto)) return SELLO_SIN_PUBLICAR;
   return {
     tipo: ESTADO_BUSQUEDA.ABIERTA,
     texto: perfil.fechaCierreBusqueda
@@ -89,6 +106,7 @@ export function estadoDeBusqueda(perfil, proyecto, hoy = new Date()) {
 
 const TEXTO_NO_POSTULABLE = Object.freeze({
   [MOTIVO_DE_CIERRE.PROYECTO_FINALIZADO]: () => "Este proyecto ya finalizó.",
+  [MOTIVO_DE_CIERRE.PROYECTO_DADO_DE_BAJA]: () => "Este proyecto fue dado de baja.",
   [MOTIVO_DE_CIERRE.BUSQUEDA_CERRADA]: () => "La búsqueda de este perfil está cerrada.",
   [MOTIVO_DE_CIERRE.BUSQUEDA_VENCIDA]: (perfil) =>
     `La búsqueda de este perfil cerró el ${fechaCorta(perfil.fechaCierreBusqueda)}.`,

@@ -1,0 +1,25 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+  max-inline-size: var(--ancho-lectura);
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.bajada {
+  max-inline-size: var(--ancho-texto);
+  color: var(--color-tinta-suave);
+}
+
+.version {
+  color: var(--color-tinta-suave);
+  font-size: var(--texto-body-sm-tamano);
+  font-weight: var(--texto-label-peso);
+}

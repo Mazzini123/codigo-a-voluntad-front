@@ -38,3 +38,10 @@
   flex-wrap: wrap;
   gap: var(--espacio-3);
 }
+
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  min-block-size: var(--toque-minimo);
+}

@@ -33,6 +33,15 @@ import { rutaPostulacionesRecibidas, rutaProyecto } from "@/Presentation/Routes/
 import estilos from "./AdministrarProyectoPage.module.css";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
 import { busquedaVencida } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
+import {
+  esEditable,
+  estaPublicado,
+  fueRechazado,
+  puedePedirPublicacion,
+} from "@/Application/Domain/Reglas/publicacion.js";
+import { AvisoDePublicacion } from "@/Presentation/Components/Proyecto/publicacion/AvisoDePublicacion.jsx";
+import { BLOQUEO_EN_REVISION } from "@/Presentation/Formatos/publicacion.js";
+import { PedirPublicacion } from "@/Presentation/Components/Proyecto/publicacion/PedirPublicacion.jsx";
 import { TextoConFormato } from "@/Presentation/Components/App/texto/TextoConFormato.jsx";
 
 const CONFIRMACIONES = Object.freeze({
@@ -55,6 +64,14 @@ const CONFIRMACIONES = Object.freeze({
     textoConfirmar: "Descartar cambios",
   },
 });
+
+const MENSAJE_EN_REVISION = `Mientras editabas, se pidió su publicación. ${BLOQUEO_EN_REVISION}`;
+
+function tituloDelError(conflictoDePublicacion, conflictoDePerfil) {
+  if (conflictoDePublicacion) return "El proyecto ya no se puede editar";
+  if (conflictoDePerfil) return "El perfil cambió durante la edición";
+  return "No pudimos completar la acción";
+}
 
 export default function AdministrarProyectoPage() {
   const { id } = useParams();
@@ -93,6 +110,7 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
   const idBase = useId();
   const refTitulo = useRef(null);
   const refTituloEditor = useRef(null);
+  const refAviso = useRef(null);
   const acciones = useAdministrarProyecto(proyecto.id, recargar);
   const [{ edicion, confirmacion }, despachar] = useReducer(
     administracionDelProyecto,
@@ -101,11 +119,19 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
   );
   const detalle = rutaProyecto(proyecto.id);
   const finalizado = proyecto.estado === PROYECTO_ESTADO.FINALIZADO;
+  const editable = esEditable(proyecto);
+  const publicado = estaPublicado(proyecto);
+  const conCambiosPedidos = fueRechazado(proyecto);
+  const abierto = proyecto.estado === PROYECTO_ESTADO.ABIERTO;
   const hayCambios =
-    edicion && JSON.stringify(edicion.original) !== JSON.stringify(edicion.borrador);
+    editable &&
+    edicion &&
+    JSON.stringify(edicion.original) !== JSON.stringify(edicion.borrador);
   const salida = useAvisoCambiosSinGuardar(Boolean(hayCambios));
   const editandoProyecto = edicion?.tipo === "proyecto";
-  const conflictoDePerfil = edicion?.perfilId && acciones.error?.status === 409;
+  const conflicto = acciones.error?.status === 409;
+  const conflictoDePublicacion = conflicto && !editable && !finalizado;
+  const conflictoDePerfil = conflicto && editable && edicion?.perfilId;
 
   useEffect(() => {
     if (editandoProyecto) refTituloEditor.current?.focus();
@@ -212,11 +238,21 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
         </h1>
         <p>{proyecto.titulo}</p>
       </div>
-      {!acciones.guardando && (
+      {publicado && !acciones.guardando && (
         <Link to={rutaPostulacionesRecibidas(proyecto.id)} className={estilos.volver}>
           Ver postulaciones
         </Link>
       )}
+      <AvisoDePublicacion proyecto={proyecto} refTitulo={refAviso}>
+        {puedePedirPublicacion(proyecto) && !edicion && (
+          <PedirPublicacion
+            proyecto={proyecto}
+            alCambiar={recargar}
+            destinoDeFoco={() => refAviso.current}
+            variante={conCambiosPedidos ? "secundario" : "primario"}
+          />
+        )}
+      </AvisoDePublicacion>
       {finalizado && (
         <p>Este proyecto está finalizado. Podés consultar sus datos y perfiles.</p>
       )}
@@ -229,23 +265,21 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
       )}
       {acciones.error && (
         <EstadoDeError
-          titulo={
-            conflictoDePerfil
-              ? "El perfil cambió durante la edición"
-              : "No pudimos completar la acción"
-          }
+          titulo={tituloDelError(conflictoDePublicacion, conflictoDePerfil)}
           error={
-            conflictoDePerfil
-              ? {
-                  mensaje:
-                    "Tu borrador sigue abierto. Para editar desde la versión actual, cancelá esta edición y volvé a abrir el perfil.",
-                }
-              : acciones.error
+            conflictoDePublicacion
+              ? { mensaje: MENSAJE_EN_REVISION }
+              : conflictoDePerfil
+                ? {
+                    mensaje:
+                      "Tu borrador sigue abierto. Para editar desde la versión actual, cancelá esta edición y volvé a abrir el perfil.",
+                  }
+                : acciones.error
           }
         />
       )}
       {acciones.guardando && <p role="status">Guardando cambios…</p>}
-      {!finalizado && edicion?.tipo === "proyecto" && (
+      {editable && edicion?.tipo === "proyecto" && (
         <div className={estilos.seccion}>
           <PasoDelProyecto
             idBase={idBase}
@@ -262,7 +296,7 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
           </Boton>
         </div>
       )}
-      {!finalizado && edicion?.tipo === "perfil" && (
+      {editable && edicion?.tipo === "perfil" && (
         <EditorDePerfil
           idBase={idBase}
           edicion={edicion}
@@ -288,9 +322,10 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
                 .join("/")}
             </p>
           )}
-          {!finalizado && (
+          {editable && (
             <div className={estilos.acciones}>
               <Boton
+                variante={conCambiosPedidos ? "primario" : "secundario"}
                 disabled={acciones.guardando}
                 onClick={() => abrir("proyecto", datosEditablesDelProyecto(proyecto))}
               >
@@ -310,7 +345,7 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
                 <SelloDeBusqueda estado={estadoDeBusqueda(perfil, proyecto)} />
               </div>
               <p>{perfil.descripcion}</p>
-              {!finalizado && !edicion && (
+              {editable && !edicion && (
                 <div className={estilos.acciones}>
                   <Boton
                     disabled={acciones.guardando}
@@ -337,17 +372,19 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
                       );
                     }}
                   />
-                  <BuscarColaboradoras
-                    perfil={perfil}
-                    proyecto={proyecto}
-                    disabled={acciones.guardando}
-                  />
+                  {publicado && (
+                    <BuscarColaboradoras
+                      perfil={perfil}
+                      proyecto={proyecto}
+                      disabled={acciones.guardando}
+                    />
+                  )}
                 </div>
               )}
             </li>
           ))}
         </ul>
-        {!finalizado && !edicion && (
+        {editable && !edicion && (
           <>
             <div className={estilos.acciones}>
               <Boton
@@ -364,7 +401,7 @@ function Administracion({ proyecto, recargar, errorDeCarga }) {
           </>
         )}
       </div>
-      {!finalizado && !edicion && (
+      {abierto && !edicion && (
         <div className={estilos.seccion}>
           <h2>Cierre del proyecto</h2>
           <p>Finalizalo cuando haya terminado el trabajo.</p>

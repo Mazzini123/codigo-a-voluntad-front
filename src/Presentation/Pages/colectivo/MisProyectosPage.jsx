@@ -9,11 +9,11 @@ import { RUTA_NUEVO_PROYECTO } from "@/Presentation/Routes/rutas.js";
 import estilos from "./MisProyectosPage.module.css";
 
 function textoCantidad(cantidad) {
-  return cantidad === 1 ? "1 proyecto publicado" : `${cantidad} proyectos publicados`;
+  return cantidad === 1 ? "1 proyecto" : `${cantidad} proyectos`;
 }
 
 export function MisProyectosPage() {
-  const { nombre, proyectos, paginacionProyectos } = usePanelDelColectivo();
+  const { nombre, proyectos, paginacionProyectos, recargar } = usePanelDelColectivo();
   return (
     <div className={panel.pagina}>
       <TituloDePagina>Mis proyectos</TituloDePagina>
@@ -45,6 +45,7 @@ export function MisProyectosPage() {
                     proyecto={proyecto}
                     abiertos={abiertos}
                     pendientes={pendientes}
+                    alCambiar={recargar}
                   />
                 </li>
               ))}

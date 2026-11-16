@@ -129,6 +129,8 @@ test("la cuenta simulada de ADMINISTRACION trae su contexto sin colectivo ni per
     "REVISION_RESOLVER",
     "AUDITORIA_VER",
     "ADMIN_GESTIONAR",
+    "TERMINOS_GESTIONAR",
+    "BAJA_POR_INFRACCION",
   ]);
   expect(cuenta.contextos).toEqual([cuenta.contextoActual]);
 });
