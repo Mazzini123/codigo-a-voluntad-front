@@ -117,7 +117,9 @@ test("en escritorio, la tabla no parte las palabras a la mitad", async ({ page }
           const rango = document.createRange();
           rango.setStart(nodo, palabra.index);
           rango.setEnd(nodo, palabra.index + palabra[0].length);
-          const lineas = new Set([...rango.getClientRects()].map((r) => Math.round(r.top)));
+          const lineas = new Set(
+            [...rango.getClientRects()].map((r) => Math.round(r.top)),
+          );
           if (lineas.size > 1) partidas.push(palabra[0]);
         }
       }

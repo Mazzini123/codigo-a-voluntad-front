@@ -35,7 +35,9 @@ export async function esperarEncabezadosEnOrden(page) {
       .filter((titulo) => titulo.getClientRects().length > 0)
       .map((titulo) => ({ nivel: Number(titulo.tagName[1]), texto: titulo.textContent }));
     return niveles
-      .filter((actual, indice) => indice > 0 && actual.nivel > niveles[indice - 1].nivel + 1)
+      .filter(
+        (actual, indice) => indice > 0 && actual.nivel > niveles[indice - 1].nivel + 1,
+      )
       .map(({ nivel, texto }) => `h${nivel}: ${texto.slice(0, 60)}`);
   });
   expect(saltos).toEqual([]);
