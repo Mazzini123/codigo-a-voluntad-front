@@ -256,3 +256,33 @@ test("sin el permiso para ver la auditoría no se abre la pantalla ni se pide na
   await act(async () => {});
   expect(pedidos()).toHaveLength(0);
 });
+
+test("las publicaciones aprobadas y con cambios pedidos se leen en texto y se pueden filtrar", async () => {
+  estado.acciones = [
+    accion(5, { accion: "PROYECTO_PUBLICADO", detalle: { revisionId: "r5" } }),
+    accion(6, { accion: "PUBLICACION_RECHAZADA", detalle: { revisionId: "r6" } }),
+  ];
+  montar();
+  const tabla = await screen.findByRole("table", { name: "Acciones administrativas" });
+  const [aprobada, rechazada] = within(tabla).getAllByRole("row").slice(1);
+  expect(
+    within(aprobada).getByText("Aprobó la publicación de un proyecto"),
+  ).toBeVisible();
+  expect(within(aprobada).getByRole("link", { name: "Ver proyecto" })).toHaveAttribute(
+    "href",
+    "/proyectos/p5",
+  );
+  expect(
+    within(rechazada).getByText("Pidió cambios en la publicación de un proyecto"),
+  ).toBeVisible();
+  expect(screen.queryByText(/r5|r6|PUBLICACION/)).not.toBeInTheDocument();
+  const filtro = screen.getByLabelText("Acción");
+  expect(
+    within(filtro).getByRole("option", { name: "Aprobó la publicación de un proyecto" }),
+  ).toBeInTheDocument();
+  expect(
+    within(filtro).getByRole("option", {
+      name: "Pidió cambios en la publicación de un proyecto",
+    }),
+  ).toBeInTheDocument();
+});

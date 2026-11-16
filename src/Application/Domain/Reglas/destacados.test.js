@@ -5,6 +5,7 @@ import {
   fechaMinimaDeFin,
   fechaDeFinValida,
   MAXIMO_DE_DESTACADOS,
+  puedeCambiarDestacado,
 } from "./destacados.js";
 
 const HOY = new Date("2026-11-16T01:30:00Z");
@@ -33,4 +34,10 @@ test("el cupo se completa con el máximo de destacados vigentes", () => {
   expect(cupoCompleto(5)).toBe(false);
   expect(cupoCompleto(6)).toBe(true);
   expect(cupoCompleto(7)).toBe(true);
+});
+
+test("un destacado con conflicto de intereses no se puede cambiar ni quitar", () => {
+  expect(puedeCambiarDestacado({ conflictoDeIntereses: true })).toBe(false);
+  expect(puedeCambiarDestacado({ conflictoDeIntereses: false })).toBe(true);
+  expect(puedeCambiarDestacado({})).toBe(true);
 });

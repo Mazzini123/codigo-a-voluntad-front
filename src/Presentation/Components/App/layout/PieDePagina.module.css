@@ -77,3 +77,15 @@
     max-inline-size: var(--ancho-aviso);
   }
 }
+
+.enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--espacio-4);
+}
+
+@media (width >= 48rem) {
+  .enlaces {
+    justify-content: center;
+  }
+}

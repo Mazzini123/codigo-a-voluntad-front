@@ -1,16 +1,20 @@
 import { COLABORACION_ESTADO } from "@/Application/Domain/Enums/COLABORACION_ESTADO.js";
 import { PROYECTO_ESTADO } from "@/Application/Domain/Enums/PROYECTO_ESTADO.js";
+import { estaPublicado } from "@/Application/Domain/Reglas/publicacion.js";
 import {
   perfilesAbiertos,
   postulacionesPendientes,
 } from "@/Application/Domain/Reglas/busquedaDePerfil.js";
 
+function abiertosDe(proyecto, hoy) {
+  if (!estaPublicado(proyecto)) return 0;
+  return Array.isArray(proyecto.perfiles) ? perfilesAbiertos(proyecto, hoy).length : null;
+}
+
 export function filasDelPanel(proyectos, hoy) {
   return proyectos?.map((proyecto) => ({
     proyecto,
-    abiertos: Array.isArray(proyecto.perfiles)
-      ? perfilesAbiertos(proyecto, hoy).length
-      : null,
+    abiertos: abiertosDe(proyecto, hoy),
     pendientes: postulacionesPendientes(proyecto),
   }));
 }

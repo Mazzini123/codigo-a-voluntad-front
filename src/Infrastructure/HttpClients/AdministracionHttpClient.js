@@ -3,6 +3,19 @@ import { crearPedidos, ruta } from "@/Infrastructure/Http/pedidos.js";
 export function crearAdministracionHttpClient(http) {
   const api = crearPedidos(http);
   return {
+    async listarProyectos(query = {}, { signal } = {}) {
+      return api.get("/administracion/proyectos", {
+        params: query,
+        signal,
+        requiereSesion: true,
+      });
+    },
+    async listarDestacados({ signal } = {}) {
+      return api.get("/administracion/proyectos/destacados", {
+        signal,
+        requiereSesion: true,
+      });
+    },
     async destacar(proyectoId, request, { signal } = {}) {
       return api.put(ruta`/administracion/proyectos/${proyectoId}/destacado`, request, {
         signal,
@@ -29,6 +42,24 @@ export function crearAdministracionHttpClient(http) {
     async listarAuditoria(query = {}, { signal } = {}) {
       return api.get("/administracion/auditoria", {
         params: query,
+        signal,
+        requiereSesion: true,
+      });
+    },
+    async publicarTerminos(request, { signal } = {}) {
+      return api.put("/administracion/terminos", request, {
+        signal,
+        requiereSesion: true,
+      });
+    },
+    async darDeBajaProyecto(proyectoId, request, { signal } = {}) {
+      return api.post(ruta`/administracion/proyectos/${proyectoId}/baja`, request, {
+        signal,
+        requiereSesion: true,
+      });
+    },
+    async darDeBajaColectivo(colectivoId, request, { signal } = {}) {
+      return api.post(ruta`/administracion/colectivos/${colectivoId}/baja`, request, {
         signal,
         requiereSesion: true,
       });

@@ -31,6 +31,8 @@ test("los valores nuevos coinciden con los del back", () => {
   expect(PERMISO.REVISION_RESOLVER).toBe("REVISION_RESOLVER");
   expect(PERMISO.AUDITORIA_VER).toBe("AUDITORIA_VER");
   expect(PERMISO.ADMIN_GESTIONAR).toBe("ADMIN_GESTIONAR");
+  expect(PERMISO.TERMINOS_GESTIONAR).toBe("TERMINOS_GESTIONAR");
+  expect(PERMISO.BAJA_POR_INFRACCION).toBe("BAJA_POR_INFRACCION");
 });
 
 test("la administración empieza en /admin y los demás roles conservan su inicio", () => {

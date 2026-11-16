@@ -12,6 +12,7 @@ import { ColectivoPage } from "@/Presentation/Pages/publicas/ColectivoPage.jsx";
 import { HabilidadesPage } from "@/Presentation/Pages/publicas/HabilidadesPage.jsx";
 import { LoginPage } from "@/Presentation/Pages/ingreso/LoginPage.jsx";
 import { InicioPage } from "@/Presentation/Pages/publicas/InicioPage.jsx";
+import { TerminosPage } from "@/Presentation/Pages/publicas/TerminosPage.jsx";
 import { MisProyectosPage } from "@/Presentation/Pages/colectivo/MisProyectosPage.jsx";
 import { ErrorInesperadoPage } from "@/Presentation/Pages/sistema/ErrorInesperadoPage.jsx";
 import { NoEncontradaPage } from "@/Presentation/Pages/sistema/NoEncontradaPage.jsx";
@@ -32,6 +33,8 @@ import {
   RUTA_ADMIN_DESTACADOS,
   RUTA_ADMIN_REVISIONES,
   RUTA_ADMIN_AUDITORIA,
+  RUTA_ADMIN_BAJAS,
+  RUTA_ADMIN_TERMINOS,
   RUTA_ADMINISTRAR_PROYECTO,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
@@ -62,6 +65,7 @@ import {
   RUTA_RESUMEN_COLECTIVO,
   RUTA_SOLICITUDES_COLECTIVO,
   RUTA_SIN_PERMISO,
+  RUTA_TERMINOS,
   RUTA_UNIRME_A_COLECTIVO,
   TIPO_DE_PANTALLA,
 } from "./rutas.js";
@@ -91,6 +95,12 @@ const cargarRevisionesDeAdministracion = () =>
 
 const cargarAuditoriaDeAdministracion = () =>
   import("@/Presentation/Pages/administracion/AuditoriaPage.jsx");
+
+const cargarTerminosDeAdministracion = () =>
+  import("@/Presentation/Pages/administracion/TerminosDeAdministracionPage.jsx");
+
+const cargarBajasPorInfraccion = () =>
+  import("@/Presentation/Pages/administracion/BajasPorInfraccionPage.jsx");
 
 const cargarNombrePage = () =>
   import("@/Presentation/Pages/ingreso/NombrePage.jsx").then((modulo) => ({
@@ -153,6 +163,11 @@ export const rutas = createRoutesFromElements(
         <Route
           path={RUTA_AVANCE_DEL_PROYECTO}
           element={<PantallaDiferida cargar={cargarAvanceDelProyecto} />}
+          handle={{ tipoDePantalla: TIPO_DE_PANTALLA.EXPLORACION }}
+        />
+        <Route
+          path={RUTA_TERMINOS}
+          element={<TerminosPage />}
           handle={{ tipoDePantalla: TIPO_DE_PANTALLA.EXPLORACION }}
         />
         {import.meta.env.DEV && (
@@ -306,6 +321,32 @@ export const rutas = createRoutesFromElements(
               <Route
                 path={RUTA_ADMIN_AUDITORIA}
                 element={<PantallaDiferida cargar={cargarAuditoriaDeAdministracion} />}
+              />
+            </Route>
+            <Route
+              element={
+                <RutaConPermiso
+                  permiso={PERMISO.TERMINOS_GESTIONAR}
+                  sinPermiso="Tu cuenta no puede gestionar los términos y condiciones."
+                />
+              }
+            >
+              <Route
+                path={RUTA_ADMIN_TERMINOS}
+                element={<PantallaDiferida cargar={cargarTerminosDeAdministracion} />}
+              />
+            </Route>
+            <Route
+              element={
+                <RutaConPermiso
+                  permiso={PERMISO.BAJA_POR_INFRACCION}
+                  sinPermiso="Tu cuenta no puede dar de baja proyectos ni colectivos."
+                />
+              }
+            >
+              <Route
+                path={RUTA_ADMIN_BAJAS}
+                element={<PantallaDiferida cargar={cargarBajasPorInfraccion} />}
               />
             </Route>
           </Route>

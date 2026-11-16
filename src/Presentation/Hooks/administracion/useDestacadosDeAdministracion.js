@@ -21,7 +21,7 @@ export function useDestacadosDeAdministracion(
   dependencias = DEPENDENCIAS,
 ) {
   const consultarVigentes = useCallback(
-    (signal) => dependencias.proyectos.listarProyectosDestacados({ signal }),
+    (signal) => dependencias.administracion.listarDestacados({ signal }),
     [dependencias],
   );
   const vigentes = useConsulta(consultarVigentes);

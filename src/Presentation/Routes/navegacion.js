@@ -11,6 +11,8 @@ import {
   RUTA_ADMIN_DESTACADOS,
   RUTA_ADMIN_REVISIONES,
   RUTA_ADMIN_AUDITORIA,
+  RUTA_ADMIN_BAJAS,
+  RUTA_ADMIN_TERMINOS,
   RUTA_ALTA_COLABORADORA,
   RUTA_ALTA_COLECTIVO,
   RUTA_MENSAJES,
@@ -96,6 +98,18 @@ export const SECCIONES_DE_ADMINISTRACION = Object.freeze([
     texto: "Auditoría",
     icono: "lista",
     permiso: PERMISO.AUDITORIA_VER,
+  }),
+  Object.freeze({
+    ruta: RUTA_ADMIN_TERMINOS,
+    texto: "Términos",
+    icono: "info",
+    permiso: PERMISO.TERMINOS_GESTIONAR,
+  }),
+  Object.freeze({
+    ruta: RUTA_ADMIN_BAJAS,
+    texto: "Bajas por infracción",
+    icono: "aviso",
+    permiso: PERMISO.BAJA_POR_INFRACCION,
   }),
 ]);
 

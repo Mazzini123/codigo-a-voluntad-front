@@ -5,23 +5,28 @@ import { useMutacion } from "@/Presentation/Hooks/comunes/useMutacion.js";
 
 export const REVISIONES_POR_PAGINA = 20;
 
-export function claveDeRevisiones(estado, pagina) {
-  return `${estado}|${pagina}`;
+export function claveDeRevisiones(estado, pagina, motivo = "") {
+  return `${estado}|${motivo}|${pagina}`;
 }
 
 export function useRevisiones(
-  { estado, pagina },
+  { estado, pagina, motivo = "" },
   dependencias = administracionDependencies,
 ) {
   const obtener = useCallback(
     async (signal) => {
       const resultado = await dependencias.listarRevisiones(
-        { page: pagina, limit: REVISIONES_POR_PAGINA, estado },
+        {
+          page: pagina,
+          limit: REVISIONES_POR_PAGINA,
+          estado,
+          ...(motivo ? { motivo } : {}),
+        },
         { signal },
       );
-      return { ...resultado, consulta: claveDeRevisiones(estado, pagina) };
+      return { ...resultado, consulta: claveDeRevisiones(estado, pagina, motivo) };
     },
-    [dependencias, estado, pagina],
+    [dependencias, estado, pagina, motivo],
   );
   const consulta = useConsulta(obtener);
   const tarea = useCallback(

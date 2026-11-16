@@ -1,0 +1,61 @@
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border-radius: var(--radio-md);
+  background: var(--color-info-tenue);
+  color: var(--color-tinta);
+  overflow-wrap: anywhere;
+}
+
+.aviso > svg {
+  flex-shrink: 0;
+  color: var(--color-info);
+}
+
+.cuerpo {
+  display: grid;
+  gap: var(--espacio-2);
+  min-inline-size: 0;
+  max-inline-size: var(--ancho-texto);
+}
+
+.titulo {
+  justify-self: start;
+  color: var(--color-info);
+  font-size: var(--texto-body-tamano);
+  font-weight: var(--texto-headline-peso);
+}
+
+.rechazo {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.etiqueta {
+  font-weight: var(--texto-label-peso);
+}
+
+.nota {
+  padding-inline-start: var(--espacio-3);
+  border-inline-start: var(--borde) solid var(--color-linea);
+  white-space: pre-line;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  margin-block-start: var(--espacio-2);
+}
+
+.acciones a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--toque-minimo);
+}
+
+.ayuda {
+  font-size: var(--texto-body-sm-tamano);
+}

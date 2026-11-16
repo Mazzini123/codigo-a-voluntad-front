@@ -377,14 +377,14 @@ describe("mis proyectos", () => {
     const { user } = montar("/colectivo/proyectos");
     const primera = await tarjeta("Sistema de turnos del comedor");
     expect(within(primera).getByText("7 postulaciones pendientes")).toBeVisible();
-    expect(screen.getByText("21 proyectos publicados")).toBeVisible();
+    expect(screen.getByText("21 proyectos")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Siguiente" }));
     await tarjeta("Huerta comunitaria");
     expect(
       screen.queryByRole("article", { name: "Sistema de turnos del comedor" }),
     ).not.toBeInTheDocument();
     expect(pedidosDeProyectos().at(-1)[0].params).toEqual({ page: 2, limit: 20 });
-    expect(screen.getByText("21 proyectos publicados")).toBeVisible();
+    expect(screen.getByText("21 proyectos")).toBeVisible();
   });
 
   test("lista los proyectos con su estado, sin repetir indicadores ni postulaciones", async () => {
@@ -398,7 +398,7 @@ describe("mis proyectos", () => {
     expect(within(finalizado).getByText("Finalizado")).toBeInTheDocument();
     expect(within(finalizado).queryByText(/pendiente/)).not.toBeInTheDocument();
 
-    expect(screen.getByText("3 proyectos publicados")).toBeVisible();
+    expect(screen.getByText("3 proyectos")).toBeVisible();
     expect(screen.queryByLabelText("Resumen del colectivo")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: "Postulaciones pendientes" }),
@@ -652,5 +652,286 @@ describe("permisos", () => {
     expect(
       screen.queryByRole("link", { name: "Panel del colectivo" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("borradores en mis proyectos", () => {
+  const RECHAZO = {
+    nota: "Falta contar quién coordina.",
+    fecha: "2026-11-12T15:00:00.000Z",
+  };
+
+  function borradores() {
+    return [
+      {
+        id: "p4",
+        titulo: "Biblioteca popular",
+        descripcion: "Catálogo de libros.",
+        estado: "BORRADOR",
+        etiquetas: [],
+        perfiles: [unPerfil("pe5")],
+        colaboraciones: [],
+      },
+      {
+        id: "p5",
+        titulo: "Radio comunitaria",
+        descripcion: "Grilla de programas.",
+        estado: "BORRADOR",
+        etiquetas: [],
+        perfiles: [unPerfil("pe6")],
+        colaboraciones: [],
+      },
+      {
+        id: "p6",
+        titulo: "Feria del barrio",
+        descripcion: "Puestos y turnos.",
+        estado: "EN_REVISION",
+        etiquetas: [],
+        perfiles: [unPerfil("pe7")],
+        colaboraciones: [],
+      },
+    ];
+  }
+
+  let detalles;
+  let respuestaAlPedir;
+
+  beforeEach(() => {
+    listado = [...proyectos(), ...borradores()];
+    detalles = {
+      p4: { ...borradores()[0], publicacion: null },
+      p5: {
+        ...borradores()[1],
+        publicacion: {
+          solicitadaEn: "2026-11-10T12:00:00.000Z",
+          revisionId: "r1",
+          rechazo: RECHAZO,
+          aprobadaEn: null,
+        },
+      },
+      p6: {
+        ...borradores()[2],
+        publicacion: {
+          solicitadaEn: "2026-11-14T15:00:00.000Z",
+          revisionId: "r2",
+          rechazo: null,
+          aprobadaEn: null,
+        },
+      },
+    };
+    respuestaAlPedir = null;
+    const responder = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      const detalle = /^\/proyectos\/(p\d)$/.exec(config.url ?? "");
+      if (config.method === "get" && detalle) {
+        const proyecto = detalles[detalle[1]];
+        return proyecto ? respuesta(config, proyecto) : falla(config, 500);
+      }
+      if (config.method === "post" && config.url === "/proyectos/p4/publicacion") {
+        if (respuestaAlPedir) return falla(config, respuestaAlPedir);
+        listado = listado.map((p) =>
+          p.id === "p4" ? { ...p, estado: "EN_REVISION" } : p,
+        );
+        return respuesta(config, { ...detalles.p4, estado: "EN_REVISION" });
+      }
+      return responder(config);
+    });
+  });
+
+  function pedidosDeDetalle() {
+    return transporte.mock.calls
+      .map(([config]) => config)
+      .filter(
+        (config) => config.method === "get" && /^\/proyectos\/p\d$/.test(config.url),
+      );
+  }
+
+  test("cada estado se dice con texto y el rechazado muestra la nota de administración", async () => {
+    montar("/colectivo/proyectos");
+    const borrador = await tarjeta("Biblioteca popular");
+    expect(within(borrador).getByText("Borrador")).toBeInTheDocument();
+    expect(within(borrador).queryByText(/pidió cambios/)).not.toBeInTheDocument();
+
+    const rechazado = await tarjeta("Radio comunitaria");
+    expect(await within(rechazado).findByText("Con cambios pedidos")).toBeInTheDocument();
+    expect(rechazado).toHaveTextContent(
+      "Administración pidió cambios el 12 de noviembre de 2026: Falta contar quién coordina.",
+    );
+
+    const enRevision = await tarjeta("Feria del barrio");
+    expect(within(enRevision).getByText("En revisión")).toBeInTheDocument();
+    expect(
+      await within(enRevision).findByText(/^Publicación pedida el/),
+    ).toHaveTextContent("Publicación pedida el 14 de noviembre de 2026");
+    expect(within(enRevision).queryByText(/^Creado el/)).not.toBeInTheDocument();
+    expect(
+      within(enRevision).queryByRole("button", { name: /Pedir publicación/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("6 proyectos")).toBeVisible();
+    expect(
+      pedidosDeDetalle()
+        .map(({ url }) => url)
+        .sort(),
+    ).toEqual(["/proyectos/p4", "/proyectos/p5", "/proyectos/p6"]);
+  });
+
+  test("si el listado trae publicacion y baja, muestra la nota y la fecha sin pedir detalles", async () => {
+    listado = listado.map((p) =>
+      detalles[p.id] ? { ...p, publicacion: detalles[p.id].publicacion, baja: null } : p,
+    );
+    montar("/colectivo/proyectos");
+    const rechazado = await tarjeta("Radio comunitaria");
+    expect(rechazado).toHaveTextContent(
+      "Administración pidió cambios el 12 de noviembre de 2026: Falta contar quién coordina.",
+    );
+    const enRevision = await tarjeta("Feria del barrio");
+    expect(within(enRevision).getByText(/^Publicación pedida el/)).toHaveTextContent(
+      "Publicación pedida el 14 de noviembre de 2026",
+    );
+    expect(pedidosDeDetalle()).toEqual([]);
+  });
+
+  test("los borradores no dicen cuándo se publicaron", async () => {
+    listado = listado.map((p) =>
+      p.id === "p4" ? { ...p, fechaCreacion: "2026-11-01T12:00:00.000Z" } : p,
+    );
+    montar("/colectivo/proyectos");
+    const borrador = await tarjeta("Biblioteca popular");
+    expect(within(borrador).queryByText(/Publicado el/)).not.toBeInTheDocument();
+    expect(within(borrador).getByText(/Creado el/)).toBeInTheDocument();
+  });
+
+  test("pedir la publicación confirma, avisa y el borrador pasa a En revisión", async () => {
+    const { user } = montar("/colectivo/proyectos");
+    const borrador = await tarjeta("Biblioteca popular");
+    await user.click(
+      within(borrador).getByRole("button", {
+        name: "Pedir publicación de Biblioteca popular",
+      }),
+    );
+    const dialogo = screen.getByRole("dialog", { name: "¿Pedir la publicación?" });
+    expect(dialogo).toHaveTextContent(/no vas a poder editarlo/);
+    await user.click(within(dialogo).getByRole("button", { name: "Pedir publicación" }));
+
+    expect(await within(borrador).findByText("En revisión")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Pediste la publicación. Hasta que administración la apruebe o pida cambios, no se puede editar.",
+    );
+    expect(
+      within(borrador).getByRole("link", { name: "Biblioteca popular" }),
+    ).toHaveFocus();
+    expect(
+      transporte.mock.calls.filter(([c]) => c.url === "/proyectos/p4/publicacion"),
+    ).toHaveLength(1);
+  });
+
+  test("si la fecha de cierre venció, explica qué cambiar y sigue en borrador", async () => {
+    respuestaAlPedir = 422;
+    const { user } = montar("/colectivo/proyectos");
+    const borrador = await tarjeta("Biblioteca popular");
+    await user.click(
+      within(borrador).getByRole("button", {
+        name: "Pedir publicación de Biblioteca popular",
+      }),
+    );
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Pedir publicación",
+      }),
+    );
+    expect(await within(borrador).findByRole("alert")).toHaveTextContent(
+      "La fecha de cierre ya pasó. Cambiala en el borrador y volvé a pedir la publicación.",
+    );
+    expect(within(borrador).getByText("Borrador")).toBeInTheDocument();
+  });
+
+  test("si no se puede leer la nota, el borrador se muestra igual", async () => {
+    delete detalles.p5;
+    montar("/colectivo/proyectos");
+    const rechazado = await tarjeta("Radio comunitaria");
+    expect(within(rechazado).getByText("Borrador")).toBeInTheDocument();
+    expect(screen.queryByText("No pudimos cargar tus proyectos")).not.toBeInTheDocument();
+  });
+
+  test("los perfiles de borradores y en revisión no cuentan como abiertos", async () => {
+    montar("/colectivo/resumen");
+    const indicadores = within(await screen.findByLabelText("Resumen del colectivo"));
+    expect(indicadores.getByText("Perfiles abiertos").closest("div")).toHaveTextContent(
+      "2",
+    );
+  });
+
+  test("un borrador no dice cuántos perfiles buscan gente", async () => {
+    montar("/colectivo/proyectos");
+    const borrador = await tarjeta("Biblioteca popular");
+    expect(within(borrador).queryByText(/busca gente/)).not.toBeInTheDocument();
+  });
+});
+
+describe("proyecto dado de baja en mis proyectos", () => {
+  const BAJA = {
+    motivo: "Publica datos personales sin consentimiento.",
+    fecha: "2026-11-16T15:00:00.000Z",
+  };
+
+  function dadoDeBaja() {
+    return {
+      id: "p9",
+      titulo: "Padrón del barrio",
+      descripcion: "Listado de vecinas.",
+      estado: "DADO_DE_BAJA",
+      etiquetas: [],
+      perfiles: [unPerfil("pe9")],
+      colaboraciones: [],
+    };
+  }
+
+  beforeEach(() => {
+    listado = [...proyectos(), dadoDeBaja()];
+    const responder = transporte.getMockImplementation();
+    transporte.mockImplementation(async (config) => {
+      if (config.method === "get" && config.url === "/proyectos/p9")
+        return respuesta(config, { ...dadoDeBaja(), publicacion: null, baja: BAJA });
+      return responder(config);
+    });
+  });
+
+  test("dice Dado de baja con el motivo y no ofrece editar ni publicar", async () => {
+    montar("/colectivo/proyectos");
+    const fila = await tarjeta("Padrón del barrio");
+    expect(within(fila).getByText("Dado de baja")).toBeInTheDocument();
+    expect(
+      await within(fila).findByText(
+        "Administración lo dio de baja el 16 de noviembre de 2026: Publica datos personales sin consentimiento.",
+      ),
+    ).toBeInTheDocument();
+    expect(within(fila).getByText(/^Dado de baja el/)).toHaveTextContent(
+      "Dado de baja el 16 de noviembre de 2026",
+    );
+    expect(within(fila).queryByRole("link", { name: "Administrar" })).toBeNull();
+    expect(within(fila).queryByRole("button", { name: /Pedir publicación/ })).toBeNull();
+    expect(within(fila).queryByText(/busca gente/)).not.toBeInTheDocument();
+    expect(within(fila).getByRole("link", { name: "Padrón del barrio" })).toHaveAttribute(
+      "href",
+      "/proyectos/p9",
+    );
+  });
+
+  test("si el listado trae la baja, muestra el motivo sin pedir el detalle", async () => {
+    listado = [...proyectos(), { ...dadoDeBaja(), publicacion: null, baja: BAJA }];
+    montar("/colectivo/proyectos");
+    const fila = await tarjeta("Padrón del barrio");
+    expect(fila).toHaveTextContent(
+      "Administración lo dio de baja el 16 de noviembre de 2026: Publica datos personales sin consentimiento.",
+    );
+    expect(transporte.mock.calls.some(([c]) => c.url === "/proyectos/p9")).toBe(false);
+  });
+
+  test("no cuenta como proyecto activo ni sus perfiles como abiertos", async () => {
+    montar("/colectivo/resumen");
+    const indicadores = within(await screen.findByLabelText("Resumen del colectivo"));
+    expect(indicadores.getByText("Perfiles abiertos").closest("div")).toHaveTextContent(
+      "2",
+    );
   });
 });

@@ -56,6 +56,12 @@ export function crearProyectoHttpClient(http) {
         requiereSesion: true,
       });
     },
+    async pedirPublicacion(proyectoId, { signal } = {}) {
+      return api.post(ruta`/proyectos/${proyectoId}/publicacion`, undefined, {
+        signal,
+        requiereSesion: true,
+      });
+    },
     async finalizar(proyectoId, { signal } = {}) {
       return api.post(ruta`/proyectos/${proyectoId}/finalizacion`, undefined, {
         signal,

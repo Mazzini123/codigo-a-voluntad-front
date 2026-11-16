@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Icono } from "@/Presentation/Components/App/ui/Icono.jsx";
 import marca from "./Marca.module.css";
 import estilos from "./PieDePagina.module.css";
-import { RUTA_COMO_EMPEZAR } from "@/Presentation/Routes/rutas.js";
+import { RUTA_COMO_EMPEZAR, RUTA_TERMINOS } from "@/Presentation/Routes/rutas.js";
 
 export function PieDePagina() {
   return (
@@ -15,9 +15,12 @@ export function PieDePagina() {
             <p>Colectivos sociales y colaboradoras de software.</p>
           </div>
         </div>
-        <nav aria-label="Información del sitio">
+        <nav aria-label="Información del sitio" className={estilos.enlaces}>
           <Link to={RUTA_COMO_EMPEZAR} className={estilos.enlace}>
             Cómo funciona
+          </Link>
+          <Link to={RUTA_TERMINOS} className={estilos.enlace}>
+            Términos y condiciones
           </Link>
         </nav>
         <p className={estilos.academico}>

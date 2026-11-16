@@ -61,8 +61,18 @@ beforeEach(() => {
     if (url === "/proyectos/p1" && method === "get")
       return responder({ ...proyecto, colectivo: { id: pertenece ? "c1" : "otro" } });
     if (url === "/proyectos/p1" && method === "put") {
+      if (proyecto.estado === "EN_REVISION")
+        throw new axios.AxiosError("error", "ERR_BAD_REQUEST", config, null, {
+          status: 409,
+          data: { message: "crudo" },
+        });
       Object.assign(proyecto, JSON.parse(config.data));
       return responder({ ...proyecto, colectivo: { id: pertenece ? "c1" : "otro" } });
+    }
+    if (url === "/proyectos/p1/publicacion" && method === "post") {
+      proyecto.estado = "EN_REVISION";
+      proyecto.publicacion = { ...proyecto.publicacion, rechazo: null };
+      return responder({ ...proyecto, colectivo: { id: "c1" } });
     }
     if (url === "/proyectos/p1/finalizacion" && method === "post") {
       proyecto.estado = "FINALIZADO";
@@ -293,4 +303,118 @@ test("en un proyecto finalizado no se ofrece Buscar colaboradoras", async () => 
   montar();
   expect(await screen.findByText(/Este proyecto está finalizado/)).toBeVisible();
   expect(screen.queryByText("Buscar colaboradoras")).not.toBeInTheDocument();
+});
+
+describe("borradores", () => {
+  const rechazo = {
+    nota: "Sumen la fecha de inicio.",
+    fecha: "2026-11-12T15:00:00.000Z",
+  };
+
+  test("un borrador se edita, sin postulaciones, búsqueda de personas ni finalizar", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = null;
+    montar();
+    const aviso = await screen.findByRole("region", { name: "Borrador" });
+    expect(aviso).toHaveTextContent(
+      "Lo ven solo tu colectivo y administración. Cuando esté listo, pedí su publicación.",
+    );
+    expect(screen.getByRole("button", { name: "Editar proyecto" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Editar perfil" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Agregar perfil" })).toBeEnabled();
+    expect(screen.getByText("Se abre al publicar")).toBeInTheDocument();
+    expect(screen.queryByText(/^Abierta/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Ver postulaciones" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Buscar colaboradoras/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Buscar colaboradoras/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Finalizar proyecto" }),
+    ).not.toBeInTheDocument();
+  });
+
+  test("un borrador con cambios pedidos muestra primero la nota y pide la publicación de nuevo", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = { solicitadaEn: "2026-11-10T12:00:00.000Z", rechazo };
+    const { user } = montar();
+    const aviso = await screen.findByRole("region", { name: "Con cambios pedidos" });
+    expect(aviso).toHaveTextContent(
+      /Qué pidió administración el 12 de noviembre de 2026\s*Sumen la fecha de inicio\.\s*Cuando hagas los cambios, volvé a pedir la publicación\./,
+    );
+    expect(screen.getByRole("button", { name: "Editar proyecto" })).toHaveClass(
+      /primario/,
+    );
+    expect(
+      within(aviso).getByRole("button", {
+        name: "Pedir publicación de Turnos del comedor",
+      }),
+    ).not.toHaveClass(/primario/);
+    await user.click(
+      within(aviso).getByRole("button", {
+        name: "Pedir publicación de Turnos del comedor",
+      }),
+    );
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Pedir publicación",
+      }),
+    );
+    const enRevision = await screen.findByRole("region", { name: "En revisión" });
+    expect(
+      within(enRevision).getByRole("heading", { name: "En revisión" }),
+    ).toHaveFocus();
+    expect(enRevision).not.toHaveTextContent(/pidió cambios/);
+    expect(
+      screen.queryByRole("button", { name: "Editar proyecto" }),
+    ).not.toBeInTheDocument();
+  });
+
+  test("un proyecto en revisión se consulta pero no se edita", async () => {
+    proyecto.estado = "EN_REVISION";
+    proyecto.publicacion = { solicitadaEn: "2026-11-10T12:00:00.000Z", rechazo: null };
+    montar();
+    const aviso = await screen.findByRole("region", { name: "En revisión" });
+    expect(aviso).toHaveTextContent(
+      "Pediste la publicación el 10 de noviembre de 2026. Hasta que administración la apruebe o pida cambios, no se puede editar.",
+    );
+    expect(screen.getByText("Una aplicación de turnos")).toBeInTheDocument();
+    expect(screen.getByText("Desarrollo de la interfaz")).toBeInTheDocument();
+    for (const nombre of [
+      "Editar proyecto",
+      "Editar perfil",
+      "Agregar perfil",
+      "Cerrar búsqueda",
+    ])
+      expect(screen.queryByRole("button", { name: nombre })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Pedir publicación/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  test("si otra persona pidió la publicación mientras editaba, lo explica y deja de editar", async () => {
+    proyecto.estado = "BORRADOR";
+    proyecto.publicacion = null;
+    const { user } = montar();
+    await user.click(await screen.findByRole("button", { name: "Editar proyecto" }));
+    proyecto.estado = "EN_REVISION";
+    const titulo = screen.getByLabelText(/^Título/);
+    await user.clear(titulo);
+    await user.type(titulo, "Turnos nuevos");
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    expect(
+      await screen.findByText(
+        "Mientras editabas, se pidió su publicación. Hasta que administración la apruebe o pida cambios, no se puede editar.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("region", { name: "En revisión" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Título/)).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("crudo");
+  });
 });

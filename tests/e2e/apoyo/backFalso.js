@@ -51,9 +51,109 @@ function crearEstadoInicial() {
     destacados: new Map(),
     revisiones: new Map(),
     auditoria: [],
+    terminos: [],
     fallas: new Set(),
     secuencia: 0,
   };
+}
+
+function terminosVigentes(estado) {
+  return estado.terminos.at(-1) ?? null;
+}
+
+function publicarTerminos(estado, { texto }) {
+  if (!texto?.trim()) return new Respuesta(400, { message: "Falta el texto." });
+  const version = (terminosVigentes(estado)?.version ?? 0) + 1;
+  const terminos = {
+    version,
+    texto: texto.trim(),
+    publicadoEn: new Date().toISOString(),
+  };
+  estado.terminos.push(terminos);
+  auditar(
+    estado,
+    "TERMINOS_ACTUALIZADOS",
+    { tipo: "TERMINOS", id: `t-${version}` },
+    { version },
+  );
+  return creado({ ...terminos, publicadoPor: ADMINISTRACION_SIMULADA.usuarioId });
+}
+
+function rechazoDeTerminos(estado, aceptados) {
+  const vigentes = terminosVigentes(estado);
+  if (!vigentes || aceptados === vigentes.version) return null;
+  return new Respuesta(422, {
+    message: "Hay que aceptar los terminos vigentes",
+    codigo: "TERMINOS_NO_ACEPTADOS",
+    detalle: { versionVigente: vigentes.version },
+  });
+}
+
+function cerrarColaboraciones(proyecto, fecha) {
+  for (const colaboracion of proyecto.colaboraciones) {
+    if (colaboracion.estado === "PENDIENTE") colaboracion.estado = "RECHAZADA";
+    else if (colaboracion.estado === "ACEPTADA") {
+      colaboracion.estado = "FINALIZADA";
+      colaboracion.fechaFin = fecha;
+    }
+  }
+}
+
+function darDeBajaProyecto(estado, id, { motivo }) {
+  const proyecto = estado.proyectos.get(id);
+  if (!proyecto) return null;
+  if (!motivo?.trim()) return new Respuesta(400, { message: "Falta el motivo." });
+  if (proyecto.estado === "DADO_DE_BAJA")
+    return new Respuesta(409, { message: "Ya estaba dado de baja." });
+  const fecha = new Date().toISOString();
+  proyecto.estado = "DADO_DE_BAJA";
+  proyecto.baja = { motivo: motivo.trim(), fecha };
+  estado.destacados.delete(id);
+  cerrarColaboraciones(proyecto, fecha);
+  auditar(
+    estado,
+    "PROYECTO_DADO_DE_BAJA",
+    { tipo: "PROYECTO", id },
+    { motivo: motivo.trim() },
+  );
+  return { id, estado: proyecto.estado, baja: proyecto.baja };
+}
+
+function darDeBajaColectivo(estado, id) {
+  const c = estado.colectivos.get(id);
+  if (!c) return null;
+  if (c.fechaBaja) return new Respuesta(409, { message: "Ya estaba dado de baja." });
+  c.fechaBaja = new Date().toISOString();
+  c.cuentaId = null;
+  c.mediosDeContacto = [];
+  c.redesSociales = [];
+  for (const p of estado.proyectos.values())
+    if (p.colectivoId === id && p.estado === "ABIERTO") {
+      p.estado = "FINALIZADO";
+      p.fechaFinalizacion = c.fechaBaja;
+      cerrarColaboraciones(p, c.fechaBaja);
+    }
+  return c;
+}
+
+function darDeBajaColectivoPorInfraccion(estado, id, { motivo }) {
+  if (!motivo?.trim()) return new Respuesta(400, { message: "Falta el motivo." });
+  const resultado = darDeBajaColectivo(estado, id);
+  if (!resultado || resultado instanceof Respuesta) return resultado;
+  auditar(
+    estado,
+    "COLECTIVO_DADO_DE_BAJA",
+    { tipo: "COLECTIVO", id },
+    { motivo: motivo.trim() },
+  );
+  return { id, fechaBaja: resultado.fechaBaja };
+}
+
+function colectivosListados(estado, consulta) {
+  const nombre = consulta.get("q")?.toLowerCase();
+  return [...estado.colectivos.values()].filter(
+    (c) => !c.fechaBaja && (!nombre || c.nombre.toLowerCase().includes(nombre)),
+  );
 }
 
 function sinColectivo(proyecto, estado) {
@@ -75,6 +175,56 @@ function proyectosDe(estado, colectivoId) {
   return [...estado.proyectos.values()]
     .filter((proyecto) => proyecto.colectivoId === colectivoId)
     .map((proyecto) => sinColectivo(proyecto, estado));
+}
+
+function conDatosDeGestion(proyecto) {
+  return {
+    ...proyecto,
+    publicacion: proyecto.publicacion ?? null,
+    baja: proyecto.baja ?? null,
+  };
+}
+
+function sinTildes(texto) {
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+const ESTADOS_PARA_BAJA = ["BORRADOR", "EN_REVISION", "ABIERTO", "FINALIZADO"];
+
+function proyectosParaBaja(estado, consulta) {
+  const filtroDeEstado = consulta.get("estado");
+  if (filtroDeEstado && !ESTADOS_PARA_BAJA.includes(filtroDeEstado))
+    return new Respuesta(400, { message: "Estado inválido." });
+  const q = sinTildes(consulta.get("q") ?? "");
+  const lista = [...estado.proyectos.values()]
+    .filter((p) => p.estado !== "DADO_DE_BAJA")
+    .filter((p) => !filtroDeEstado || p.estado === filtroDeEstado)
+    .map((p) => sinColectivo(p, estado))
+    .filter(
+      (p) =>
+        !q ||
+        sinTildes(p.titulo).includes(q) ||
+        sinTildes(p.colectivo.nombre).includes(q),
+    )
+    .map((p) => ({
+      id: p.id,
+      titulo: p.titulo,
+      estado: p.estado,
+      fechaCreacion: p.fechaCreacion,
+      colectivo: { id: p.colectivo.id, nombre: p.colectivo.nombre },
+      conflictoDeIntereses: false,
+    }));
+  return paginar(lista, consulta);
+}
+
+function destacadosDeAdministracion(estado) {
+  return [...estado.destacados.entries()]
+    .filter(([id]) => estado.proyectos.has(id))
+    .map(([id, destacado]) => ({
+      ...sinColectivo(estado.proyectos.get(id), estado),
+      destacado,
+      conflictoDeIntereses: false,
+    }));
 }
 
 function colaboracionesDe(estado, colaboradorId) {
@@ -165,6 +315,7 @@ function proyectosListados(estado, consulta) {
   const etiqueta = consulta.get("etiqueta");
   const filtroDeEstado = consulta.get("estado");
   const lista = [...estado.proyectos.values()]
+    .filter(estaPublicado)
     .filter((p) => !filtroDeEstado || p.estado === filtroDeEstado)
     .filter((p) => !etiqueta || p.etiquetas.includes(etiqueta))
     .map((p) => sinColectivo(p, estado));
@@ -204,6 +355,81 @@ function destacar(estado, id, { hasta }) {
   return { id, destacado };
 }
 
+const PUBLICADOS = ["ABIERTO", "FINALIZADO"];
+
+function estaPublicado(proyecto) {
+  return PUBLICADOS.includes(proyecto.estado);
+}
+
+function pedirPublicacion(estado, id) {
+  const proyecto = estado.proyectos.get(id);
+  if (!proyecto) return null;
+  if (proyecto.estado !== "BORRADOR")
+    return new Respuesta(409, {
+      message: "Solo se puede pedir la publicación de un borrador",
+    });
+  if (proyecto.fechaCierre && Date.parse(proyecto.fechaCierre) <= Date.now())
+    return new Respuesta(422, { message: "La fecha de cierre ya pasó" });
+  const revisionId = `rev-${++estado.secuencia}`;
+  const ahora = new Date().toISOString();
+  estado.revisiones.set(revisionId, {
+    id: revisionId,
+    proyecto: {
+      id,
+      titulo: proyecto.titulo,
+      colectivo: {
+        id: proyecto.colectivoId,
+        nombre: estado.colectivos.get(proyecto.colectivoId)?.nombre ?? "Colectivo",
+      },
+    },
+    motivo: "PUBLICACION",
+    estado: "PENDIENTE",
+    creadaEn: ahora,
+    resueltaPor: null,
+    resueltaEn: null,
+    nota: null,
+  });
+  proyecto.estado = "EN_REVISION";
+  proyecto.publicacion = {
+    solicitadaEn: ahora,
+    revisionId,
+    rechazo: null,
+    aprobadaEn: null,
+  };
+  return sinColectivo(proyecto, estado);
+}
+
+function resolverPublicacion(estado, revision, { estado: resolucion, nota }) {
+  const proyecto = estado.proyectos.get(revision.proyecto.id);
+  if (proyecto?.estado !== "EN_REVISION")
+    return new Respuesta(409, {
+      message: "El proyecto ya no está esperando su publicación",
+    });
+  const ahora = new Date().toISOString();
+  const aprobada = resolucion === "REVISADA";
+  if (aprobada && proyecto.fechaCierre && Date.parse(proyecto.fechaCierre) <= Date.now())
+    return new Respuesta(422, { message: "La fecha de cierre ya pasó" });
+  proyecto.estado = aprobada ? "ABIERTO" : "BORRADOR";
+  proyecto.publicacion = {
+    ...proyecto.publicacion,
+    aprobadaEn: aprobada ? ahora : null,
+    rechazo: aprobada ? null : { nota: nota || null, fecha: ahora },
+  };
+  Object.assign(revision, {
+    estado: resolucion,
+    nota: nota || null,
+    resueltaPor: ADMINISTRACION_SIMULADA.usuarioId,
+    resueltaEn: ahora,
+  });
+  auditar(
+    estado,
+    aprobada ? "PROYECTO_PUBLICADO" : "PUBLICACION_RECHAZADA",
+    { tipo: "PROYECTO", id: proyecto.id },
+    { revisionId: revision.id },
+  );
+  return { ...revision, proyecto: { id: proyecto.id } };
+}
+
 function resolverRevision(estado, id, { estado: resolucion, nota }) {
   const revision = estado.revisiones.get(id);
   if (!revision) return null;
@@ -211,6 +437,8 @@ function resolverRevision(estado, id, { estado: resolucion, nota }) {
     return new Respuesta(409, { message: "Ya resuelta." });
   if (!["REVISADA", "DESCARTADA"].includes(resolucion))
     return new Respuesta(400, { message: "Estado inválido." });
+  if (revision.motivo === "PUBLICACION")
+    return resolverPublicacion(estado, revision, { estado: resolucion, nota });
   Object.assign(revision, {
     estado: resolucion,
     nota: nota || null,
@@ -248,6 +476,16 @@ function rutasDeAdministracion(estado) {
           .map((id) => sinColectivo(estado.proyectos.get(id), estado)),
     ],
     [
+      "GET",
+      /^\/administracion\/proyectos\/destacados$/,
+      () => destacadosDeAdministracion(estado),
+    ],
+    [
+      "GET",
+      /^\/administracion\/proyectos$/,
+      (_, __, consulta) => proyectosParaBaja(estado, consulta),
+    ],
+    [
       "PUT",
       /^\/administracion\/proyectos\/([^/]+)\/destacado$/,
       ([id], cuerpo) => destacar(estado, id, cuerpo),
@@ -280,9 +518,35 @@ function rutasDeAdministracion(estado) {
       ([id], cuerpo) => resolverRevision(estado, id, cuerpo),
     ],
     [
+      "POST",
+      /^\/proyectos\/([^/]+)\/publicacion$/,
+      ([id]) => pedirPublicacion(estado, id),
+    ],
+    [
       "GET",
       /^\/administracion\/auditoria$/,
       (_, __, consulta) => paginar(filtrarAuditoria(estado, consulta), consulta),
+    ],
+    ["GET", /^\/terminos$/, () => terminosVigentes(estado)],
+    [
+      "PUT",
+      /^\/administracion\/terminos$/,
+      (_, cuerpo) => publicarTerminos(estado, cuerpo),
+    ],
+    [
+      "POST",
+      /^\/administracion\/proyectos\/([^/]+)\/baja$/,
+      ([id], cuerpo) => darDeBajaProyecto(estado, id, cuerpo),
+    ],
+    [
+      "POST",
+      /^\/administracion\/colectivos\/([^/]+)\/baja$/,
+      ([id], cuerpo) => darDeBajaColectivoPorInfraccion(estado, id, cuerpo),
+    ],
+    [
+      "GET",
+      /^\/colectivos$/,
+      (_, __, consulta) => paginar(colectivosListados(estado, consulta), consulta),
     ],
   ];
 }
@@ -326,33 +590,7 @@ function rutas(estado) {
       /^\/colaboradores\/([^/]+)\/valoraciones$/,
       ([id]) => valoraciones(estado, id, false),
     ],
-    [
-      "POST",
-      /^\/colectivos\/([^/]+)\/baja$/,
-      ([id]) => {
-        const c = estado.colectivos.get(id);
-        if (!c) return null;
-        if (c.fechaBaja)
-          return new Respuesta(409, { message: "Ya estaba dado de baja." });
-        c.fechaBaja = new Date().toISOString();
-        c.cuentaId = null;
-        c.mediosDeContacto = [];
-        c.redesSociales = [];
-        for (const p of estado.proyectos.values())
-          if (p.colectivoId === id && p.estado === "ABIERTO") {
-            p.estado = "FINALIZADO";
-            p.fechaFinalizacion = c.fechaBaja;
-            for (const colaboracion of p.colaboraciones) {
-              if (colaboracion.estado === "PENDIENTE") colaboracion.estado = "RECHAZADA";
-              else if (colaboracion.estado === "ACEPTADA") {
-                colaboracion.estado = "FINALIZADA";
-                colaboracion.fechaFin = c.fechaBaja;
-              }
-            }
-          }
-        return c;
-      },
-    ],
+    ["POST", /^\/colectivos\/([^/]+)\/baja$/, ([id]) => darDeBajaColectivo(estado, id)],
     [
       "POST",
       /^\/proyectos\/([^/]+)\/colaboraciones\/([^/]+)\/valoraciones$/,
@@ -455,7 +693,7 @@ function rutas(estado) {
     [
       "GET",
       /^\/colectivos\/([^/]+)\/proyectos$/,
-      ([id]) => pagina(proyectosDe(estado, id)),
+      ([id]) => pagina(proyectosDe(estado, id).map(conDatosDeGestion)),
     ],
     [
       "GET",
@@ -489,6 +727,8 @@ function rutas(estado) {
       "POST",
       /^\/colectivos\/([^/]+)\/proyectos$/,
       ([colectivoId], cuerpo) => {
+        const sinAceptar = rechazoDeTerminos(estado, cuerpo.terminosAceptados);
+        if (sinAceptar) return sinAceptar;
         const id = nuevoId("p");
         const habilidades = (codigos = []) =>
           codigos.map((codigo) =>
@@ -508,8 +748,14 @@ function rutas(estado) {
             habilidadesOpcionales: habilidades(codigosHabilidadesOpcionales),
           }),
         );
+        const { borrador, terminosAceptados, ...datos } = cuerpo;
         const proyecto = unProyecto(id, {
-          ...cuerpo,
+          ...datos,
+          terminos: terminosAceptados
+            ? { version: terminosAceptados, aceptadosEn: new Date().toISOString() }
+            : null,
+          estado: borrador ? "BORRADOR" : "ABIERTO",
+          ...(borrador ? { publicacion: null } : {}),
           colectivo: {
             id: colectivoId,
             nombre: estado.colectivos.get(colectivoId)?.nombre,
@@ -534,9 +780,9 @@ function rutas(estado) {
       /^\/colaboradores\/([^/]+)\/proyectos-potenciales$/,
       () =>
         pagina(
-          [...estado.proyectos.values()].map((proyecto) =>
-            sinColectivo(proyecto, estado),
-          ),
+          [...estado.proyectos.values()]
+            .filter(estaPublicado)
+            .map((proyecto) => sinColectivo(proyecto, estado)),
         ),
     ],
   ];

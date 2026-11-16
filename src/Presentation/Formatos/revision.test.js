@@ -1,5 +1,6 @@
 import {
   ESTADOS_DE_REVISION,
+  MOTIVOS_DE_REVISION,
   mensajeDeRevision,
   textoDeEstadoDeRevision,
   textoDeMotivo,
@@ -32,4 +33,48 @@ test("los fallos de resolver se explican sin mostrar el error del back", () => {
   expect(mensajeDeRevision({ status: 500 })).toBe(
     "No pudimos guardar la revisión. Probá de nuevo.",
   );
+});
+
+describe("revisiones de publicación", () => {
+  test("el motivo de publicación se explica y el filtro ofrece los dos motivos", () => {
+    expect(textoDeMotivo("PUBLICACION")).toBe("Pidió publicar el proyecto");
+    expect(MOTIVOS_DE_REVISION.map(({ valor, texto }) => [valor, texto])).toEqual([
+      ["", "Todos"],
+      ["PUBLICACION", "Pidió publicar el proyecto"],
+      ["SIN_ACTUALIZACIONES", "Sin actualizaciones hace más de 30 días"],
+    ]);
+  });
+
+  test("las resueltas de publicación dicen Aprobada y Con cambios pedidos", () => {
+    expect(textoDeEstadoDeRevision("PENDIENTE", "PUBLICACION")).toBe("Pendiente");
+    expect(textoDeEstadoDeRevision("REVISADA", "PUBLICACION")).toBe("Aprobada");
+    expect(textoDeEstadoDeRevision("DESCARTADA", "PUBLICACION")).toBe(
+      "Con cambios pedidos",
+    );
+    expect(textoDeEstadoDeRevision("REVISADA", "SIN_ACTUALIZACIONES")).toBe("Revisada");
+  });
+
+  test("los fallos de resolver una publicación tienen textos propios", () => {
+    expect(mensajeDeRevision({ status: 409 }, "PUBLICACION")).toBe(
+      "Esta publicación ya fue resuelta.",
+    );
+    expect(mensajeDeRevision({ status: 422 }, "PUBLICACION")).toBe(
+      "La fecha de cierre del proyecto ya pasó. Pedí cambios con una nota para que el colectivo la corrija.",
+    );
+    expect(
+      mensajeDeRevision({ status: 422, codigo: "CONFLICTO_DE_INTERESES" }, "PUBLICACION"),
+    ).toBe("No podés resolver la publicación de un proyecto de tu propio colectivo.");
+    expect(mensajeDeRevision({ status: 403 }, "PUBLICACION")).toBe(
+      "No tenés permiso para hacer esto.",
+    );
+  });
+
+  test("el conflicto de intereses también se explica en las otras revisiones", () => {
+    expect(
+      mensajeDeRevision(
+        { status: 422, codigo: "CONFLICTO_DE_INTERESES" },
+        "SIN_ACTUALIZACIONES",
+      ),
+    ).toBe("No podés resolver una revisión de un proyecto de tu propio colectivo.");
+  });
 });

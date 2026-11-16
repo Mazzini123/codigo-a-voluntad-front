@@ -60,6 +60,9 @@ test.each([
   [perfil({ fechaCierreBusqueda: "2026-11-01T12:00:00Z" }), {}, "cerrada", "Cerrada"],
   [perfil({ busquedaAbierta: false }), {}, "cerrada", "Cerrada"],
   [perfil(), { estado: "FINALIZADO" }, "finalizado", "Finalizado"],
+  [perfil(), { estado: "BORRADOR" }, "cerrada", "Se abre al publicar"],
+  [perfil(), { estado: "EN_REVISION" }, "cerrada", "Se abre al publicar"],
+  [perfil({ busquedaAbierta: false }), { estado: "BORRADOR" }, "cerrada", "Cerrada"],
 ])("estado de búsqueda %#", (unPerfil, cambiosDelProyecto, tipo, texto) => {
   expect(
     estadoDeBusqueda(unPerfil, proyecto([unPerfil], cambiosDelProyecto), HOY),
